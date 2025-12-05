@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>EDM Music</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Анимированный фон градиента -->
+        <div class="animated-gradient"></div>
+        
+        <!-- Шапка приложения -->
+        <header class="app-header">
+            <div class="header-top">
+                <div class="logo-container">
+                    <div class="logo">
+                        <i class="fas fa-music"></i>
+                    </div>
+                    <h1 class="app-title">EDM_Music</h1>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-icon btn-profile" id="profileBtn">
+                        <i class="fas fa-user"></i>
+                    </button>
+                    <button class="btn-icon btn-close" id="closePlayerBtn" style="display: none;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Поисковая строка -->
+            <div class="search-container">
+                <div class="search-bar">
+                    <input type="text" id="searchInput" placeholder="Поиск треков..." class="search-input">
+                    <button class="search-btn" id="searchBtn">
+                        <div class="search-icon-circle">
+                            <i class="fas fa-search"></i>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Основной контент -->
+        <main class="main-content">
+            <!-- Секция рекомендаций -->
+            <section class="recommendations-section">
+                <div class="section-header">
+                    <h2 class="section-title"><i class="fas fa-fire"></i> Рекомендации</h2>
+                    <button class="btn-filter" id="filterBtn">
+                        <i class="fas fa-sliders-h"></i> Фильтр
+                    </button>
+                </div>
+                
+                <!-- Список треков -->
+                <div class="tracks-container" id="tracksContainer">
+                    <!-- Треки будут загружены через JavaScript -->
+                </div>
+            </section>
+            
+            <!-- Пагинация -->
+            <div class="pagination-container">
+                <button class="pagination-btn prev-btn" id="prevPage">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <div class="page-numbers">
+                    <button class="page-number active" data-page="1">1</button>
+                    <button class="page-number" data-page="2">2</button>
+                    <button class="page-number" data-page="3">3</button>
+                    <button class="page-number" data-page="4">4</button>
+                </div>
+                <button class="pagination-btn next-btn" id="nextPage">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </main>
+        
+        <!-- Нижняя панель с плеером -->
+        <div class="player-bar" id="playerBar">
+            <div class="player-info">
+                <div class="player-album-art" id="playerAlbumArt">
+                    <i class="fas fa-music"></i>
+                </div>
+                <div class="player-track-info">
+                    <h4 class="player-track-title" id="playerTrackTitle">Трек не выбран</h4>
+                    <p class="player-track-artist" id="playerTrackArtist">Выберите трек</p>
+                </div>
+            </div>
+            <div class="player-controls">
+                <button class="player-btn" id="playPauseBtn">
+                    <i class="fas fa-play"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Нижнее меню навигации -->
+        <nav class="bottom-nav">
+            <button class="nav-btn active" data-page="home">
+                <i class="fas fa-home"></i>
+                <span>Главная</span>
+            </button>
+            <button class="nav-btn" data-page="favorites" id="favoritesBtn">
+                <i class="far fa-heart"></i>
+                <span>Избранное</span>
+            </button>
+            <button class="nav-btn" data-page="equalizer" id="equalizerBtn">
+                <i class="fas fa-sliders-h"></i>
+                <span>Эквалайзер</span>
+            </button>
+            <button class="nav-btn" data-page="settings" id="settingsBtn">
+                <i class="fas fa-cog"></i>
+                <span>Настройки</span>
+            </button>
+        </nav>
+        
+        <!-- Полноэкранный плеер -->
+        <div class="fullscreen-player" id="fullscreenPlayer">
+            <!-- Анимированный фон будет добавляться динамически -->
+            <div class="fullscreen-bg" id="fullscreenBg"></div>
+            
+            <div class="player-header">
+                <button class="btn-close-fullscreen" id="closeFullscreenBtn">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="player-header-title">
+                    <h3>Сейчас играет</h3>
+                </div>
+                <button class="btn-icon" id="fullscreenFavoriteBtn">
+                    <i class="far fa-heart"></i>
+                </button>
+            </div>
+            
+            <div class="fullscreen-content">
+                <div class="fullscreen-album-art" id="fullscreenAlbumArt">
+                    <div class="album-art-placeholder">
+                        <i class="fas fa-music"></i>
+                    </div>
+                </div>
+                
+                <div class="fullscreen-track-info">
+                    <h1 class="fullscreen-track-title" id="fullscreenTrackTitle">Название трека</h1>
+                    <p class="fullscreen-track-artist" id="fullscreenTrackArtist">Исполнитель</p>
+                </div>
+                
+                <div class="progress-container">
+                    <div class="progress-time current-time" id="currentTime">0:00</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="progress-time total-time" id="totalTime">0:00</div>
+                </div>
+                
+                <div class="fullscreen-controls">
+                    <button class="control-btn" id="shuffleBtn">
+                        <i class="fas fa-random"></i>
+                    </button>
+                    <button class="control-btn" id="prevTrackBtn">
+                        <i class="fas fa-step-backward"></i>
+                    </button>
+                    <button class="control-btn play-btn" id="fullscreenPlayBtn">
+                        <i class="fas fa-play"></i>
+                    </button>
+                    <button class="control-btn" id="nextTrackBtn">
+                        <i class="fas fa-step-forward"></i>
+                    </button>
+                    <button class="control-btn" id="repeatBtn">
+                        <i class="fas fa-redo"></i>
+                    </button>
+                </div>
+                
+                <div class="additional-controls">
+                    <button class="additional-btn" id="volumeBtn">
+                        <i class="fas fa-volume-up"></i>
+                    </button>
+                    <button class="additional-btn" id="playlistBtn">
+                        <i class="fas fa-list"></i>
+                    </button>
+                    <button class="additional-btn" id="shareBtn">
+                        <i class="fas fa-share-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Модальное окно фильтров -->
+        <div class="modal-overlay" id="filterModal">
+            <div class="modal-content glass-effect">
+                <div class="modal-header">
+                    <h3><i class="fas fa-filter"></i> Фильтр музыки</h3>
+                    <button class="btn-close-modal" id="closeFilterBtn">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="filter-buttons">
+                        <button class="filter-option" data-filter="energetic">
+                            <i class="fas fa-bolt"></i> Энергичный
+                        </button>
+                        <button class="filter-option" data-filter="calm">
+                            <i class="fas fa-spa"></i> Спокойный
+                        </button>
+                        <button class="filter-option" data-filter="mix">
+                            <i class="fas fa-blender"></i> Микс
+                        </button>
+                        <button class="filter-option" data-filter="foreign">
+                            <i class="fas fa-globe"></i> Зарубежные
+                        </button>
+                        <button class="filter-option" data-filter="new">
+                            <i class="fas fa-star"></i> Новые
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Модальное окно профиля -->
+        <div class="modal-overlay" id="profileModal">
+            <div class="modal-content glass-effect profile-modal">
+                <div class="modal-header">
+                    <h3><i class="fas fa-user"></i> Профиль</h3>
+                    <button class="btn-close-modal" id="closeProfileBtn">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="profile-info">
+                        <div class="profile-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <h3 class="profile-name">Слушатель EDM</h3>
+                        <p class="profile-email">user@edm-music.com</p>
+                    </div>
+                    
+                    <div class="profile-stats">
+                        <div class="stat-item">
+                            <div class="stat-number">0</div>
+                            <div class="stat-label">Избранных</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">0</div>
+                            <div class="stat-label">Прослушано</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">0</div>
+                            <div class="stat-label">Часов</div>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-actions">
+                        <button class="profile-action-btn">
+                            <i class="fas fa-history"></i> История прослушивания
+                        </button>
+                        <button class="profile-action-btn">
+                            <i class="fas fa-download"></i> Загрузки
+                        </button>
+                        <button class="profile-action-btn">
+                            <i class="fas fa-palette"></i> Темы
+                        </button>
+                        <button class="profile-action-btn" id="telegramBtn">
+                            <i class="fab fa-telegram"></i> Наш Telegram
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Модальное окно эквалайзера -->
+        <div class="modal-overlay" id="equalizerModal">
+            <div class="modal-content glass-effect">
+                <div class="modal-header">
+                    <h3><i class="fas fa-sliders-h"></i> Эквалайзер</h3>
+                    <button class="btn-close-modal" id="closeEqualizerBtn">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="equalizer-container">
+                        <div class="equalizer-presets">
+                            <h4>Пресеты:</h4>
+                            <div class="preset-buttons">
+                                <button class="preset-btn active" data-preset="default">По умолчанию</button>
+                                <button class="preset-btn" data-preset="bass">Усиленный бас</button>
+                                <button class="preset-btn" data-preset="treble">Высокие частоты</button>
+                                <button class="preset-btn" data-preset="vocal">Вокал</button>
+                                <button class="preset-btn" data-preset="flat">Плоский</button>
+                            </div>
+                        </div>
+                        
+                        <div class="equalizer-sliders">
+                            <div class="slider-container">
+                                <label>60 Hz</label>
+                                <input type="range" class="eq-slider" min="-12" max="12" value="0" data-band="60hz">
+                            </div>
+                            <div class="slider-container">
+                                <label>230 Hz</label>
+                                <input type="range" class="eq-slider" min="-12" max="12" value="0" data-band="230hz">
+                            </div>
+                            <div class="slider-container">
+                                <label>910 Hz</label>
+                                <input type="range" class="eq-slider" min="-12" max="12" value="0" data-band="910hz">
+                            </div>
+                            <div class="slider-container">
+                                <label>4 kHz</label>
+                                <input type="range" class="eq-slider" min="-12" max="12" value="0" data-band="4khz">
+                            </div>
+                            <div class="slider-container">
+                                <label>14 kHz</label>
+                                <input type="range" class="eq-slider" min="-12" max="12" value="0" data-band="14khz">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Модальное окно настроек -->
+        <div class="modal-overlay" id="settingsModal">
+            <div class="modal-content glass-effect">
+                <div class="modal-header">
+                    <h3><i class="fas fa-cog"></i> Настройки</h3>
+                    <button class="btn-close-modal" id="closeSettingsBtn">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="settings-option">
+                        <div class="setting-info">
+                            <i class="fas fa-volume-up"></i>
+                            <div>
+                                <h4>Громкость</h4>
+                                <p>Настройка уровня громкости</p>
+                            </div>
+                        </div>
+                        <input type="range" class="volume-slider" min="0" max="100" value="80">
+                    </div>
+                    
+                    <div class="settings-option">
+                        <div class="setting-info">
+                            <i class="fas fa-wifi"></i>
+                            <div>
+                                <h4>Только Wi-Fi</h4>
+                                <p>Загружать музыку только по Wi-Fi</p>
+                            </div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="wifiOnly">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="settings-option">
+                        <div class="setting-info">
+                            <i class="fas fa-moon"></i>
+                            <div>
+                                <h4>Темная тема</h4>
+                                <p>Включить темный режим</p>
+                            </div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="darkMode">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="settings-option">
+                        <div class="setting-info">
+                            <i class="fas fa-bell"></i>
+                            <div>
+                                <h4>Уведомления</h4>
+                                <p>Получать уведомления о новинках</p>
+                            </div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="notifications" checked>
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="settings-option">
+                        <div class="setting-info">
+                            <i class="fas fa-download"></i>
+                            <div>
+                                <h4>Авто-загрузка</h4>
+                                <p>Автоматически загружать любимые треки</p>
+                            </div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="autoDownload">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Футер с информацией -->
+        <footer class="app-footer">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <i class="fas fa-music"></i> EDM_Music
+                </div>
+                <div class="footer-info">
+                    <p class="support-text">support: @EDEM_CR</p>
+                    <p class="channel-text">Telegram channel:</p>
+                    <a href="https://t.me/EDM_tm" target="_blank" class="telegram-link">https://t.me/EDM_tm</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+    <!-- Аудио элемент -->
+    <audio id="audioPlayer" preload="metadata"></audio>
+    
+    <script src="script.js"></script>
+</body>
+</html>
+
+<!-- Этот файл является продолжением index.html -->
+<!-- Стили и скрипты подключены в первой части -->
+
+<!-- Добавляем дополнительные элементы для анимаций -->
+<div class="particles-container" id="particlesContainer"></div>
+
+<!-- Модальное окно загрузки -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-content">
+        <div class="loading-spinner"></div>
+        <p>Загрузка музыки...</p>
+    </div>
+</div>
+
+<!-- Toast уведомления -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Контекстное меню для треков -->
+<div class="context-menu" id="contextMenu">
+    <button class="context-menu-item" id="addToFavoritesContext">
+        <i class="far fa-heart"></i> В избранное
+    </button>
+    <button class="context-menu-item" id="addToPlaylistContext">
+        <i class="fas fa-list"></i> Добавить в плейлист
+    </button>
+    <button class="context-menu-item" id="shareContext">
+        <i class="fas fa-share-alt"></i> Поделиться
+    </button>
+    <button class="context-menu-item" id="downloadContext">
+        <i class="fas fa-download"></i> Скачать
+    </button>
+</div>
+
+<!-- Модальное окно плейлиста -->
+<div class="modal-overlay" id="playlistModal">
+    <div class="modal-content glass-effect">
+        <div class="modal-header">
+            <h3><i class="fas fa-list"></i> Плейлисты</h3>
+            <button class="btn-close-modal" id="closePlaylistBtn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="playlist-create">
+                <input type="text" id="newPlaylistName" placeholder="Название нового плейлиста">
+                <button class="btn-create-playlist" id="createPlaylistBtn">
+                    <i class="fas fa-plus"></i> Создать
+                </button>
+            </div>
+            
+            <div class="playlist-list" id="playlistList">
+                <div class="playlist-item">
+                    <i class="fas fa-heart"></i>
+                    <span>Любимые треки</span>
+                    <span class="playlist-count">0</span>
+                </div>
+                <div class="playlist-item">
+                    <i class="fas fa-fire"></i>
+                    <span>Энергичные</span>
+                    <span class="playlist-count">0</span>
+                </div>
+                <div class="playlist-item">
+                    <i class="fas fa-spa"></i>
+                    <span>Для релакса</span>
+                    <span class="playlist-count">0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно управления громкостью -->
+<div class="modal-overlay" id="volumeModal">
+    <div class="modal-content glass-effect volume-modal">
+        <div class="modal-header">
+            <h3><i class="fas fa-volume-up"></i> Громкость</h3>
+            <button class="btn-close-modal" id="closeVolumeBtn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="volume-control">
+                <i class="fas fa-volume-mute volume-icon" id="volumeIcon"></i>
+                <input type="range" id="volumeSlider" class="volume-range" min="0" max="100" value="80">
+                <i class="fas fa-volume-up volume-icon"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно истории -->
+<div class="modal-overlay" id="historyModal">
+    <div class="modal-content glass-effect">
+        <div class="modal-header">
+            <h3><i class="fas fa-history"></i> История прослушивания</h3>
+            <button class="btn-close-modal" id="closeHistoryBtn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="history-list" id="historyList">
+                <p class="empty-history">История прослушивания пуста</p>
+            </div>
+        </div>
+    </div>
+</div>
