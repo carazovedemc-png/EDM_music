@@ -1,3 +1,4 @@
+[file name]: script.js
 // ===== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ И КОНСТАНТЫ =====
 const tg = window.Telegram?.WebApp || {};
 let user = null;
@@ -9,272 +10,323 @@ let currentPage = 1;
 const productsPerPage = 8;
 let deliveryAddress = '';
 let isAddressSaved = false;
+let selectedSizes = [];
 
 // Ключи для localStorage
 const STORAGE_KEYS = {
-    CART: 'aura_atelier_cart',
-    FAVORITES: 'aura_atelier_favorites',
-    USER: 'aura_atelier_user',
-    ADDRESS: 'aura_atelier_address'
+    CART: 'edm_sneakers_cart',
+    FAVORITES: 'edm_sneakers_favorites',
+    USER: 'edm_sneakers_user',
+    ADDRESS: 'edm_sneakers_address'
 };
 
-// КАРТОЧКИ ТОВАРОВ
+// КРОССОВКИ
 const PRODUCTS_DATA = [
     {
         id: 1,
-        name: "Aris 222 VIP Bleck",
-        description: "Представленный на изображении товар — это Aris 222 VIP Black, концентрированное парфюмерное масло духи без спирта. Верхние ноты: Абсент, анис и фенхель. Средняя нота: Лаванда. Базовые ноты: Черная ваниль и мускус.",
-        price: 350,
-        oldPrice: 0,
-        category: "premium",
-        volume: 6,
-        rating: 4.8,
-        reviews: 124,
-        image: "https://sun9-80.userapi.com/s/v1/ig2/POV_jt4v0MEj7d-4gdkRYIFYTBL-hvXmDLOjJKlY-RqeOgcO1NxWHXAss7UBTzkvI8rdLMEdpqZwJeARBqh7iyc3.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=tt6otIk9Wzym_IH9u6oWb4gDXhDWpPwiNQ5muEOgTHo&cs=240x0",
+        name: "Nike Air Jordan 1 Retro High",
+        description: "Культовые кроссовки Nike Air Jordan 1 Retro High в классической красно-черно-белой цветовой гамме. Высококачественная кожа, оригинальная подошва, идеально для коллекционеров и повседневной носки.",
+        price: 24500,
+        oldPrice: 29900,
+        category: "sneakers",
+        size: [40, 41, 42, 43, 44],
+        brand: "Nike",
+        rating: 4.9,
+        reviews: 412,
+        image: "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
         badge: "hit",
         inStock: true,
         popular: true,
-        notes: ["лаванда", "чёрная ваниль", "мускус"]
+        specs: ["Высокое голенище", "Кожаный верх", "Воздушная подошва", "Оригинал"]
     },
     {
         id: 2,
-        name: "Dalal",
-        description: "Dalal — масляные духи бренда Al Rehab из ОАЭ. Относятся к семейству сладких, древесных и гурманских ароматов. Благодаря масляной консистенции духи имеют хорошую стойкость и экономичны в расходе. Запах держится до 12 часов! Аромат:  Верхние ноты: апельсин. Ноты сердца: карамель, ваниль. Базовые ноты: сандаловое дерево.Композиция напоминает о карамельном чизкейке и ванильном мороженом с апельсиновым джемом",
-        price: 350,
+        name: "Adidas Yeezy Boost 350 V2",
+        description: "Adidas Yeezy Boost 350 V2 в цвете 'Zebra' - ультрамодные кроссовки с технологией Boost для максимального комфорта. Primeknit верх обеспечивает идеальную посадку.",
+        price: 32000,
         oldPrice: 0,
-        category: "premium",
-        volume: 6,
-        rating: 4.9,
-        reviews: 100,
-        image: "https://sun9-41.userapi.com/s/v1/ig2/vkEyo2KDCGJhawzJ2PSYbdY9h4EOrh30HrjwefVSCbYOSqJPoXruX0WobRyxKbRBw8BvdlL8sejPGZ4p-RrVjUOO.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=m0AEgal8BacMT-TAXZva7xEf1ZAAdIa_7ZvmQJYgIsY&cs=360x0",
-        badge: "hit",
-        inStock: true,
-        popular: true,
-        notes: ["апельсин", "карамель", "ваниль", "сандаловое дерево"]
-    },
-    {
-        id: 3,
-        name: "Black Opium",
-        description: "Это - женские духи из группы восточные гурманские. Композиция глубокая, насыщенная, сладкая и притягательная. Верхние ноты: груша, розовый перец и цветок апельсина. Средние ноты: кофе, жасмин, горький миндаль и лакричник. Базовые ноты: ваниль, пачули, кедр и кашемировое дерево.",
-        price: 350,
-        oldPrice: 0,
-        category: "affordable",
-        volume: 6,
-        rating: 4.6,
-        reviews: 100,
-        image: "https://sun9-43.userapi.com/s/v1/ig2/7OuPKSCxdwp7oHCuEccqLkHkK_-ovx6ks842VjcS4nIExZ1VGhdLfUhSz-ueglS4PgI_fh29HEvPqFLzNlKj3tej.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=DTS3NJnjcShlWzwIHzZ9tgVLIOKUx8JWVEEhGsoYZH0&cs=640x0",
-        badge: "null",
-        inStock: true,
-        popular: false,
-        notes: ["кофе", "жасмин", "ваниль", "кедр", "горький миндаль"]
-    },
-    {
-        id: 4,
-        name: "Creed Aventus For Her",
-        description: "Limited Edition Creed Aventus For Her - женский аромат. Это фруктово шипровая парфюмерная вода с нотами зеленого яблока, лимона, бергамота, розы, сандала и мускуса",
-        price: 350,
-        oldPrice: 0,
-        category: "premium",
-        volume: 6,
-        rating: 4.9,
-        reviews: 167,
-        image: "https://sun9-79.userapi.com/s/v1/ig2/XOkgSK57rv_tI2P2NE_TQ_5nKYuTRM_AUJfT2YQ53g0-5lW9ETR7FbZ4yRYeNTHIuBcNPhP4lKiON3Nwe1sMTy0S.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=L5LPBfopJzZuCDe9YN9SywE0Br_mxxQTJfwhp4lDlAI&cs=360x0",
-        badge: "hit",
-        inStock: true,
-        popular: true,
-        notes: ["бергамот", "мускус", "роза", "лимон", "сандал", "зелёное яблоко"]
-    },
-    {
-        id: 5,
-        name: "Kirki Aksa",
-        description: "Концентрированное эфирное масло Kirki Aksa - это унисекс парфюм с фруктово шипровым ароматом. Верхние ноты - Маракуйя персик, малина, лист черной смородины, груша, песок. Средние ноты - Ландыш. Базовые ноты - Гелиотроп, сандал, ваниль, пачули, мускус.",
-        price: 350,
-        oldPrice: 0,
-        category: "premium",
-        volume: 6,
-        rating: 4.7,
-        reviews: 187,
-        image: "https://sun9-84.userapi.com/s/v1/ig2/LDMpV1ihJnWYPte5wGmG-BxwBsBptbz7QSARpRMRdZt-fpO0wy_4ZPiEPS0oWkLxjFPzRm1wdDYeA2n88xh7Fegn.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=QhV-dEoaJC83x6egk46Ej6FZETeNOMWtoQnFpIMrEII&cs=360x0",
-        badge: "null",
-        inStock: true,
-        popular: true,
-        notes: ["маракуйя", "персик", "ваниль"]
-    },
-    {
-        id: 6,
-        name: "Black Opium",
-        description: "Это масляные духи с феромонами Black Opium — это женская парфюмерная вода",
-        price: 350,
-        oldPrice: 0,
-        category: "affordable",
-        volume: 6,
-        rating: 4.5,
-        reviews: 92,
-        image: "https://sun9-37.userapi.com/s/v1/ig2/sE51AVESqed4uV7s0G1BwL6YiNvoyG81xw3TEiygep-FuH_44Vl82QuVDfVZteIIdCAa1NAXQ2A-fQDnoOtisjq4.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=RXKCzPLanm6VtxbnzBnP-I3Ki7th8SeNxFq2aFmrLDE&cs=360x0",
-        badge: null,
-        inStock: true,
-        popular: false,
-        notes: ["жасмин", "груша", "кофе"]
-    },
-    {
-        id: 7,
-        name: "YARAN Voux",
-        description: "YARAN Voux от Aris Perfumes — это концентрированное парфюмерное масло (CPO). Это унисекс-аромат, который относится к восточным или гурманским коллекциям, схожим с другими ароматами от брендов, таких как Paris Corner.",
-        price: 350,
-        oldPrice: 0,
-        category: "premium",
-        volume: 6,
+        category: "sneakers",
+        size: [39, 40, 41, 42, 43, 44],
+        brand: "Adidas",
         rating: 4.8,
-        reviews: 143,
-        image: "https://sun9-18.userapi.com/s/v1/ig2/JPe8xzc_vL633B2Y0VenFoeipK_joP7GR9FZZ565Z7XEuh8CeoYJxM7GmBFilsfBbropmaZze7L5RJ5ISim-VNa8.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=DwhSt-8w64gm4QVZgK4wKRnie5o2V4HtkWzexyWhaos&cs=360x0",
-        badge: "null",
-        inStock: true,
-        popular: true,
-        notes: ["ваниль", "сандал", "мускус"]
-    },
-    {
-        id: 8,
-        name: "Al Rayan G&D Limperatrice",
-        description: "Al Rayan G&D Limperatrice — это концентрированное масляное парфюмерное масло аттар. Композиция аромата включает следующие ноты: Верхние ноты: Розовый перец, ревень, киви. Средние ноты сердце: Арбуз, цикламен, жасмин. Базовые ноты: Мускус, сандал, лимонное китайское дерево. Описание Аромат описывается как яркий, игривый и энергичный, с доминирующими аккордами сочных тропических фруктов и свежестью. Он подходит для дневного ношения, особенно в весенне-летний период.",
-        price: 350,
-        oldPrice: 0,
-        category: "affordable",
-        volume: 6,
-        rating: 4.6,
-        reviews: 56,
-        image: "https://sun9-32.userapi.com/s/v1/ig2/u7kV68pjiyC_Ep97GMc8IEBXIH5cX50pFb6q5MNe7wnyULSvSD4-xUH6qRePG96lG1aWbOChxMLH_QshKz3HP9Uj.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=lf3dVx7r5RsUdRttLycIgRe0gYshLVfBPnVAmBYt9_0&cs=360x0",
+        reviews: 389,
+        image: "https://images.unsplash.com/photo-1600269452121-4f2416e55c28?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
         badge: "new",
         inStock: true,
         popular: true,
-        notes: ["ревень", "киви", "арбуз", "мускус"]
+        specs: ["Primeknit верх", "Технология Boost", "Стиль Zebra", "Оригинал"]
+    },
+    {
+        id: 3,
+        name: "New Balance 550",
+        description: "New Balance 550 - ретро-баскетбольные кроссовки, вернувшиеся в моду. Классический дизайн, кожаный верх и комфортная амортизация. Идеальный выбор для городского стиля.",
+        price: 12500,
+        oldPrice: 14900,
+        category: "basketball",
+        size: [40, 41, 42, 43, 44, 45],
+        brand: "New Balance",
+        rating: 4.7,
+        reviews: 267,
+        image: "https://images.unsplash.com/photo-1605348532760-6753d2c43329?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
+        badge: "sale",
+        inStock: true,
+        popular: true,
+        specs: ["Кожаный верх", "Баскетбольный стиль", "Ретро дизайн", "Комфорт"]
+    },
+    {
+        id: 4,
+        name: "Nike Dunk Low 'Panda'",
+        description: "Nike Dunk Low в классическом черно-белом цвете 'Panda'. Универсальные кроссовки, которые подходят к любому образу. Качественная кожа и культовый силуэт.",
+        price: 18900,
+        oldPrice: 21900,
+        category: "sneakers",
+        size: [38, 39, 40, 41, 42, 43],
+        brand: "Nike",
+        rating: 4.9,
+        reviews: 512,
+        image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
+        badge: "hit",
+        inStock: true,
+        popular: true,
+        specs: ["Низкое голенище", "Кожаный верх", "Черно-белый", "Универсальные"]
+    },
+    {
+        id: 5,
+        name: "Adidas Ultraboost 22",
+        description: "Adidas Ultraboost 22 - лучшие беговые кроссовки с технологией Boost. Максимальная амортизация и возврат энергии для эффективных тренировок.",
+        price: 15900,
+        oldPrice: 0,
+        category: "running",
+        size: [40, 41, 42, 43, 44, 45],
+        brand: "Adidas",
+        rating: 4.8,
+        reviews: 421,
+        image: "https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
+        badge: null,
+        inStock: true,
+        popular: true,
+        specs: ["Технология Boost", "Беговые", "Primeknit верх", "Энерго возврат"]
+    },
+    {
+        id: 6,
+        name: "Converse Chuck Taylor All Star",
+        description: "Легендарные Converse Chuck Taylor All Star в классическом черном цвете. Канвасовый верх, резиновая подошва. Икона уличной моды на все времена.",
+        price: 5900,
+        oldPrice: 6900,
+        category: "sneakers",
+        size: [39, 40, 41, 42, 43, 44],
+        brand: "Converse",
+        rating: 4.6,
+        reviews: 892,
+        image: "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
+        badge: "sale",
+        inStock: true,
+        popular: false,
+        specs: ["Канвасовый верх", "Классика", "Резиновая подошва", "Унисекс"]
+    },
+    {
+        id: 7,
+        name: "Air Jordan 4 Retro 'Military Black'",
+        description: "Air Jordan 4 Retro в цвете 'Military Black' - лимитированная серия. Премиум материалы, уникальный дизайн и культовый силуэт для истинных коллекционеров.",
+        price: 42000,
+        oldPrice: 0,
+        category: "limited",
+        size: [41, 42, 43, 44],
+        brand: "Nike",
+        rating: 4.9,
+        reviews: 187,
+        image: "https://images.unsplash.com/photo-1600269452121-4f2416e55c28?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
+        badge: "new",
+        inStock: true,
+        popular: true,
+        specs: ["Лимитированная серия", "Премиум кожа", "Уникальный дизайн", "Коллекционные"]
+    },
+    {
+        id: 8,
+        name: "Nike Air Force 1 '07",
+        description: "Культовые Nike Air Force 1 в белом цвете. Самые популярные кроссовки в истории, которые остаются актуальными уже несколько десятилетий.",
+        price: 12900,
+        oldPrice: 14900,
+        category: "sneakers",
+        size: [38, 39, 40, 41, 42, 43, 44, 45],
+        brand: "Nike",
+        rating: 4.8,
+        reviews: 1245,
+        image: "https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
+        badge: "hit",
+        inStock: true,
+        popular: true,
+        specs: ["Кожаный верх", "Белый цвет", "Воздушная подошва", "Культовые"]
     },
     {
         id: 9,
-        name: "Al-Rayan Kilian By In The City",
-        description: "Представленный на изображении товар - это масляные духи Al-Rayan Kilian By In The City Верхние ноты - Бергамот, гватемальский кардамон и розовый перец. Ноты сердца - Абрикос, карамелизованная слива, турецкая роза и ладан. Базовые ноты: Кедр, индонезийский пачули.",
-        price: 350,
+        name: "Adidas Forum 84 Low",
+        description: "Adidas Forum 84 Low - ретро-баскетбольные кроссовки с современными технологиями. Классический дизайн 80-х в современном исполнении.",
+        price: 11500,
         oldPrice: 0,
-        category: "affordable",
-        volume: 6,
-        rating: 4.4,
-        reviews: 234,
-        image: "https://sun9-6.userapi.com/s/v1/ig2/j3IQyd0QOc9sOzrhRtrqAih-tEG7x5xPiZMfCVxsQyVlb3HjvwSl6OAQK_7QVoRurh9X7w1zX0dEDG12-77JCtQs.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=ytxGprY0FWbTGBoY3EXaC9oX0EfZcJY43B7M6hNMe5g&cs=360x0",
-        badge: "null",
+        category: "basketball",
+        size: [40, 41, 42, 43, 44],
+        brand: "Adidas",
+        rating: 4.5,
+        reviews: 198,
+        image: "https://images.unsplash.com/photo-1605348532760-6753d2c43329?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
+        badge: null,
         inStock: true,
         popular: true,
-        notes: ["кедр", "абрикос", "розовый перец"]
+        specs: ["Ретро стиль", "Баскетбольные", "Кожаный верх", "Низкое голенище"]
     },
     {
         id: 10,
-        name: "Lacoste green",
-        description: "Это — фужерный, цитрусовый аромат для мужчин. стойкое звучание аромата благодаря натуральным маслам и отсутствию спирта; шлейф благодаря тяжёлым молекулам, который раскрывается неторопливо под воздействием тепла кожи и перемены окружающей среды; изменчивость аромата: в тёплом помещении или на жаркой летней улице духи звучат сильнее, раскрываясь под воздействием температуры. Верхние ноты: грейпфрут, дыня, ноты бергамота. Ноты сердца: лимонная вербена, лаванда, тмин. Базовые ноты: берёза, инжир.",
-        price: 350,
-        oldPrice: 0,
-        category: "premium",
-        volume: 6,
-        rating: 4.9,
-        reviews: 189,
-        image: "https://sun9-78.userapi.com/s/v1/ig2/NjbkM41fqN_ElkBHjJWyzjAoGorjvfDBd881IiagMDgy853FarvwWKOFlIK8N_cXQH2xd0lgrKkQb3tIMWLVpBHo.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=VPX8vTYi-reFtDkiHwd1GmDpWymqCFgG4vqjSKpfa4Y&cs=640x0",
-        badge: "hit",
+        name: "Nike Blazer Mid '77 Vintage",
+        description: "Nike Blazer Mid '77 Vintage - винтажные кроссовки с историей. Толстая резиновая подошва, канвасовый верх и культовый силуэт 70-х годов.",
+        price: 13900,
+        oldPrice: 15900,
+        category: "sneakers",
+        size: [39, 40, 41, 42, 43],
+        brand: "Nike",
+        rating: 4.7,
+        reviews: 312,
+        image: "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
+        badge: "sale",
         inStock: true,
         popular: true,
-        notes: ["дыня", "береза", "инжир"]
+        specs: ["Винтажный стиль", "Канвасовый верх", "Среднее голенище", "Ретро"]
     },
     {
         id: 11,
-        name: "Black Afgano",
-        description: "Изображенный на фото товар — это масляные духи с феромонами объемом  6 мл под названием Black Afgano, выпущенные под маркой Pheromon Limited Edition. Описание продукта: Масляные духи с феромонами унисекс. Аромат: Это парфюмерное масло вдохновлено известным оригинальным ароматом Nasomatto Black Afgano, который отличается густым, дымным, древесным и плотным звучанием с нотами  смолы, кофе, табака и ладана",
-        price: 350,
-        oldPrice: 0,
-        category: "affordable",
-        volume: 6,
-        rating: 4.5,
-        reviews: 78,
-        image: "https://sun9-4.userapi.com/s/v1/ig2/XtGtcV14S3upSGqy5SMaZwgHF1oUkavESD9-FDqy08tU3pzNmPw9VN9tMjRx0nVdPIpeM-FfdeutQbG-9o5R8qHR.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=4GI8IGXu6hM54RSYQlvBZjdBhjxuFYbLoDgmtTTHXZM&cs=240x0",
-        badge: null,
+        name: "Puma Suede Classic",
+        description: "Puma Suede Classic - икона хип-хоп культуры. Замшевый верх, классический силуэт и узнаваемый дизайн. Подлинная классика уличной моды.",
+        price: 8900,
+        oldPrice: 10900,
+        category: "sneakers",
+        size: [38, 39, 40, 41, 42, 43],
+        brand: "Puma",
+        rating: 4.6,
+        reviews: 456,
+        image: "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
+        badge: "sale",
         inStock: true,
         popular: false,
-        notes: ["табак", "смола", "кофе"]
+        specs: ["Замшевый верх", "Классика", "Низкое голенище", "Уличный стиль"]
     },
     {
         id: 12,
-        name: "Lost cherry Tom ford",
-        description: "Детали продукта Оригинальный аромат: Lost Cherry от Tom Ford - это люксовая восточно-цветочная парфюмерная вода Eau de Parfum для мужчин и женщин, выпущенная в 2018 году. Продукт на изображении, является масляными духами, вдохновленными оригинальным ароматом, часто с добавлением синтетических феромонов.",
-        price: 350,
-        oldPrice: 0,
-        category: "premium",
-        volume: 6,
+        name: "Nike Air Max 97",
+        description: "Nike Air Max 97 с волнообразным дизайном и полной воздушной подошвой. Футуристичный вид и максимальный комфорт для повседневной носки.",
+        price: 17900,
+        oldPrice: 19900,
+        category: "sneakers",
+        size: [40, 41, 42, 43, 44, 45],
+        brand: "Nike",
         rating: 4.8,
-        reviews: 312,
-        image: "https://sun9-38.userapi.com/s/v1/ig2/uPgqjLUFPMlBHeNEe9CCZYzn1wappYDHmT_cDn8aldq8HidoeXPwyOAX5OHL1YJ1s94WORcWvEZY9hZPwfHFJSZV.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=o2THPZ5FizJ22_R1Sr3J0c12VSXfXGC4rYgfpYfpR1c&cs=240x0",
+        reviews: 389,
+        image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
         badge: "hit",
         inStock: true,
         popular: true,
-        notes: [".", ".", "."]
+        specs: ["Полная Air подошва", "Волнообразный дизайн", "Футуристичный", "Комфорт"]
     },
     {
         id: 13,
-        name: "LACOSTE ESSENTIAL",
-        description: "Lacoste essential pheromon Limited Edition — это масляные духи с феромонами. Тип аромата: Древесный, фужерный",
-        price: 350,
+        name: "Reebok Classic Leather",
+        description: "Reebok Classic Leather - минималистичные кроссовки из премиальной кожи. Чистый дизайн, универсальность и непревзойденный комфорт.",
+        price: 9900,
         oldPrice: 0,
-        category: "affordable",
-        volume: 6,
+        category: "sneakers",
+        size: [39, 40, 41, 42, 43],
+        brand: "Reebok",
         rating: 4.5,
-        reviews: 137,
-        image: "https://sun9-22.userapi.com/s/v1/ig2/q2Pv9a9helePHmcz5NOLAfWetXLXxiksBtqbkvLyhqcIH3WDHiF0WcdYKakuhqtM_5FKe7_qO_DXn2BSWh07-CtR.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=vWg79uv0PR6vMntoQuUoyKEJJtWacOOeOXpjH-juSrw&cs=240x0",
+        reviews: 234,
+        image: "https://images.unsplash.com/photo-1600269452121-4f2416e55c28?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
         badge: null,
         inStock: true,
         popular: false,
-        notes: ["фужерный", "древестный"]
+        specs: ["Кожаный верх", "Минимализм", "Универсальные", "Классика"]
     },
     {
         id: 14,
-        name: "Allur Home Sport",
-        description: "Парфюм на изображении — это Pheromon Limited Edition Allur Home Sport, который представляет собой версию с феромонами, вдохновленную известным ароматом Chanel Allure Homme Sport. Аромат: Мужской, относится к группе древесных пряных ароматов. Композиция сочетает цитрусовые, морские и древесные ноты.",
-        price: 350,
-        oldPrice: 0,
-        category: "affordable",
-        volume: 6,
-        rating: 4.4,
-        reviews: 146,
-        image: "https://sun9-3.userapi.com/s/v1/ig2/SPsgBvzNMm9FCG0YhncWZd7GwB075inz1ZySBRggHyw8GU51Yw96PUJq27KzHFV7DRUHMixSIG6qzfHo_jOOZeKk.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=g54CooC5RUFBToh3mgEDVpcyjM5ZOBuPHTAxQSTK4_g&cs=240x0",
-        badge: null,
+        name: "Nike Air Max 90",
+        description: "Nike Air Max 90 - культовые кроссовки с видимой воздушной подошвой. Легендарный дизайн, проверенный временем комфорт и узнаваемый силуэт.",
+        price: 14900,
+        oldPrice: 16900,
+        category: "sneakers",
+        size: [38, 39, 40, 41, 42, 43, 44],
+        brand: "Nike",
+        rating: 4.8,
+        reviews: 678,
+        image: "https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
+        badge: "sale",
         inStock: true,
-        popular: false,
-        notes: ["нота1", "нота", "нота3"]
+        popular: true,
+        specs: ["Видимая Air подошва", "Культовые", "Комфорт", "Узнаваемый дизайн"]
     },
     {
         id: 15,
-        name: "Acqua Di Gio Giorgio Armani",
-        description: "Pheromon Limited Edition Acqua Di Gio Giorgio Armani — это версия туалетной воды Acqua Di Gio, представленная в формате масляных духов с феромонами. Ноты: Композиция включает морские ноты, розмарин, жасмин, кедр и пачули.",
-        price: 350,
-        oldPrice: 0,
-        category: "affordable",
-        volume: 6,
+        name: "Adidas Superstar",
+        description: "Adidas Superstar с характерным мыском в виде ракушки. Икона уличной моды, которая остается актуальной уже более 50 лет.",
+        price: 10900,
+        oldPrice: 12900,
+        category: "sneakers",
+        size: [38, 39, 40, 41, 42, 43, 44],
+        brand: "Adidas",
         rating: 4.7,
-        reviews: 155,
-        image: "https://sun9-66.userapi.com/s/v1/ig2/sUV2Bm7T9gnxiIqW9DeH4hUXCVNMM4X9xK5wGFKb3ULdjzYum2NsCq7MnCwZi_M76c_dZOsIml1i8tKRn0m9siRM.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=FOrDOsjR7X_6WNiekSjoAHlQU__DAfnKBnvSaCF4bzw&cs=240x0",
-        badge: null,
+        reviews: 512,
+        image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
+        badge: "hit",
         inStock: true,
-        popular: false,
-        notes: ["кедр", "жасмин", "пачули"]
+        popular: true,
+        specs: ["Ракушечный мысок", "Кожаный верх", "Классика", "Универсальные"]
     },
     {
         id: 16,
-        name: "Sospiro Erba Pura",
-        description: "Представленный товар — это масляные духи с феромонами Sospiro Erba Pura Limited Edition. Аромат: Композиция описывается как свежая, с нотами апельсина, лимона и бергамота в верхних нотах, фруктовым сердцем и базой из амбры, белого мускуса и мадагаскарской ванили.",
-        price: 350,
+        name: "Nike ZoomX Vaporfly Next% 2",
+        description: "Nike ZoomX Vaporfly Next% 2 - революционные беговые кроссовки для марафонов. Технология ZoomX и углеродная пластина для максимальной эффективности.",
+        price: 24900,
         oldPrice: 0,
-        category: "affordable",
-        volume: 6,
-        rating: 4.6,
-        reviews: 212,
-        image: "https://sun9-49.userapi.com/s/v1/ig2/HlvVp54Fl1yUYEQrIdMsqsbhrFZjmkzV7Kc3WHJiFUW8SLzG8ptT3CHHRYgCyPp1t3SsCtIjqmnFt1DohZTPoqzf.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=iSxrvU5lePOWtaEQ2vUPQra_jXzu-0msPIKa2wzHVRw&cs=360x0",
-        badge: null,
+        category: "running",
+        size: [40, 41, 42, 43, 44],
+        brand: "Nike",
+        rating: 4.9,
+        reviews: 289,
+        image: "https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
+        badge: "new",
         inStock: true,
-        popular: false,
-        notes: ["лимон", "белый мускус", "бергамот"]
+        popular: true,
+        specs: ["Технология ZoomX", "Углеродная пластина", "Марафонные", "Эффективность"]
+    },
+    {
+        id: 17,
+        name: "Jordan Why Not Zer0.5",
+        description: "Jordan Why Not Zer0.5 - баскетбольные кроссовки Рассела Уэстбрука. Агрессивный дизайн, максимальная поддержка и передовые технологии для игры.",
+        price: 18900,
+        oldPrice: 21900,
+        category: "basketball",
+        size: [41, 42, 43, 44, 45],
+        brand: "Jordan",
+        rating: 4.7,
+        reviews: 156,
+        image: "https://images.unsplash.com/photo-1605348532760-6753d2c43329?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
+        badge: "sale",
+        inStock: true,
+        popular: true,
+        specs: ["Баскетбольные", "Поддержка", "Технологичные", "Агрессивный дизайн"]
+    },
+    {
+        id: 18,
+        name: "EDM™ Limited Edition Pro",
+        description: "Эксклюзивная лимитированная серия кроссовок от EDM™. Премиальные материалы, уникальный дизайн и передовые технологии. Только 500 пар по всему миру.",
+        price: 55000,
+        oldPrice: 0,
+        category: "limited",
+        size: [40, 41, 42, 43],
+        brand: "EDM",
+        rating: 5.0,
+        reviews: 89,
+        image: "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
+        badge: "new",
+        inStock: true,
+        popular: true,
+        specs: ["Лимитированные", "Премиум материалы", "Уникальный дизайн", "Эксклюзив"]
     },
 ];
 
@@ -287,6 +339,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setupFilterPopup();
     initEventListeners();
     loadAddress();
+    setupSizeFilters();
 });
 
 function initApp() {
@@ -300,8 +353,8 @@ function initApp() {
         };
         
         tg.expand();
-        tg.setHeaderColor('#0F0F1E');
-        tg.setBackgroundColor('#0F0F1E');
+        tg.setHeaderColor('#0a0a0a');
+        tg.setBackgroundColor('#0a0a0a');
     } else {
         // Режим демо (вне Telegram)
         user = {
@@ -391,6 +444,28 @@ function updateAddressStatus() {
     }
 }
 
+// ===== ФИЛЬТРЫ РАЗМЕРОВ =====
+function setupSizeFilters() {
+    const sizeButtons = document.querySelectorAll('.size-btn');
+    sizeButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const size = parseInt(this.dataset.size);
+            this.classList.toggle('active');
+            
+            if (this.classList.contains('active')) {
+                if (!selectedSizes.includes(size)) {
+                    selectedSizes.push(size);
+                }
+            } else {
+                const index = selectedSizes.indexOf(size);
+                if (index > -1) {
+                    selectedSizes.splice(index, 1);
+                }
+            }
+        });
+    });
+}
+
 // ===== РЕНДЕРИНГ ТОВАРОВ =====
 function renderProducts() {
     const grid = document.getElementById('productsGrid');
@@ -406,9 +481,9 @@ function renderProducts() {
         grid.innerHTML = `
             <div class="empty-state" style="grid-column: 1/-1; text-align: center; padding: 60px 20px;">
                 <i class="fas fa-search" style="font-size: 3rem; color: var(--color-text-muted); margin-bottom: 20px;"></i>
-                <h3 style="margin-bottom: 10px; color: var(--color-text);">Товары не найдены</h3>
+                <h3 style="margin-bottom: 10px; color: var(--color-text);">Кроссовки не найдены</h3>
                 <p style="color: var(--color-text-secondary); margin-bottom: 20px;">Попробуйте изменить параметры поиска или фильтры</p>
-                <button class="btn-filter-reset" onclick="resetFilters()" style="margin: 0 auto;">Сбросить фильтры</button>
+                <button class="btn-filter-reset" onclick="resetFilters()" style="margin: 0 auto;">СБРОСИТЬ ФИЛЬТРЫ</button>
             </div>
         `;
         return;
@@ -424,16 +499,18 @@ function renderProducts() {
         
         let badgeHtml = '';
         if (product.badge === 'new') {
-            badgeHtml = '<span class="badge-new">Новинка</span>';
+            badgeHtml = '<span class="badge-new">НОВИНКА</span>';
         } else if (product.badge === 'sale') {
-            badgeHtml = '<span class="badge-sale">Скидка</span>';
+            badgeHtml = '<span class="badge-sale">СКИДКА</span>';
         } else if (product.badge === 'hit') {
-            badgeHtml = '<span class="badge-hit">Хит</span>';
+            badgeHtml = '<span class="badge-hit">ХИТ</span>';
         }
         
         const discountPercent = product.oldPrice > 0 
             ? Math.round((1 - product.price / product.oldPrice) * 100)
             : 0;
+        
+        const sizesText = product.size.slice(0, 3).join(', ') + (product.size.length > 3 ? '...' : '');
         
         card.innerHTML = `
             <div class="product-badges">
@@ -453,7 +530,10 @@ function renderProducts() {
             
             <h3 class="product-title">${product.name}</h3>
             
-            <div class="product-description-short">${product.description.substring(0, 60)}${product.description.length > 60 ? '...' : ''}</div>
+            <div class="product-description-short">
+                <i class="fas fa-ruler"></i> Размеры: ${sizesText}<br>
+                <i class="fas fa-tag"></i> ${getBrandName(product.brand)}
+            </div>
             
             <div class="product-rating-wb">
                 <div class="rating-stars">
@@ -466,7 +546,7 @@ function renderProducts() {
             <div class="product-actions-wb">
                 <button class="btn-cart-wb ${isInCart ? 'in-cart' : ''}" data-id="${product.id}">
                     ${isInCart ? '<i class="fas fa-check"></i>' : '<i class="fas fa-shopping-cart"></i>'}
-                    <span>${isInCart ? 'В корзине' : 'В корзину'}</span>
+                    <span>${isInCart ? 'В КОРЗИНЕ' : 'В КОРЗИНУ'}</span>
                 </button>
                 <button class="btn-fav-wb ${isInFavorites ? 'active' : ''}" data-id="${product.id}">
                     <i class="${isInFavorites ? 'fas' : 'far'} fa-heart"></i>
@@ -581,7 +661,7 @@ function toggleCart(productId, event) {
         cart.push({
             ...product,
             quantity: 1,
-            selected: true,
+            selectedSize: product.size[0],
             addedAt: new Date().toISOString()
         });
         showNotification(`${product.name} добавлен в корзину`, 'success');
@@ -608,77 +688,50 @@ function updateCartPopup() {
     const cartItems = document.getElementById('cartItems');
     const cartTotal = document.getElementById('cartTotal');
     const cartFinal = document.getElementById('cartFinal');
-    const selectAllCheckbox = document.getElementById('selectAllItems');
     
-    if (!cartItems || !cartTotal || !cartFinal || !selectAllCheckbox) return;
+    if (!cartItems || !cartTotal || !cartFinal) return;
     
     if (cart.length === 0) {
         cartItems.innerHTML = `
             <div class="empty-cart" style="text-align: center; padding: 40px 20px;">
                 <i class="fas fa-shopping-cart" style="font-size: 3rem; color: var(--color-text-muted); margin-bottom: 20px; opacity: 0.3;"></i>
                 <p style="color: var(--color-text-secondary); margin-bottom: 20px;">Ваша корзина пуста</p>
-                <button class="btn-browse-glass" onclick="closeCartPopup()">Перейти к покупкам</button>
+                <button class="btn-browse-angular" onclick="closeCartPopup()">ПЕРЕЙТИ К ПОКУПКАМ</button>
             </div>
         `;
         cartTotal.textContent = '0 ₽';
         cartFinal.textContent = '0 ₽';
-        selectAllCheckbox.checked = false;
-        selectAllCheckbox.disabled = true;
         return;
     }
-    
-    const allSelected = cart.every(item => item.selected);
-    const someSelected = cart.some(item => item.selected);
-    selectAllCheckbox.checked = allSelected;
-    selectAllCheckbox.indeterminate = !allSelected && someSelected;
-    selectAllCheckbox.disabled = false;
     
     cartItems.innerHTML = '';
     cart.forEach(item => {
         const itemElement = document.createElement('div');
         itemElement.className = 'cart-item';
         itemElement.innerHTML = `
-            <div class="cart-item-checkbox-wrapper">
-                <label class="checkbox cart-item-checkbox">
-                    <input type="checkbox" class="cart-item-checkbox-input" data-id="${item.id}" ${item.selected ? 'checked' : ''}>
-                    <span class="checkmark"></span>
-                </label>
-            </div>
             <div class="cart-item-content">
                 <img src="${item.image}" alt="${item.name}" class="cart-item-img">
                 <div class="cart-item-details">
                     <h4 class="cart-item-title">${item.name}</h4>
                     <div class="cart-item-meta">
-                        <span class="cart-item-volume">${item.volume} мл</span>
-                        <span class="cart-item-category">${getCategoryName(item.category)}</span>
-                    </div>
-                    <div class="cart-item-price">${item.price.toLocaleString()} ₽</div>
-                    <div class="cart-item-controls">
-                        <button class="quantity-btn minus" onclick="updateQuantity(${item.id}, -1)">-</button>
-                        <input type="number" class="quantity-input" value="${item.quantity}" min="1" max="10" onchange="updateQuantity(${item.id}, 0, this.value)">
-                        <button class="quantity-btn plus" onclick="updateQuantity(${item.id}, 1)">+</button>
-                        <button class="remove-item-btn" onclick="removeFromCart(${item.id})">
-                            <i class="fas fa-trash"></i>
-                        </button>
+                        <span class="cart-item-size"><i class="fas fa-ruler"></i> Размер: ${item.selectedSize || item.size[0]}</span>
+                        <span class="cart-item-brand"><i class="fas fa-tag"></i> ${getBrandName(item.brand)}</span>
                     </div>
                 </div>
+                <div class="cart-item-price">${item.price.toLocaleString()} ₽</div>
+            </div>
+            <div class="cart-item-controls">
+                <div class="quantity-controls">
+                    <button class="quantity-btn minus" onclick="updateQuantity(${item.id}, -1)">-</button>
+                    <input type="number" class="quantity-input" value="${item.quantity}" min="1" max="10" onchange="updateQuantity(${item.id}, 0, this.value)">
+                    <button class="quantity-btn plus" onclick="updateQuantity(${item.id}, 1)">+</button>
+                </div>
+                <button class="remove-item-btn" onclick="removeFromCart(${item.id})" title="Удалить">
+                    <i class="fas fa-trash"></i>
+                </button>
             </div>
         `;
         cartItems.appendChild(itemElement);
-    });
-    
-    document.querySelectorAll('.cart-item-checkbox-input').forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            const productId = parseInt(this.dataset.id);
-            const item = cart.find(item => item.id === productId);
-            if (item) {
-                item.selected = this.checked;
-                saveToStorage(STORAGE_KEYS.CART, cart);
-                updateCartSummary();
-                updateSelectAllState();
-                updateCheckoutButton();
-            }
-        });
     });
     
     updateCartSummary();
@@ -689,9 +742,8 @@ function updateCartSummary() {
     const cartTotal = document.getElementById('cartTotal');
     const cartFinal = document.getElementById('cartFinal');
     
-    const selectedItems = cart.filter(item => item.selected);
-    const subtotal = selectedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const discount = selectedItems.reduce((sum, item) => {
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const discount = cart.reduce((sum, item) => {
         if (item.oldPrice > 0) {
             return sum + ((item.oldPrice - item.price) * item.quantity);
         }
@@ -701,26 +753,6 @@ function updateCartSummary() {
     
     cartTotal.textContent = `${subtotal.toLocaleString()} ₽`;
     cartFinal.textContent = `${total.toLocaleString()} ₽`;
-}
-
-function updateSelectAllState() {
-    const selectAllCheckbox = document.getElementById('selectAllItems');
-    if (!selectAllCheckbox) return;
-    
-    const allSelected = cart.every(item => item.selected);
-    const someSelected = cart.some(item => item.selected);
-    
-    selectAllCheckbox.checked = allSelected;
-    selectAllCheckbox.indeterminate = !allSelected && someSelected;
-}
-
-function selectAllCartItems(checked) {
-    cart.forEach(item => {
-        item.selected = checked;
-    });
-    saveToStorage(STORAGE_KEYS.CART, cart);
-    updateCartPopup();
-    updateCheckoutButton();
 }
 
 function updateQuantity(productId, delta, newValue = null) {
@@ -759,14 +791,13 @@ function updateCheckoutButton() {
     const checkoutBtn = document.getElementById('checkoutBtn');
     if (!checkoutBtn) return;
     
-    const selectedItems = cart.filter(item => item.selected);
-    const hasSelectedItems = selectedItems.length > 0;
+    const hasItems = cart.length > 0;
     
     if (!isAddressSaved || !deliveryAddress) {
         checkoutBtn.disabled = true;
         checkoutBtn.style.opacity = '0.5';
         checkoutBtn.style.cursor = 'not-allowed';
-    } else if (!hasSelectedItems) {
+    } else if (!hasItems) {
         checkoutBtn.disabled = true;
         checkoutBtn.style.opacity = '0.5';
         checkoutBtn.style.cursor = 'not-allowed';
@@ -805,8 +836,8 @@ function updateFavoritesPopup() {
                         <h4 class="fav-item-title">${item.name}</h4>
                         <div class="fav-item-price">${item.price.toLocaleString()} ₽</div>
                         <div class="fav-item-meta">
-                            <span class="fav-item-volume">${item.volume} мл</span>
-                            <span class="fav-item-category">${getCategoryName(item.category)}</span>
+                            <span class="fav-item-size"><i class="fas fa-ruler"></i> Размеры: ${item.size.slice(0, 3).join(', ')}${item.size.length > 3 ? '...' : ''}</span>
+                            <span class="fav-item-brand"><i class="fas fa-tag"></i> ${getBrandName(item.brand)}</span>
                         </div>
                     </div>
                     <button class="remove-from-fav" onclick="removeFromFavorites(${item.id})">
@@ -814,7 +845,7 @@ function updateFavoritesPopup() {
                     </button>
                 </div>
                 <button class="btn-add-to-cart-from-fav" onclick="toggleCart(${item.id})">
-                    <i class="fas fa-shopping-cart"></i> В корзину
+                    <i class="fas fa-shopping-cart"></i> В КОРЗИНУ
                 </button>
             `;
             
@@ -855,15 +886,15 @@ function showProductDetailsModal(product) {
     
     let badgeHtml = '';
     if (product.badge === 'new') {
-        badgeHtml = '<span class="modal-badge modal-badge-new">Новинка</span>';
+        badgeHtml = '<span class="modal-badge modal-badge-new">НОВИНКА</span>';
     } else if (product.badge === 'sale') {
-        badgeHtml = '<span class="modal-badge modal-badge-sale">Скидка</span>';
+        badgeHtml = '<span class="modal-badge modal-badge-sale">СКИДКА</span>';
     } else if (product.badge === 'hit') {
-        badgeHtml = '<span class="modal-badge modal-badge-hit">Хит</span>';
+        badgeHtml = '<span class="modal-badge modal-badge-hit">ХИТ</span>';
     }
     
-    const notesHtml = product.notes ? 
-        product.notes.map(note => `<span class="note-tag">${note}</span>`).join('') : 
+    const specsHtml = product.specs ? 
+        product.specs.map(spec => `<div class="spec-item">${spec}</div>`).join('') : 
         '';
     
     modal.innerHTML = `
@@ -887,12 +918,12 @@ function showProductDetailsModal(product) {
                         <span class="meta-category">
                             <i class="fas fa-tag"></i> ${getCategoryName(product.category)}
                         </span>
-                        <span class="meta-volume">
-                            <i class="fas fa-weight"></i> ${product.volume} мл
+                        <span class="meta-size">
+                            <i class="fas fa-ruler"></i> Размеры: ${product.size.join(', ')}
                         </span>
                         <span class="meta-stock ${product.inStock ? 'in-stock' : 'out-of-stock'}">
                             <i class="fas ${product.inStock ? 'fa-check-circle' : 'fa-times-circle'}"></i> 
-                            ${product.inStock ? 'В наличии' : 'Нет в наличии'}
+                            ${product.inStock ? 'В НАЛИЧИИ' : 'НЕТ В НАЛИЧИИ'}
                         </span>
                     </div>
                     
@@ -907,14 +938,14 @@ function showProductDetailsModal(product) {
                     </div>
                     
                     <div class="product-description">
-                        <h3><i class="fas fa-info-circle"></i> Описание</h3>
+                        <h3><i class="fas fa-info-circle"></i> ОПИСАНИЕ</h3>
                         <p>${product.description}</p>
                     </div>
                     
-                    <div class="product-notes">
-                        <h3><i class="fas fa-wind"></i> Ноты аромата</h3>
-                        <div class="notes-container">
-                            ${notesHtml}
+                    <div class="product-specs">
+                        <h3><i class="fas fa-cogs"></i> ХАРАКТЕРИСТИКИ</h3>
+                        <div class="specs-container">
+                            ${specsHtml}
                         </div>
                     </div>
                     
@@ -933,7 +964,7 @@ function showProductDetailsModal(product) {
                     <div class="product-actions-modal">
                         <button class="btn-add-to-cart ${isInCart ? 'in-cart' : ''}" data-id="${product.id}">
                             <i class="fas ${isInCart ? 'fa-check' : 'fa-shopping-cart'}"></i>
-                            ${isInCart ? 'В корзине' : 'Добавить в корзину'}
+                            ${isInCart ? 'В КОРЗИНЕ' : 'ДОБАВИТЬ В КОРЗИНУ'}
                         </button>
                         <button class="btn-add-to-fav ${isInFavorites ? 'active' : ''}" data-id="${product.id}">
                             <i class="${isInFavorites ? 'fas' : 'far'} fa-heart"></i>
@@ -943,7 +974,7 @@ function showProductDetailsModal(product) {
                     <div class="product-features">
                         <div class="feature">
                             <i class="fas fa-shipping-fast"></i>
-                            <span>Бесплатная доставка по Симферополю</span>
+                            <span>Бесплатная доставка по России</span>
                         </div>
                         <div class="feature">
                             <i class="fas fa-shield-alt"></i>
@@ -951,7 +982,7 @@ function showProductDetailsModal(product) {
                         </div>
                         <div class="feature">
                             <i class="fas fa-award"></i>
-                            <span>Гарантия качества</span>
+                            <span>Гарантия подлинности</span>
                         </div>
                     </div>
                 </div>
@@ -1002,10 +1033,10 @@ function showProductDetailsModal(product) {
                 setTimeout(() => {
                     const isNowInCart = cart.some(item => item.id === productId);
                     if (isNowInCart) {
-                        this.innerHTML = '<i class="fas fa-check"></i> В корзине';
+                        this.innerHTML = '<i class="fas fa-check"></i> В КОРЗИНЕ';
                         this.classList.add('in-cart');
                     } else {
-                        this.innerHTML = '<i class="fas fa-shopping-cart"></i> Добавить в корзину';
+                        this.innerHTML = '<i class="fas fa-shopping-cart"></i> ДОБАВИТЬ В КОРЗИНУ';
                         this.classList.remove('in-cart');
                     }
                 }, 100);
@@ -1073,7 +1104,7 @@ function closeProductDetailsModal() {
             if (modal.parentNode) {
                 modal.parentNode.removeChild(modal);
             }
-        }, 300);
+        }, 400);
     }
     
     if (overlay) {
@@ -1082,7 +1113,7 @@ function closeProductDetailsModal() {
             if (overlay.parentNode) {
                 overlay.parentNode.removeChild(overlay);
             }
-        }, 300);
+        }, 400);
     }
     
     document.body.style.overflow = 'auto';
@@ -1092,21 +1123,19 @@ function closeProductDetailsModal() {
 function filterProducts() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     const priceMin = parseInt(document.getElementById('filterPriceMin').value) || 0;
-    const priceMax = parseInt(document.getElementById('filterPriceMax').value) || 50000;
+    const priceMax = parseInt(document.getElementById('filterPriceMax').value) || 100000;
     const sortBy = document.getElementById('sortBy').value;
     
     const selectedCategories = Array.from(document.querySelectorAll('.filter-category:checked'))
         .map(cb => cb.value);
-    
-    const selectedVolumes = Array.from(document.querySelectorAll('.filter-volume:checked'))
-        .map(cb => parseInt(cb.value));
     
     const selectedRating = document.querySelector('input[name="filterRating"]:checked');
     const minRating = selectedRating ? parseFloat(selectedRating.value) : 0;
 
     filteredProducts = allProducts.filter(product => {
         if (searchTerm && !product.name.toLowerCase().includes(searchTerm) && 
-            !product.description.toLowerCase().includes(searchTerm)) {
+            !product.description.toLowerCase().includes(searchTerm) &&
+            !product.brand.toLowerCase().includes(searchTerm)) {
             return false;
         }
         
@@ -1118,8 +1147,9 @@ function filterProducts() {
             return false;
         }
         
-        if (selectedVolumes.length > 0 && !selectedVolumes.includes(product.volume)) {
-            return false;
+        if (selectedSizes.length > 0) {
+            const hasSize = product.size.some(size => selectedSizes.includes(size));
+            if (!hasSize) return false;
         }
         
         if (product.rating < minRating) {
@@ -1145,6 +1175,9 @@ function filterProducts() {
         case 'popular':
         default:
             filteredProducts.sort((a, b) => {
+                if (b.popular !== a.popular) {
+                    return b.popular - a.popular;
+                }
                 if (b.rating !== a.rating) {
                     return b.rating - a.rating;
                 }
@@ -1167,9 +1200,11 @@ function resetFilters() {
         cb.checked = true;
     });
     
-    document.querySelectorAll('.filter-volume').forEach(cb => {
-        cb.checked = false;
+    document.querySelectorAll('.size-btn').forEach(btn => {
+        btn.classList.remove('active');
     });
+    
+    selectedSizes = [];
     
     document.querySelector('input[name="filterRating"][value="0"]').checked = true;
     
@@ -1186,68 +1221,63 @@ function setupFilterPopup() {
     
     filterContent.innerHTML = `
         <div class="filter-group">
-            <h4>Категории</h4>
+            <h4><i class="fas fa-tag"></i> Категории</h4>
             <div class="checkbox-group">
                 <label class="checkbox">
-                    <input type="checkbox" class="filter-category" value="arabian" checked>
+                    <input type="checkbox" class="filter-category" value="sneakers" checked>
                     <span class="checkmark"></span>
-                    Арабские духи
+                    Кроссовки
                 </label>
                 <label class="checkbox">
-                    <input type="checkbox" class="filter-category" value="premium" checked>
+                    <input type="checkbox" class="filter-category" value="limited" checked>
                     <span class="checkmark"></span>
-                    Премиум
+                    Лимитированные
                 </label>
                 <label class="checkbox">
-                    <input type="checkbox" class="filter-category" value="affordable" checked>
+                    <input type="checkbox" class="filter-category" value="running" checked>
                     <span class="checkmark"></span>
-                    Доступные
+                    Беговые
+                </label>
+                <label class="checkbox">
+                    <input type="checkbox" class="filter-category" value="basketball" checked>
+                    <span class="checkmark"></span>
+                    Баскетбольные
                 </label>
             </div>
         </div>
         
         <div class="filter-group">
-            <h4>Цена, ₽</h4>
+            <h4><i class="fas fa-dollar-sign"></i> Цена, ₽</h4>
             <div class="price-range">
                 <div class="range-inputs">
                     <input type="number" id="filterPriceMin" placeholder="0" min="0">
                     <span class="range-divider">-</span>
-                    <input type="number" id="filterPriceMax" placeholder="50000" min="0">
+                    <input type="number" id="filterPriceMax" placeholder="100000" min="0">
                 </div>
                 <div class="range-slider">
-                    <input type="range" id="filterPriceRange" min="0" max="50000" value="25000">
+                    <input type="range" id="filterPriceRange" min="0" max="100000" value="50000">
                 </div>
             </div>
         </div>
         
         <div class="filter-group">
-            <h4>Объем, мл</h4>
-            <div class="checkbox-group">
-                <label class="checkbox">
-                    <input type="checkbox" class="filter-volume" value="30">
-                    <span class="checkmark"></span>
-                    30 мл
-                </label>
-                <label class="checkbox">
-                    <input type="checkbox" class="filter-volume" value="50">
-                    <span class="checkmark"></span>
-                    50 мл
-                </label>
-                <label class="checkbox">
-                    <input type="checkbox" class="filter-volume" value="100">
-                    <span class="checkmark"></span>
-                    100 мл
-                </label>
-                <label class="checkbox">
-                    <input type="checkbox" class="filter-volume" value="200">
-                    <span class="checkmark"></span>
-                    200 мл
-                </label>
+            <h4><i class="fas fa-ruler"></i> Размеры</h4>
+            <div class="size-filters">
+                <div class="size-buttons">
+                    <button class="size-btn" data-size="38">38</button>
+                    <button class="size-btn" data-size="39">39</button>
+                    <button class="size-btn" data-size="40">40</button>
+                    <button class="size-btn" data-size="41">41</button>
+                    <button class="size-btn" data-size="42">42</button>
+                    <button class="size-btn" data-size="43">43</button>
+                    <button class="size-btn" data-size="44">44</button>
+                    <button class="size-btn" data-size="45">45</button>
+                </div>
             </div>
         </div>
         
         <div class="filter-group">
-            <h4>Рейтинг</h4>
+            <h4><i class="fas fa-star"></i> Рейтинг</h4>
             <div class="rating-filter">
                 <label class="star-rating">
                     <input type="radio" name="filterRating" value="0" checked>
@@ -1261,17 +1291,6 @@ function setupFilterPopup() {
                     <span class="rating-text">Любой</span>
                 </label>
                 <label class="star-rating">
-                    <input type="radio" name="filterRating" value="3">
-                    <span class="stars">
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="far fa-star"></i>
-                        <i class="far fa-star"></i>
-                    </span>
-                    <span class="rating-text">3 и выше</span>
-                </label>
-                <label class="star-rating">
                     <input type="radio" name="filterRating" value="4">
                     <span class="stars">
                         <i class="fas fa-star"></i>
@@ -1280,7 +1299,7 @@ function setupFilterPopup() {
                         <i class="fas fa-star"></i>
                         <i class="far fa-star"></i>
                     </span>
-                    <span class="rating-text">4 и выше</span>
+                    <span class="rating-text">4+</span>
                 </label>
                 <label class="star-rating">
                     <input type="radio" name="filterRating" value="4.5">
@@ -1291,17 +1310,17 @@ function setupFilterPopup() {
                         <i class="fas fa-star"></i>
                         <i class="fas fa-star-half-alt"></i>
                     </span>
-                    <span class="rating-text">4.5 и выше</span>
+                    <span class="rating-text">4.5+</span>
                 </label>
             </div>
         </div>
         
         <div class="filter-buttons">
             <button class="btn-filter-apply" id="applyFilterBtn">
-                <i class="fas fa-check"></i> Применить
+                <i class="fas fa-check"></i> ПРИМЕНИТЬ
             </button>
             <button class="btn-filter-reset" id="resetFilterBtn">
-                <i class="fas fa-redo"></i> Сбросить
+                <i class="fas fa-redo"></i> СБРОСИТЬ
             </button>
         </div>
     `;
@@ -1313,22 +1332,42 @@ function setupFilterPopup() {
     if (priceRange && priceMinInput && priceMaxInput) {
         priceRange.addEventListener('input', function() {
             const value = parseInt(this.value);
-            priceMinInput.value = Math.max(0, value - 10000);
-            priceMaxInput.value = Math.min(50000, value + 10000);
+            priceMinInput.value = Math.max(0, value - 20000);
+            priceMaxInput.value = Math.min(100000, value + 20000);
         });
         
         priceMinInput.addEventListener('change', function() {
             const min = parseInt(this.value) || 0;
-            const max = parseInt(priceMaxInput.value) || 50000;
+            const max = parseInt(priceMaxInput.value) || 100000;
             priceRange.value = Math.floor((min + max) / 2);
         });
         
         priceMaxInput.addEventListener('change', function() {
             const min = parseInt(priceMinInput.value) || 0;
-            const max = parseInt(this.value) || 50000;
+            const max = parseInt(this.value) || 100000;
             priceRange.value = Math.floor((min + max) / 2);
         });
     }
+    
+    // Настройка фильтров размеров
+    const sizeButtons = document.querySelectorAll('.size-btn');
+    sizeButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const size = parseInt(this.dataset.size);
+            this.classList.toggle('active');
+            
+            if (this.classList.contains('active')) {
+                if (!selectedSizes.includes(size)) {
+                    selectedSizes.push(size);
+                }
+            } else {
+                const index = selectedSizes.indexOf(size);
+                if (index > -1) {
+                    selectedSizes.splice(index, 1);
+                }
+            }
+        });
+    });
     
     document.getElementById('applyFilterBtn')?.addEventListener('click', function() {
         filterProducts();
@@ -1381,13 +1420,27 @@ function closeFilterPopup() {
 // ===== УТИЛИТЫ =====
 function getCategoryName(category) {
     const categories = {
-        arabian: 'Арабские духи',
-        premium: 'Премиум коллекция',
-        affordable: 'Доступные духи',
-        new: 'Новинки',
-        sale: 'Акции'
+        sneakers: 'Кроссовки',
+        limited: 'Лимитированная серия',
+        running: 'Беговые',
+        basketball: 'Баскетбольные',
+        affordable: 'Доступные'
     };
     return categories[category] || category;
+}
+
+function getBrandName(brand) {
+    const brands = {
+        'Nike': 'Nike',
+        'Adidas': 'Adidas',
+        'Jordan': 'Jordan',
+        'New Balance': 'New Balance',
+        'Converse': 'Converse',
+        'Puma': 'Puma',
+        'Reebok': 'Reebok',
+        'EDM': 'EDM™'
+    };
+    return brands[brand] || brand;
 }
 
 function showNotification(message, type = 'info') {
@@ -1437,16 +1490,16 @@ function initEventListeners() {
                     filteredProducts = [...allProducts];
                     currentPage = 1;
                     renderProducts();
+                } else {
+                    filterProducts();
                 }
-            }, 300);
+            }, 500);
         });
     }
     
     if (searchBtn) {
         searchBtn.addEventListener('click', function() {
-            if (searchInput.value.trim() !== '') {
-                filterProducts();
-            }
+            filterProducts();
         });
     }
     
@@ -1461,11 +1514,6 @@ function initEventListeners() {
     
     document.getElementById('navCart')?.addEventListener('click', openCartPopup);
     document.getElementById('navFilter')?.addEventListener('click', openFilterPopup);
-    
-    // Кнопка "Выбрать все" в корзине
-    document.getElementById('selectAllItems')?.addEventListener('change', function() {
-        selectAllCartItems(this.checked);
-    });
     
     // Сохранение адреса
     document.getElementById('saveAddressBtn')?.addEventListener('click', function() {
@@ -1523,12 +1571,6 @@ function initEventListeners() {
             return;
         }
         
-        const selectedItems = cart.filter(item => item.selected);
-        if (selectedItems.length === 0) {
-            showNotification('Выберите товары для заказа', 'info');
-            return;
-        }
-        
         if (!isAddressSaved || !deliveryAddress) {
             showNotification('Сначала укажите адрес доставки', 'warning');
             
@@ -1542,16 +1584,13 @@ function initEventListeners() {
             return;
         }
         
-        const total = selectedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        const orderItems = selectedItems.map(item => 
-            `${item.name} - ${item.quantity} × ${item.price.toLocaleString()}₽ = ${(item.price * item.quantity).toLocaleString()}₽`
+        const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const orderItems = cart.map(item => 
+            `${item.name} (Размер: ${item.selectedSize || item.size[0]}) - ${item.quantity} × ${item.price.toLocaleString()}₽ = ${(item.price * item.quantity).toLocaleString()}₽`
         ).join('\n');
         
         const orderText = `
-📨 **Новый заказ в Aura Atelier**
-
-👤 **Покупатель:** ${user.firstName} ${user.lastName}
-📱 **Username:** @${user.username}
+👟 **НОВЫЙ ЗАКАЗ В EDM™**
 
 📦 **Товары:**
 ${orderItems}
@@ -1560,28 +1599,29 @@ ${orderItems}
 📍 **Адрес доставки:** ${deliveryAddress}
 📅 **Дата:** ${new Date().toLocaleString('ru-RU')}
 
-💬 **Связь:** @Ayder505, @Ma1traher
+💬 **Связь:** @EDM_Sneakers
+👤 **Покупатель:** ${user.firstName} ${user.lastName || ''}
         `.trim();
         
         if (tg.sendData) {
             const orderData = {
                 userId: user.id,
                 username: user.username,
-                items: selectedItems,
+                items: cart,
                 total: total,
                 deliveryAddress: deliveryAddress,
                 timestamp: new Date().toISOString()
             };
             
             tg.sendData(JSON.stringify(orderData));
-            tg.showAlert(`Заказ оформлен!\n\nСумма: ${total.toLocaleString()}₽\nТоваров: ${selectedItems.length}\nАдрес: ${deliveryAddress}\n\nС вами свяжется менеджер для подтверждения.`);
+            tg.showAlert(`Заказ оформлен!\n\nСумма: ${total.toLocaleString()}₽\nТоваров: ${cart.length}\nАдрес: ${deliveryAddress}\n\nС вами свяжется менеджер для подтверждения.`);
         } else {
-            const telegramUrl = `https://t.me/Ayder505?text=${encodeURIComponent(orderText)}`;
+            const telegramUrl = `https://t.me/EDM_Sneakers?text=${encodeURIComponent(orderText)}`;
             window.open(telegramUrl, '_blank');
             showNotification(`Заказ на ${total.toLocaleString()}₽ отправлен менеджеру`, 'success');
         }
         
-        cart = cart.filter(item => !item.selected);
+        cart = [];
         saveToStorage(STORAGE_KEYS.CART, cart);
         updateCartCount();
         updateCartPopup();
@@ -1605,10 +1645,10 @@ ${orderItems}
                 setTimeout(() => {
                     const isNowInCart = cart.some(item => item.id === productId);
                     if (isNowInCart) {
-                        cartBtn.innerHTML = '<i class="fas fa-check"></i><span>В корзине</span>';
+                        cartBtn.innerHTML = '<i class="fas fa-check"></i><span>В КОРЗИНЕ</span>';
                         cartBtn.classList.add('in-cart');
                     } else {
-                        cartBtn.innerHTML = '<i class="fas fa-shopping-cart"></i><span>В корзину</span>';
+                        cartBtn.innerHTML = '<i class="fas fa-shopping-cart"></i><span>В КОРЗИНУ</span>';
                         cartBtn.classList.remove('in-cart');
                     }
                 }, 100);
@@ -1667,7 +1707,7 @@ ${orderItems}
 }
 
 // ===== ГЛОБАЛЬНЫЙ ЭКСПОРТ =====
-window.app = {
+window.edm = {
     user,
     allProducts,
     cart,
@@ -1681,8 +1721,7 @@ window.app = {
     openCartPopup,
     openFavoritesPopup,
     openFilterPopup,
-    selectAllCartItems,
     saveAddress
 };
 
-console.log('Aura Atelier приложение инициализировано');
+console.log('EDM™ Sneakers Shop приложение инициализировано');

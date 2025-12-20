@@ -1,13 +1,14 @@
+[file name]: index.html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Aura Atelier - эксклюзивные духи</title>
+    <title>EDM™ - эксклюзивные кроссовки</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/x-icon" href="https://img.icons8.com/color/96/000000/perfume-bottle.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="https://img.icons8.com/color/96/sneakers.png">
 </head>
 <body>
     <!-- Верхняя панель -->
@@ -17,23 +18,20 @@
                 <!-- Логотип -->
                 <div class="logo">
                     <div class="logo-icon-wrapper">
-                        <!-- ЗАМЕНИТЕ ЭТУ ССЫЛКУ НА СВОЮ АВАТАРКУ -->
-                        <img src="https://sun9-82.userapi.com/s/v1/ig2/5F_JvkmONdoYqXz2czQN9q6pwM2zvdUBjebAw_mIMCPmYvieHPy4z4TAR8RfTRrYwBX8xsXsOrtOLOcsR8PPWWkM.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,448x448&from=bu&u=go-YJKFAACv9HaySzsp64EDmHmtNbKSmWlHpMACSshU&cs=448x0" alt="Aura Atelier" class="logo-img">
+                        <img src="https://img.icons8.com/color/96/sneakers.png" alt="EDM" class="logo-img">
                     </div>
                     <div class="logo-text">
-                        <span class="logo-main">Aura Atelier</span>
-                        <span class="logo-sub">эксклюзивные духи</span>
+                        <span class="logo-main">EDM™</span>
+                        <span class="logo-sub">эксклюзивные кроссовки</span>
                     </div>
                 </div>
                 
                 <!-- Поиск -->
                 <div class="search-container">
                     <div class="search-box">
-                        <input type="text" id="searchInput" placeholder="Поиск духов...">
-                        <button class="search-btn-glass" id="searchBtn">
-                            <div class="search-glass-circle">
-                                <i class="fas fa-search"></i>
-                            </div>
+                        <input type="text" id="searchInput" placeholder="Поиск кроссовок...">
+                        <button class="search-btn-angular" id="searchBtn">
+                            <i class="fas fa-search"></i>
                         </button>
                     </div>
                 </div>
@@ -44,23 +42,23 @@
     <!-- Баннер с переключением -->
     <div class="container">
         <div class="banner-container">
-            <!-- Баннер 1: Эксклюзивные ароматы -->
-            <div class="banner-slide exclusive active" id="banner1">
+            <!-- Баннер 1: Новая коллекция -->
+            <div class="banner-slide collection active" id="banner1">
                 <div class="banner-content">
-                    <h1>Эксклюзивные ароматы</h1>
-                    <p>Только оригинальная парфюмерия с гарантией качества</p>
+                    <h1>НОВАЯ КОЛЛЕКЦИЯ 2024</h1>
+                    <p>Эксклюзивные кроссовки от ведущих брендов</p>
+                    <div class="banner-tag">🔥 ЛИМИТИРОВАННЫЕ СЕРИИ</div>
                 </div>
             </div>
             
             <!-- Баннер 2: Контакты для заказов -->
             <div class="banner-slide contacts" id="banner2">
                 <div class="banner-content">
-                    <h1>Заказы оформляем в лс</h1>
+                    <h1>ЗАКАЗЫ В TELEGRAM</h1>
                     <div class="banner-contacts">
-                        <strong>@Ayder505</strong><br>
-                        <strong>@Ma1traher</strong><br>
-                        Telegram channel:<br>
-                        <a href="https://t.me/Aa_Atelier" target="_blank">https://t.me/Aa_Atelier</a>
+                        <strong>@EDM_Sneakers</strong><br>
+                        <a href="https://t.me/EDM_Sneakers" target="_blank">https://t.me/EDM_Sneakers</a><br>
+                        <div class="contact-sub">Доставка по всей России</div>
                     </div>
                 </div>
             </div>
@@ -71,11 +69,11 @@
     <main class="container main-container">
         <section class="main-content">
             <div class="products-header">
-                <h2 id="categoryTitle">Рекомендации</h2>
-                <div class="sort-select-glass">
+                <h2 id="categoryTitle">ПОПУЛЯРНЫЕ МОДЕЛИ</h2>
+                <div class="sort-select-angular">
                     <select id="sortBy">
                         <option value="popular">По популярности</option>
-                        <option value="new">Сначала новинки</option>
+                        <option value="new">Новинки</option>
                         <option value="price-low">Цена: по возрастанию</option>
                         <option value="price-high">Цена: по убыванию</option>
                         <option value="rating">По рейтингу</option>
@@ -107,7 +105,7 @@
     </main>
 
     <!-- Нижняя панель -->
-    <nav class="bottom-nav-glass">
+    <nav class="bottom-nav-angular">
         <div class="nav-inner">
             <button class="nav-btn" id="navFavorites">
                 <i class="far fa-heart"></i>
@@ -125,45 +123,36 @@
             </button>
             <div class="nav-divider"></div>
             
-            <a href="https://t.me/Ayder505" target="_blank" class="nav-btn" id="navContact">
+            <a href="https://t.me/EDM_Sneakers" target="_blank" class="nav-btn" id="navContact">
                 <i class="fab fa-telegram"></i>
             </a>
         </div>
     </nav>
 
     <!-- Попап корзины -->
-    <div class="cart-popup glass-popup" id="cartPopup">
+    <div class="cart-popup angular-popup" id="cartPopup">
         <div class="popup-header">
-            <h3>Корзина</h3>
+            <h3><i class="fas fa-shopping-cart"></i> КОРЗИНА</h3>
             <button class="close-popup" id="closeCart">
                 <i class="fas fa-times"></i>
             </button>
         </div>
         <div class="popup-body">
-            <!-- Выбрать все товары -->
-            <div class="cart-select-all">
-                <label class="checkbox">
-                    <input type="checkbox" id="selectAllItems" checked>
-                    <span class="checkmark"></span>
-                    <span>Выбрать все товары</span>
-                </label>
-            </div>
-            
             <div class="cart-items" id="cartItems">
                 <!-- Товары в корзине -->
             </div>
             
             <!-- Адрес доставки -->
             <div class="delivery-address-section">
-                <h4>Адрес доставки</h4>
+                <h4><i class="fas fa-map-marker-alt"></i> Адрес доставки</h4>
                 <div class="address-input-container">
-                    <input type="text" id="deliveryAddress" class="address-input" placeholder="Введите адрес доставки">
+                    <input type="text" id="deliveryAddress" class="address-input" placeholder="Город, улица, дом, квартира">
                     <button class="save-address-btn" id="saveAddressBtn">
                         <i class="fas fa-check"></i>
                     </button>
                 </div>
                 <div id="addressStatus" style="font-size: 0.8rem; color: var(--color-text-secondary); margin-top: 5px;">
-                    Адрес не указан
+                    <i class="fas fa-info-circle"></i> Адрес не указан
                 </div>
             </div>
             
@@ -172,22 +161,26 @@
                     <span>Товары</span>
                     <span id="cartTotal">0 ₽</span>
                 </div>
+                <div class="summary-row">
+                    <span>Доставка</span>
+                    <span>Бесплатно</span>
+                </div>
                 <div class="summary-row total">
-                    <span>Итого</span>
+                    <span>ИТОГО</span>
                     <span id="cartFinal">0 ₽</span>
                 </div>
-                <button class="btn-checkout-glass" id="checkoutBtn">
+                <button class="btn-checkout-angular" id="checkoutBtn">
                     <i class="fas fa-paper-plane"></i>
-                    Оформить заказ
+                    ОФОРМИТЬ ЗАКАЗ
                 </button>
             </div>
         </div>
     </div>
 
     <!-- Попап избранного -->
-    <div class="favorites-popup glass-popup" id="favoritesPopup">
+    <div class="favorites-popup angular-popup" id="favoritesPopup">
         <div class="popup-header">
-            <h3>Избранное</h3>
+            <h3><i class="fas fa-heart"></i> ИЗБРАННОЕ</h3>
             <button class="close-popup" id="closeFav">
                 <i class="fas fa-times"></i>
             </button>
@@ -199,18 +192,18 @@
             <div class="fav-empty" id="favEmpty">
                 <i class="far fa-heart"></i>
                 <p>В избранном пока ничего нет</p>
-                <button class="btn-browse-glass" id="browseBtn">
-                    <i class="fas fa-store"></i>
-                    Перейти в каталог
+                <button class="btn-browse-angular" id="browseBtn">
+                    <i class="fas fa-shoe-prints"></i>
+                    ПЕРЕЙТИ В КАТАЛОГ
                 </button>
             </div>
         </div>
     </div>
 
     <!-- Попап фильтров -->
-    <div class="filter-popup glass-popup" id="filterPopup">
+    <div class="filter-popup angular-popup" id="filterPopup">
         <div class="popup-header">
-            <h3>Фильтры</h3>
+            <h3><i class="fas fa-filter"></i> ФИЛЬТРЫ</h3>
             <button class="close-popup" id="closeFilter">
                 <i class="fas fa-times"></i>
             </button>
@@ -218,68 +211,63 @@
         <div class="popup-body">
             <div class="filter-content">
                 <div class="filter-group">
-                    <h4>Категории</h4>
+                    <h4><i class="fas fa-tag"></i> Категории</h4>
                     <div class="checkbox-group">
                         <label class="checkbox">
-                            <input type="checkbox" class="filter-category" value="arabian" checked>
+                            <input type="checkbox" class="filter-category" value="sneakers" checked>
                             <span class="checkmark"></span>
-                            Арабские духи
+                            Кроссовки
                         </label>
                         <label class="checkbox">
-                            <input type="checkbox" class="filter-category" value="premium" checked>
+                            <input type="checkbox" class="filter-category" value="limited" checked>
                             <span class="checkmark"></span>
-                            Премиум
+                            Лимитированные
                         </label>
                         <label class="checkbox">
-                            <input type="checkbox" class="filter-category" value="affordable" checked>
+                            <input type="checkbox" class="filter-category" value="running" checked>
                             <span class="checkmark"></span>
-                            Доступные
+                            Беговые
+                        </label>
+                        <label class="checkbox">
+                            <input type="checkbox" class="filter-category" value="basketball" checked>
+                            <span class="checkmark"></span>
+                            Баскетбольные
                         </label>
                     </div>
                 </div>
                 
                 <div class="filter-group">
-                    <h4>Цена, ₽</h4>
+                    <h4><i class="fas fa-dollar-sign"></i> Цена, ₽</h4>
                     <div class="price-range">
                         <div class="range-inputs">
                             <input type="number" id="filterPriceMin" placeholder="0" min="0">
                             <span class="range-divider">-</span>
-                            <input type="number" id="filterPriceMax" placeholder="50000" min="0">
+                            <input type="number" id="filterPriceMax" placeholder="100000" min="0">
                         </div>
                         <div class="range-slider">
-                            <input type="range" id="filterPriceRange" min="0" max="50000" value="25000">
+                            <input type="range" id="filterPriceRange" min="0" max="100000" value="50000">
                         </div>
                     </div>
                 </div>
                 
                 <div class="filter-group">
-                    <h4>Объем, мл</h4>
-                    <div class="checkbox-group">
-                        <label class="checkbox">
-                            <input type="checkbox" class="filter-volume" value="30">
-                            <span class="checkmark"></span>
-                            30 мл
-                        </label>
-                        <label class="checkbox">
-                            <input type="checkbox" class="filter-volume" value="50">
-                            <span class="checkmark"></span>
-                            50 мл
-                        </label>
-                        <label class="checkbox">
-                            <input type="checkbox" class="filter-volume" value="100">
-                            <span class="checkmark"></span>
-                            100 мл
-                        </label>
-                        <label class="checkbox">
-                            <input type="checkbox" class="filter-volume" value="200">
-                            <span class="checkmark"></span>
-                            200 мл
-                        </label>
+                    <h4><i class="fas fa-ruler"></i> Размеры</h4>
+                    <div class="size-filters">
+                        <div class="size-buttons">
+                            <button class="size-btn" data-size="38">38</button>
+                            <button class="size-btn" data-size="39">39</button>
+                            <button class="size-btn" data-size="40">40</button>
+                            <button class="size-btn" data-size="41">41</button>
+                            <button class="size-btn" data-size="42">42</button>
+                            <button class="size-btn" data-size="43">43</button>
+                            <button class="size-btn" data-size="44">44</button>
+                            <button class="size-btn" data-size="45">45</button>
+                        </div>
                     </div>
                 </div>
                 
                 <div class="filter-group">
-                    <h4>Рейтинг</h4>
+                    <h4><i class="fas fa-star"></i> Рейтинг</h4>
                     <div class="rating-filter">
                         <label class="star-rating">
                             <input type="radio" name="filterRating" value="0" checked>
@@ -293,17 +281,6 @@
                             <span class="rating-text">Любой</span>
                         </label>
                         <label class="star-rating">
-                            <input type="radio" name="filterRating" value="3">
-                            <span class="stars">
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="far fa-star"></i>
-                                <i class="far fa-star"></i>
-                            </span>
-                            <span class="rating-text">3 и выше</span>
-                        </label>
-                        <label class="star-rating">
                             <input type="radio" name="filterRating" value="4">
                             <span class="stars">
                                 <i class="fas fa-star"></i>
@@ -312,7 +289,7 @@
                                 <i class="fas fa-star"></i>
                                 <i class="far fa-star"></i>
                             </span>
-                            <span class="rating-text">4 и выше</span>
+                            <span class="rating-text">4+</span>
                         </label>
                         <label class="star-rating">
                             <input type="radio" name="filterRating" value="4.5">
@@ -323,17 +300,17 @@
                                 <i class="fas fa-star"></i>
                                 <i class="fas fa-star-half-alt"></i>
                             </span>
-                            <span class="rating-text">4.5 и выше</span>
+                            <span class="rating-text">4.5+</span>
                         </label>
                     </div>
                 </div>
                 
                 <div class="filter-buttons">
                     <button class="btn-filter-apply" id="applyFilterBtn">
-                        <i class="fas fa-check"></i> Применить
+                        <i class="fas fa-check"></i> ПРИМЕНИТЬ
                     </button>
                     <button class="btn-filter-reset" id="resetFilterBtn">
-                        <i class="fas fa-redo"></i> Сбросить
+                        <i class="fas fa-redo"></i> СБРОСИТЬ
                     </button>
                 </div>
             </div>
@@ -371,8 +348,8 @@
                 }
             }
             
-            // Переключаем баннеры каждые 10 секунд
-            setInterval(switchBanner, 10000);
+            // Переключаем баннеры каждые 8 секунд
+            setInterval(switchBanner, 8000);
         });
     </script>
 </body>
