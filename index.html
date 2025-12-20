@@ -1,4 +1,3 @@
-[file name]: index.html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -11,11 +10,9 @@
     <link rel="icon" type="image/x-icon" href="https://img.icons8.com/color/96/sneakers.png">
 </head>
 <body>
-    <!-- Верхняя панель -->
     <header class="top-header">
         <div class="container">
             <div class="header-top-row">
-                <!-- Логотип -->
                 <div class="logo">
                     <div class="logo-icon-wrapper">
                         <img src="https://img.icons8.com/color/96/sneakers.png" alt="EDM" class="logo-img">
@@ -26,7 +23,6 @@
                     </div>
                 </div>
                 
-                <!-- Поиск -->
                 <div class="search-container">
                     <div class="search-box">
                         <input type="text" id="searchInput" placeholder="Поиск кроссовок...">
@@ -39,10 +35,8 @@
         </div>
     </header>
 
-    <!-- Баннер с переключением -->
     <div class="container">
         <div class="banner-container">
-            <!-- Баннер 1: Новая коллекция -->
             <div class="banner-slide collection active" id="banner1">
                 <div class="banner-content">
                     <h1>НОВАЯ КОЛЛЕКЦИЯ 2024</h1>
@@ -51,7 +45,6 @@
                 </div>
             </div>
             
-            <!-- Баннер 2: Контакты для заказов -->
             <div class="banner-slide contacts" id="banner2">
                 <div class="banner-content">
                     <h1>ЗАКАЗЫ В TELEGRAM</h1>
@@ -65,7 +58,6 @@
         </div>
     </div>
 
-    <!-- Основной контент -->
     <main class="container main-container">
         <section class="main-content">
             <div class="products-header">
@@ -82,12 +74,8 @@
                 </div>
             </div>
 
-            <!-- Карточки товаров -->
-            <div class="products-grid" id="productsGrid">
-                <!-- Товары загружаются через JS -->
-            </div>
+            <div class="products-grid" id="productsGrid"></div>
             
-            <!-- Пагинация -->
             <div class="pagination">
                 <button class="page-btn prev" id="prevPage" disabled>
                     <i class="fas fa-chevron-left"></i>
@@ -104,7 +92,6 @@
         </section>
     </main>
 
-    <!-- Нижняя панель -->
     <nav class="bottom-nav-angular">
         <div class="nav-inner">
             <button class="nav-btn" id="navFavorites">
@@ -129,7 +116,6 @@
         </div>
     </nav>
 
-    <!-- Попап корзины -->
     <div class="cart-popup angular-popup" id="cartPopup">
         <div class="popup-header">
             <h3><i class="fas fa-shopping-cart"></i> КОРЗИНА</h3>
@@ -138,11 +124,8 @@
             </button>
         </div>
         <div class="popup-body">
-            <div class="cart-items" id="cartItems">
-                <!-- Товары в корзине -->
-            </div>
+            <div class="cart-items" id="cartItems"></div>
             
-            <!-- Адрес доставки -->
             <div class="delivery-address-section">
                 <h4><i class="fas fa-map-marker-alt"></i> Адрес доставки</h4>
                 <div class="address-input-container">
@@ -177,7 +160,6 @@
         </div>
     </div>
 
-    <!-- Попап избранного -->
     <div class="favorites-popup angular-popup" id="favoritesPopup">
         <div class="popup-header">
             <h3><i class="fas fa-heart"></i> ИЗБРАННОЕ</h3>
@@ -186,9 +168,7 @@
             </button>
         </div>
         <div class="popup-body">
-            <div class="fav-items" id="favoritesItems">
-                <!-- Товары в избранном -->
-            </div>
+            <div class="fav-items" id="favoritesItems"></div>
             <div class="fav-empty" id="favEmpty">
                 <i class="far fa-heart"></i>
                 <p>В избранном пока ничего нет</p>
@@ -200,7 +180,6 @@
         </div>
     </div>
 
-    <!-- Попап фильтров -->
     <div class="filter-popup angular-popup" id="filterPopup">
         <div class="popup-header">
             <h3><i class="fas fa-filter"></i> ФИЛЬТРЫ</h3>
@@ -317,20 +296,15 @@
         </div>
     </div>
 
-    <!-- Модальное окно товара -->
     <div class="product-details-modal" id="productDetailsModal">
-        <div class="modal-content">
-            <!-- Контент загружается динамически -->
-        </div>
+        <div class="modal-content"></div>
     </div>
     <div class="product-modal-overlay" id="productModalOverlay"></div>
 
-    <!-- Оверлей для попапов -->
     <div class="overlay" id="overlay"></div>
 
     <script src="script.js"></script>
     <script>
-        // Скрипт для переключения баннеров
         document.addEventListener('DOMContentLoaded', function() {
             const banner1 = document.getElementById('banner1');
             const banner2 = document.getElementById('banner2');
@@ -348,7 +322,6 @@
                 }
             }
             
-            // Переключаем баннеры каждые 8 секунд
             setInterval(switchBanner, 8000);
         });
     </script>

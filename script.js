@@ -1,5 +1,3 @@
-[file name]: script.js
-// ===== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ И КОНСТАНТЫ =====
 const tg = window.Telegram?.WebApp || {};
 let user = null;
 let allProducts = [];
@@ -12,7 +10,6 @@ let deliveryAddress = '';
 let isAddressSaved = false;
 let selectedSizes = [];
 
-// Ключи для localStorage
 const STORAGE_KEYS = {
     CART: 'edm_sneakers_cart',
     FAVORITES: 'edm_sneakers_favorites',
@@ -20,7 +17,6 @@ const STORAGE_KEYS = {
     ADDRESS: 'edm_sneakers_address'
 };
 
-// КРОССОВКИ
 const PRODUCTS_DATA = [
     {
         id: 1,
@@ -330,7 +326,6 @@ const PRODUCTS_DATA = [
     },
 ];
 
-// ===== ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ =====
 document.addEventListener('DOMContentLoaded', function() {
     initApp();
     loadData();
@@ -343,7 +338,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function initApp() {
-    // Инициализация Telegram WebApp
     if (tg.initDataUnsafe?.user) {
         user = {
             id: tg.initDataUnsafe.user.id,
@@ -352,11 +346,10 @@ function initApp() {
             lastName: tg.initDataUnsafe.user.last_name
         };
         
-        tg.expand();
-        tg.setHeaderColor('#0a0a0a');
-        tg.setBackgroundColor('#0a0a0a');
+        if (tg.expand) tg.expand();
+        if (tg.setHeaderColor) tg.setHeaderColor('#0a0a0a');
+        if (tg.setBackgroundColor) tg.setBackgroundColor('#0a0a0a');
     } else {
-        // Режим демо (вне Telegram)
         user = {
             id: 1,
             username: 'demo_user',
@@ -365,11 +358,9 @@ function initApp() {
         };
     }
     
-    // Сохраняем пользователя в localStorage
     saveToStorage(STORAGE_KEYS.USER, user);
 }
 
-// ===== LOCALSTORAGE ФУНКЦИИ =====
 function saveToStorage(key, data) {
     try {
         localStorage.setItem(key, JSON.stringify(data));
@@ -389,14 +380,9 @@ function loadFromStorage(key, defaultValue = null) {
 }
 
 function loadData() {
-    // Загружаем товары
     allProducts = PRODUCTS_DATA;
     filteredProducts = [...allProducts];
-    
-    // Загружаем корзину из localStorage
     cart = loadFromStorage(STORAGE_KEYS.CART, []);
-    
-    // Загружаем избранное из localStorage
     favorites = loadFromStorage(STORAGE_KEYS.FAVORITES, []);
 }
 
@@ -444,7 +430,6 @@ function updateAddressStatus() {
     }
 }
 
-// ===== ФИЛЬТРЫ РАЗМЕРОВ =====
 function setupSizeFilters() {
     const sizeButtons = document.querySelectorAll('.size-btn');
     sizeButtons.forEach(btn => {
@@ -466,7 +451,6 @@ function setupSizeFilters() {
     });
 }
 
-// ===== РЕНДЕРИНГ ТОВАРОВ =====
 function renderProducts() {
     const grid = document.getElementById('productsGrid');
     if (!grid) return;
@@ -559,7 +543,6 @@ function renderProducts() {
     
     updatePagination();
     
-    // Добавляем обработчики кликов на карточки
     document.querySelectorAll('.product-card').forEach(card => {
         card.addEventListener('click', function(e) {
             if (!e.target.closest('.btn-cart-wb') && !e.target.closest('.btn-fav-wb')) {
@@ -591,7 +574,6 @@ function renderStars(rating) {
     return stars;
 }
 
-// ===== ПАГИНАЦИЯ =====
 function updatePagination() {
     const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
     const pageNumbers = document.getElementById('pageNumbers');
@@ -642,7 +624,6 @@ function goToPage(page) {
     }
 }
 
-// ===== КОРЗИНА =====
 function toggleCart(productId, event) {
     if (event) {
         event.stopPropagation();
@@ -808,7 +789,6 @@ function updateCheckoutButton() {
     }
 }
 
-// ===== ИЗБРАННОЕ =====
 function updateFavoritesPopup() {
     const favoritesItems = document.getElementById('favoritesItems');
     const favEmpty = document.getElementById('favEmpty');
@@ -866,7 +846,6 @@ function removeFromFavorites(productId) {
     }
 }
 
-// ===== МОДАЛЬНОЕ ОКНО ТОВАРА =====
 function showProductDetailsModal(product) {
     const existingModal = document.getElementById('productDetailsModal');
     const existingOverlay = document.querySelector('.product-modal-overlay');
@@ -1119,7 +1098,6 @@ function closeProductDetailsModal() {
     document.body.style.overflow = 'auto';
 }
 
-// ===== ФИЛЬТРЫ И ПОИСК =====
 function filterProducts() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     const priceMin = parseInt(document.getElementById('filterPriceMin').value) || 0;
@@ -1216,159 +1194,6 @@ function resetFilters() {
 }
 
 function setupFilterPopup() {
-    const filterContent = document.querySelector('.filter-content');
-    if (!filterContent) return;
-    
-    filterContent.innerHTML = `
-        <div class="filter-group">
-            <h4><i class="fas fa-tag"></i> Категории</h4>
-            <div class="checkbox-group">
-                <label class="checkbox">
-                    <input type="checkbox" class="filter-category" value="sneakers" checked>
-                    <span class="checkmark"></span>
-                    Кроссовки
-                </label>
-                <label class="checkbox">
-                    <input type="checkbox" class="filter-category" value="limited" checked>
-                    <span class="checkmark"></span>
-                    Лимитированные
-                </label>
-                <label class="checkbox">
-                    <input type="checkbox" class="filter-category" value="running" checked>
-                    <span class="checkmark"></span>
-                    Беговые
-                </label>
-                <label class="checkbox">
-                    <input type="checkbox" class="filter-category" value="basketball" checked>
-                    <span class="checkmark"></span>
-                    Баскетбольные
-                </label>
-            </div>
-        </div>
-        
-        <div class="filter-group">
-            <h4><i class="fas fa-dollar-sign"></i> Цена, ₽</h4>
-            <div class="price-range">
-                <div class="range-inputs">
-                    <input type="number" id="filterPriceMin" placeholder="0" min="0">
-                    <span class="range-divider">-</span>
-                    <input type="number" id="filterPriceMax" placeholder="100000" min="0">
-                </div>
-                <div class="range-slider">
-                    <input type="range" id="filterPriceRange" min="0" max="100000" value="50000">
-                </div>
-            </div>
-        </div>
-        
-        <div class="filter-group">
-            <h4><i class="fas fa-ruler"></i> Размеры</h4>
-            <div class="size-filters">
-                <div class="size-buttons">
-                    <button class="size-btn" data-size="38">38</button>
-                    <button class="size-btn" data-size="39">39</button>
-                    <button class="size-btn" data-size="40">40</button>
-                    <button class="size-btn" data-size="41">41</button>
-                    <button class="size-btn" data-size="42">42</button>
-                    <button class="size-btn" data-size="43">43</button>
-                    <button class="size-btn" data-size="44">44</button>
-                    <button class="size-btn" data-size="45">45</button>
-                </div>
-            </div>
-        </div>
-        
-        <div class="filter-group">
-            <h4><i class="fas fa-star"></i> Рейтинг</h4>
-            <div class="rating-filter">
-                <label class="star-rating">
-                    <input type="radio" name="filterRating" value="0" checked>
-                    <span class="stars">
-                        <i class="far fa-star"></i>
-                        <i class="far fa-star"></i>
-                        <i class="far fa-star"></i>
-                        <i class="far fa-star"></i>
-                        <i class="far fa-star"></i>
-                    </span>
-                    <span class="rating-text">Любой</span>
-                </label>
-                <label class="star-rating">
-                    <input type="radio" name="filterRating" value="4">
-                    <span class="stars">
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="far fa-star"></i>
-                    </span>
-                    <span class="rating-text">4+</span>
-                </label>
-                <label class="star-rating">
-                    <input type="radio" name="filterRating" value="4.5">
-                    <span class="stars">
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star-half-alt"></i>
-                    </span>
-                    <span class="rating-text">4.5+</span>
-                </label>
-            </div>
-        </div>
-        
-        <div class="filter-buttons">
-            <button class="btn-filter-apply" id="applyFilterBtn">
-                <i class="fas fa-check"></i> ПРИМЕНИТЬ
-            </button>
-            <button class="btn-filter-reset" id="resetFilterBtn">
-                <i class="fas fa-redo"></i> СБРОСИТЬ
-            </button>
-        </div>
-    `;
-    
-    const priceRange = document.getElementById('filterPriceRange');
-    const priceMinInput = document.getElementById('filterPriceMin');
-    const priceMaxInput = document.getElementById('filterPriceMax');
-    
-    if (priceRange && priceMinInput && priceMaxInput) {
-        priceRange.addEventListener('input', function() {
-            const value = parseInt(this.value);
-            priceMinInput.value = Math.max(0, value - 20000);
-            priceMaxInput.value = Math.min(100000, value + 20000);
-        });
-        
-        priceMinInput.addEventListener('change', function() {
-            const min = parseInt(this.value) || 0;
-            const max = parseInt(priceMaxInput.value) || 100000;
-            priceRange.value = Math.floor((min + max) / 2);
-        });
-        
-        priceMaxInput.addEventListener('change', function() {
-            const min = parseInt(priceMinInput.value) || 0;
-            const max = parseInt(this.value) || 100000;
-            priceRange.value = Math.floor((min + max) / 2);
-        });
-    }
-    
-    // Настройка фильтров размеров
-    const sizeButtons = document.querySelectorAll('.size-btn');
-    sizeButtons.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const size = parseInt(this.dataset.size);
-            this.classList.toggle('active');
-            
-            if (this.classList.contains('active')) {
-                if (!selectedSizes.includes(size)) {
-                    selectedSizes.push(size);
-                }
-            } else {
-                const index = selectedSizes.indexOf(size);
-                if (index > -1) {
-                    selectedSizes.splice(index, 1);
-                }
-            }
-        });
-    });
-    
     document.getElementById('applyFilterBtn')?.addEventListener('click', function() {
         filterProducts();
         closeFilterPopup();
@@ -1378,46 +1203,6 @@ function setupFilterPopup() {
     document.getElementById('resetFilterBtn')?.addEventListener('click', resetFilters);
 }
 
-// ===== УПРАВЛЕНИЕ ПОПАПАМИ =====
-function openCartPopup() {
-    document.getElementById('cartPopup').classList.add('show');
-    document.getElementById('overlay').classList.add('show');
-    document.body.style.overflow = 'hidden';
-    updateCartPopup();
-}
-
-function closeCartPopup() {
-    document.getElementById('cartPopup').classList.remove('show');
-    document.getElementById('overlay').classList.remove('show');
-    document.body.style.overflow = 'auto';
-}
-
-function openFavoritesPopup() {
-    document.getElementById('favoritesPopup').classList.add('show');
-    document.getElementById('overlay').classList.add('show');
-    document.body.style.overflow = 'hidden';
-    updateFavoritesPopup();
-}
-
-function closeFavoritesPopup() {
-    document.getElementById('favoritesPopup').classList.remove('show');
-    document.getElementById('overlay').classList.remove('show');
-    document.body.style.overflow = 'auto';
-}
-
-function openFilterPopup() {
-    document.getElementById('filterPopup').classList.add('show');
-    document.getElementById('overlay').classList.add('show');
-    document.body.style.overflow = 'hidden';
-}
-
-function closeFilterPopup() {
-    document.getElementById('filterPopup').classList.remove('show');
-    document.getElementById('overlay').classList.remove('show');
-    document.body.style.overflow = 'auto';
-}
-
-// ===== УТИЛИТЫ =====
 function getCategoryName(category) {
     const categories = {
         sneakers: 'Кроссовки',
@@ -1470,9 +1255,7 @@ function showNotification(message, type = 'info') {
     }, 3000);
 }
 
-// ===== ОБРАБОТЧИКИ СОБЫТИЙ =====
 function initEventListeners() {
-    // Поиск
     const searchInput = document.getElementById('searchInput');
     const searchBtn = document.getElementById('searchBtn');
     
@@ -1503,10 +1286,8 @@ function initEventListeners() {
         });
     }
     
-    // Сортировка
     document.getElementById('sortBy')?.addEventListener('change', filterProducts);
     
-    // Нижнее меню
     document.getElementById('navFavorites')?.addEventListener('click', function() {
         updateFavoritesPopup();
         openFavoritesPopup();
@@ -1515,14 +1296,12 @@ function initEventListeners() {
     document.getElementById('navCart')?.addEventListener('click', openCartPopup);
     document.getElementById('navFilter')?.addEventListener('click', openFilterPopup);
     
-    // Сохранение адреса
     document.getElementById('saveAddressBtn')?.addEventListener('click', function() {
         if (saveAddress()) {
             updateCheckoutButton();
         }
     });
     
-    // Ввод адреса по Enter
     document.getElementById('deliveryAddress')?.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
             if (saveAddress()) {
@@ -1531,7 +1310,6 @@ function initEventListeners() {
         }
     });
     
-    // Автосохранение адреса при изменении
     document.getElementById('deliveryAddress')?.addEventListener('input', function() {
         clearTimeout(this._timer);
         this._timer = setTimeout(() => {
@@ -1545,18 +1323,15 @@ function initEventListeners() {
         }, 1000);
     });
     
-    // Кнопка "Перейти в каталог" в пустом избранном
     document.getElementById('browseBtn')?.addEventListener('click', function() {
         closeFavoritesPopup();
         resetFilters();
     });
     
-    // Закрытие попапов
     document.getElementById('closeCart')?.addEventListener('click', closeCartPopup);
     document.getElementById('closeFav')?.addEventListener('click', closeFavoritesPopup);
     document.getElementById('closeFilter')?.addEventListener('click', closeFilterPopup);
     
-    // Оверлей для закрытия попапов
     document.getElementById('overlay')?.addEventListener('click', function() {
         closeCartPopup();
         closeFavoritesPopup();
@@ -1564,7 +1339,6 @@ function initEventListeners() {
         closeProductDetailsModal();
     });
     
-    // Оформление заказа
     document.getElementById('checkoutBtn')?.addEventListener('click', function() {
         if (cart.length === 0) {
             showNotification('Добавьте товары в корзину', 'info');
@@ -1630,7 +1404,6 @@ ${orderItems}
         closeCartPopup();
     });
     
-    // Обработка кликов по кнопкам в карточках товаров
     document.addEventListener('click', function(event) {
         const target = event.target;
         
@@ -1695,7 +1468,6 @@ ${orderItems}
         }
     });
     
-    // Закрытие по клавише ESC
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             closeCartPopup();
@@ -1706,7 +1478,44 @@ ${orderItems}
     });
 }
 
-// ===== ГЛОБАЛЬНЫЙ ЭКСПОРТ =====
+function openCartPopup() {
+    document.getElementById('cartPopup').classList.add('show');
+    document.getElementById('overlay').classList.add('show');
+    document.body.style.overflow = 'hidden';
+    updateCartPopup();
+}
+
+function closeCartPopup() {
+    document.getElementById('cartPopup').classList.remove('show');
+    document.getElementById('overlay').classList.remove('show');
+    document.body.style.overflow = 'auto';
+}
+
+function openFavoritesPopup() {
+    document.getElementById('favoritesPopup').classList.add('show');
+    document.getElementById('overlay').classList.add('show');
+    document.body.style.overflow = 'hidden';
+    updateFavoritesPopup();
+}
+
+function closeFavoritesPopup() {
+    document.getElementById('favoritesPopup').classList.remove('show');
+    document.getElementById('overlay').classList.remove('show');
+    document.body.style.overflow = 'auto';
+}
+
+function openFilterPopup() {
+    document.getElementById('filterPopup').classList.add('show');
+    document.getElementById('overlay').classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeFilterPopup() {
+    document.getElementById('filterPopup').classList.remove('show');
+    document.getElementById('overlay').classList.remove('show');
+    document.body.style.overflow = 'auto';
+}
+
 window.edm = {
     user,
     allProducts,
