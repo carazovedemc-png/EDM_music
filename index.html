@@ -3,146 +3,254 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EDM™ - эксклюзивные кроссовки</title>
+    <title>EDM™ | Футбольные бутсы</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/x-icon" href="https://img.icons8.com/color/96/sneakers.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Roboto+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="https://img.icons8.com/ios/100/football-boot.png">
 </head>
 <body>
-    <header class="top-header">
-        <div class="container">
-            <div class="header-top-row">
+    <!-- Верхняя навигация -->
+    <header class="main-header">
+        <nav class="header-nav">
+            <div class="nav-section">
+                <button class="nav-icon-btn" id="menuBtn">
+                    <i class="fas fa-bars"></i>
+                </button>
                 <div class="logo">
-                    <div class="logo-icon-wrapper">
-                        <img src="https://img.icons8.com/color/96/sneakers.png" alt="EDM" class="logo-img">
-                    </div>
-                    <div class="logo-text">
-                        <span class="logo-main">EDM™</span>
-                        <span class="logo-sub">эксклюзивные кроссовки</span>
-                    </div>
-                </div>
-                
-                <div class="search-container">
-                    <div class="search-box">
-                        <input type="text" id="searchInput" placeholder="Поиск кроссовок...">
-                        <button class="search-btn-angular" id="searchBtn">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <div class="container">
-        <div class="banner-container">
-            <div class="banner-slide collection active" id="banner1">
-                <div class="banner-content">
-                    <h1>НОВАЯ КОЛЛЕКЦИЯ 2024</h1>
-                    <p>Эксклюзивные кроссовки от ведущих брендов</p>
-                    <div class="banner-tag">🔥 ЛИМИТИРОВАННЫЕ СЕРИИ</div>
+                    <span class="logo-text">EDM™</span>
+                    <span class="logo-sub">PRO FOOTBALL</span>
                 </div>
             </div>
             
-            <div class="banner-slide contacts" id="banner2">
-                <div class="banner-content">
-                    <h1>ЗАКАЗЫ В TELEGRAM</h1>
-                    <div class="banner-contacts">
-                        <strong>@EDM_Sneakers</strong><br>
-                        <a href="https://t.me/EDM_Sneakers" target="_blank">https://t.me/EDM_Sneakers</a><br>
-                        <div class="contact-sub">Доставка по всей России</div>
+            <div class="nav-section">
+                <div class="search-container">
+                    <div class="search-box">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" id="searchInput" placeholder="Поиск бутс...">
                     </div>
                 </div>
             </div>
+            
+            <div class="nav-section">
+                <button class="nav-icon-btn" id="favoritesBtn">
+                    <i class="far fa-heart"></i>
+                </button>
+                <button class="nav-icon-btn cart-btn" id="cartBtn">
+                    <i class="fas fa-shopping-bag"></i>
+                    <span class="cart-count" id="headerCartCount">0</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Категории -->
+    <div class="categories-bar">
+        <div class="categories-container">
+            <button class="category-btn active" data-category="all">Все</button>
+            <button class="category-btn" data-category="fg">FG (Газон)</button>
+            <button class="category-btn" data-category="ag">AG (Искусств.)</button>
+            <button class="category-btn" data-category="mg">MG (Мульти)</button>
+            <button class="category-btn" data-category="tf">TF (Зал)</button>
+            <button class="category-btn" data-category="limited">Лимит</button>
         </div>
     </div>
 
-    <main class="container main-container">
-        <section class="main-content">
-            <div class="products-header">
-                <h2 id="categoryTitle">ПОПУЛЯРНЫЕ МОДЕЛИ</h2>
-                <div class="sort-select-angular">
+    <!-- Основной контент -->
+    <main class="main-container">
+        <!-- Баннер -->
+        <div class="hero-banner">
+            <div class="banner-content">
+                <h1 class="banner-title">ЭЛИТНЫЕ ФУТБОЛЬНЫЕ БУТСЫ</h1>
+                <p class="banner-subtitle">Профессиональные модели 2024 | Бесплатная доставка</p>
+                <div class="banner-badges">
+                    <span class="banner-badge">НОВИНКИ</span>
+                    <span class="banner-badge">PRO</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Сортировка и фильтры -->
+        <div class="controls-bar">
+            <div class="controls-left">
+                <button class="filter-btn" id="filterBtn">
+                    <i class="fas fa-sliders-h"></i> ФИЛЬТРЫ
+                </button>
+                <div class="sort-select">
                     <select id="sortBy">
                         <option value="popular">По популярности</option>
-                        <option value="new">Новинки</option>
-                        <option value="price-low">Цена: по возрастанию</option>
-                        <option value="price-high">Цена: по убыванию</option>
+                        <option value="new">Сначала новые</option>
+                        <option value="price-low">Цена: низкая → высокая</option>
+                        <option value="price-high">Цена: высокая → низкая</option>
                         <option value="rating">По рейтингу</option>
                     </select>
                     <i class="fas fa-chevron-down"></i>
                 </div>
             </div>
-
-            <div class="products-grid" id="productsGrid"></div>
-            
-            <div class="pagination">
-                <button class="page-btn prev" id="prevPage" disabled>
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-                <div class="page-numbers" id="pageNumbers">
-                    <button class="page-btn active" data-page="1">1</button>
-                    <button class="page-btn" data-page="2">2</button>
-                    <button class="page-btn" data-page="3">3</button>
-                </div>
-                <button class="page-btn next" id="nextPage">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
+            <div class="results-count">
+                <span id="productsCount">12 моделей</span>
             </div>
-        </section>
+        </div>
+
+        <!-- Сетка товаров -->
+        <div class="products-grid" id="productsGrid">
+            <!-- Товары будут загружены через JS -->
+        </div>
+
+        <!-- Пагинация -->
+        <div class="pagination">
+            <button class="pagination-btn" id="prevPage" disabled>
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <div class="page-numbers">
+                <button class="page-number active">1</button>
+                <button class="page-number">2</button>
+            </div>
+            <button class="pagination-btn" id="nextPage">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
     </main>
 
-    <nav class="bottom-nav-angular">
-        <div class="nav-inner">
-            <button class="nav-btn" id="navFavorites">
-                <i class="far fa-heart"></i>
-            </button>
-            <div class="nav-divider"></div>
-            
-            <button class="nav-btn" id="navCart">
-                <i class="fas fa-shopping-cart"></i>
-                <span class="nav-badge" id="bottomCartCount">0</span>
-            </button>
-            <div class="nav-divider"></div>
-            
-            <button class="nav-btn" id="navFilter">
-                <i class="fas fa-filter"></i>
-            </button>
-            <div class="nav-divider"></div>
-            
-            <a href="https://t.me/EDM_Sneakers" target="_blank" class="nav-btn" id="navContact">
-                <i class="fab fa-telegram"></i>
-            </a>
-        </div>
-    </nav>
-
-    <div class="cart-popup angular-popup" id="cartPopup">
+    <!-- Попап фильтров -->
+    <div class="popup-overlay" id="filterOverlay"></div>
+    <div class="filter-popup" id="filterPopup">
         <div class="popup-header">
-            <h3><i class="fas fa-shopping-cart"></i> КОРЗИНА</h3>
-            <button class="close-popup" id="closeCart">
+            <h3><i class="fas fa-filter"></i> ФИЛЬТРЫ</h3>
+            <button class="popup-close" id="closeFilter">
                 <i class="fas fa-times"></i>
             </button>
         </div>
+        
         <div class="popup-body">
-            <div class="cart-items" id="cartItems"></div>
+            <!-- Категории -->
+            <div class="filter-section">
+                <h4>ТИП ШИПОВ</h4>
+                <div class="filter-options">
+                    <label class="filter-checkbox">
+                        <input type="checkbox" name="type" value="fg" checked>
+                        <span class="checkmark"></span>
+                        FG (Натуральный газон)
+                    </label>
+                    <label class="filter-checkbox">
+                        <input type="checkbox" name="type" value="ag" checked>
+                        <span class="checkmark"></span>
+                        AG (Искусственный газон)
+                    </label>
+                    <label class="filter-checkbox">
+                        <input type="checkbox" name="type" value="mg" checked>
+                        <span class="checkmark"></span>
+                        MG (Мультигрунт)
+                    </label>
+                    <label class="filter-checkbox">
+                        <input type="checkbox" name="type" value="tf" checked>
+                        <span class="checkmark"></span>
+                        TF (Зал/Асфальт)
+                    </label>
+                </div>
+            </div>
+
+            <!-- Бренды -->
+            <div class="filter-section">
+                <h4>БРЕНДЫ</h4>
+                <div class="filter-options">
+                    <label class="filter-checkbox">
+                        <input type="checkbox" name="brand" value="nike" checked>
+                        <span class="checkmark"></span>
+                        Nike
+                    </label>
+                    <label class="filter-checkbox">
+                        <input type="checkbox" name="brand" value="adidas" checked>
+                        <span class="checkmark"></span>
+                        Adidas
+                    </label>
+                    <label class="filter-checkbox">
+                        <input type="checkbox" name="brand" value="puma" checked>
+                        <span class="checkmark"></span>
+                        Puma
+                    </label>
+                    <label class="filter-checkbox">
+                        <input type="checkbox" name="brand" value="mizuno" checked>
+                        <span class="checkmark"></span>
+                        Mizuno
+                    </label>
+                </div>
+            </div>
+
+            <!-- Размеры -->
+            <div class="filter-section">
+                <h4>РАЗМЕР (EU)</h4>
+                <div class="size-filters">
+                    <div class="size-row">
+                        <button class="size-btn" data-size="38">38</button>
+                        <button class="size-btn" data-size="39">39</button>
+                        <button class="size-btn" data-size="40">40</button>
+                        <button class="size-btn" data-size="40.5">40.5</button>
+                        <button class="size-btn" data-size="41">41</button>
+                    </div>
+                    <div class="size-row">
+                        <button class="size-btn" data-size="42">42</button>
+                        <button class="size-btn" data-size="42.5">42.5</button>
+                        <button class="size-btn" data-size="43">43</button>
+                        <button class="size-btn" data-size="44">44</button>
+                        <button class="size-btn" data-size="45">45</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Цена -->
+            <div class="filter-section">
+                <h4>ЦЕНА, ₽</h4>
+                <div class="price-range">
+                    <div class="range-values">
+                        <span id="minPrice">5 000</span>
+                        <span id="maxPrice">35 000</span>
+                    </div>
+                    <div class="range-slider">
+                        <input type="range" id="priceSlider" min="5000" max="35000" value="20000">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Кнопки фильтров -->
+            <div class="filter-actions">
+                <button class="btn-secondary" id="resetFilters">
+                    СБРОСИТЬ
+                </button>
+                <button class="btn-primary" id="applyFilters">
+                    ПРИМЕНИТЬ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Попап корзины -->
+    <div class="popup-overlay" id="cartOverlay"></div>
+    <div class="cart-popup" id="cartPopup">
+        <div class="popup-header">
+            <h3><i class="fas fa-shopping-bag"></i> КОРЗИНА</h3>
+            <button class="popup-close" id="closeCart">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="popup-body">
+            <div class="cart-items" id="cartItems">
+                <!-- Товары в корзине -->
+            </div>
             
-            <div class="delivery-address-section">
-                <h4><i class="fas fa-map-marker-alt"></i> Адрес доставки</h4>
-                <div class="address-input-container">
-                    <input type="text" id="deliveryAddress" class="address-input" placeholder="Город, улица, дом, квартира">
-                    <button class="save-address-btn" id="saveAddressBtn">
-                        <i class="fas fa-check"></i>
-                    </button>
-                </div>
-                <div id="addressStatus" style="font-size: 0.8rem; color: var(--color-text-secondary); margin-top: 5px;">
-                    <i class="fas fa-info-circle"></i> Адрес не указан
-                </div>
+            <div class="cart-empty" id="cartEmpty">
+                <i class="fas fa-shopping-bag"></i>
+                <p>Ваша корзина пуста</p>
+                <button class="btn-secondary" id="continueShopping">
+                    ПРОДОЛЖИТЬ ПОКУПКИ
+                </button>
             </div>
             
             <div class="cart-summary">
                 <div class="summary-row">
                     <span>Товары</span>
-                    <span id="cartTotal">0 ₽</span>
+                    <span id="cartSubtotal">0 ₽</span>
                 </div>
                 <div class="summary-row">
                     <span>Доставка</span>
@@ -150,9 +258,15 @@
                 </div>
                 <div class="summary-row total">
                     <span>ИТОГО</span>
-                    <span id="cartFinal">0 ₽</span>
+                    <span id="cartTotal">0 ₽</span>
                 </div>
-                <button class="btn-checkout-angular" id="checkoutBtn">
+                
+                <div class="delivery-section">
+                    <h4><i class="fas fa-map-marker-alt"></i> Адрес доставки</h4>
+                    <input type="text" id="deliveryAddress" placeholder="Город, улица, дом">
+                </div>
+                
+                <button class="btn-checkout" id="checkoutBtn">
                     <i class="fas fa-paper-plane"></i>
                     ОФОРМИТЬ ЗАКАЗ
                 </button>
@@ -160,170 +274,59 @@
         </div>
     </div>
 
-    <div class="favorites-popup angular-popup" id="favoritesPopup">
+    <!-- Попап избранного -->
+    <div class="popup-overlay" id="favoritesOverlay"></div>
+    <div class="favorites-popup" id="favoritesPopup">
         <div class="popup-header">
             <h3><i class="fas fa-heart"></i> ИЗБРАННОЕ</h3>
-            <button class="close-popup" id="closeFav">
+            <button class="popup-close" id="closeFavorites">
                 <i class="fas fa-times"></i>
             </button>
         </div>
+        
         <div class="popup-body">
-            <div class="fav-items" id="favoritesItems"></div>
+            <div class="fav-items" id="favoritesItems">
+                <!-- Товары в избранном -->
+            </div>
+            
             <div class="fav-empty" id="favEmpty">
                 <i class="far fa-heart"></i>
                 <p>В избранном пока ничего нет</p>
-                <button class="btn-browse-angular" id="browseBtn">
-                    <i class="fas fa-shoe-prints"></i>
-                    ПЕРЕЙТИ В КАТАЛОГ
+                <button class="btn-secondary" id="browseCatalog">
+                    СМОТРЕТЬ КАТАЛОГ
                 </button>
             </div>
         </div>
     </div>
 
-    <div class="filter-popup angular-popup" id="filterPopup">
-        <div class="popup-header">
-            <h3><i class="fas fa-filter"></i> ФИЛЬТРЫ</h3>
-            <button class="close-popup" id="closeFilter">
-                <i class="fas fa-times"></i>
+    <!-- Модальное окно товара -->
+    <div class="modal-overlay" id="productModalOverlay"></div>
+    <div class="product-modal" id="productModal">
+        <!-- Контент будет заполнен через JS -->
+    </div>
+
+    <!-- Нижняя панель -->
+    <footer class="bottom-nav">
+        <div class="nav-container">
+            <button class="bottom-nav-btn active" id="navHome">
+                <i class="fas fa-home"></i>
+                <span>Главная</span>
+            </button>
+            <button class="bottom-nav-btn" id="navCatalog">
+                <i class="fas fa-th-large"></i>
+                <span>Каталог</span>
+            </button>
+            <button class="bottom-nav-btn" id="navFavoritesBottom">
+                <i class="far fa-heart"></i>
+                <span>Избранное</span>
+            </button>
+            <button class="bottom-nav-btn" id="navProfile">
+                <i class="fas fa-user"></i>
+                <span>Профиль</span>
             </button>
         </div>
-        <div class="popup-body">
-            <div class="filter-content">
-                <div class="filter-group">
-                    <h4><i class="fas fa-tag"></i> Категории</h4>
-                    <div class="checkbox-group">
-                        <label class="checkbox">
-                            <input type="checkbox" class="filter-category" value="sneakers" checked>
-                            <span class="checkmark"></span>
-                            Кроссовки
-                        </label>
-                        <label class="checkbox">
-                            <input type="checkbox" class="filter-category" value="limited" checked>
-                            <span class="checkmark"></span>
-                            Лимитированные
-                        </label>
-                        <label class="checkbox">
-                            <input type="checkbox" class="filter-category" value="running" checked>
-                            <span class="checkmark"></span>
-                            Беговые
-                        </label>
-                        <label class="checkbox">
-                            <input type="checkbox" class="filter-category" value="basketball" checked>
-                            <span class="checkmark"></span>
-                            Баскетбольные
-                        </label>
-                    </div>
-                </div>
-                
-                <div class="filter-group">
-                    <h4><i class="fas fa-dollar-sign"></i> Цена, ₽</h4>
-                    <div class="price-range">
-                        <div class="range-inputs">
-                            <input type="number" id="filterPriceMin" placeholder="0" min="0">
-                            <span class="range-divider">-</span>
-                            <input type="number" id="filterPriceMax" placeholder="100000" min="0">
-                        </div>
-                        <div class="range-slider">
-                            <input type="range" id="filterPriceRange" min="0" max="100000" value="50000">
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="filter-group">
-                    <h4><i class="fas fa-ruler"></i> Размеры</h4>
-                    <div class="size-filters">
-                        <div class="size-buttons">
-                            <button class="size-btn" data-size="38">38</button>
-                            <button class="size-btn" data-size="39">39</button>
-                            <button class="size-btn" data-size="40">40</button>
-                            <button class="size-btn" data-size="41">41</button>
-                            <button class="size-btn" data-size="42">42</button>
-                            <button class="size-btn" data-size="43">43</button>
-                            <button class="size-btn" data-size="44">44</button>
-                            <button class="size-btn" data-size="45">45</button>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="filter-group">
-                    <h4><i class="fas fa-star"></i> Рейтинг</h4>
-                    <div class="rating-filter">
-                        <label class="star-rating">
-                            <input type="radio" name="filterRating" value="0" checked>
-                            <span class="stars">
-                                <i class="far fa-star"></i>
-                                <i class="far fa-star"></i>
-                                <i class="far fa-star"></i>
-                                <i class="far fa-star"></i>
-                                <i class="far fa-star"></i>
-                            </span>
-                            <span class="rating-text">Любой</span>
-                        </label>
-                        <label class="star-rating">
-                            <input type="radio" name="filterRating" value="4">
-                            <span class="stars">
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="far fa-star"></i>
-                            </span>
-                            <span class="rating-text">4+</span>
-                        </label>
-                        <label class="star-rating">
-                            <input type="radio" name="filterRating" value="4.5">
-                            <span class="stars">
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star-half-alt"></i>
-                            </span>
-                            <span class="rating-text">4.5+</span>
-                        </label>
-                    </div>
-                </div>
-                
-                <div class="filter-buttons">
-                    <button class="btn-filter-apply" id="applyFilterBtn">
-                        <i class="fas fa-check"></i> ПРИМЕНИТЬ
-                    </button>
-                    <button class="btn-filter-reset" id="resetFilterBtn">
-                        <i class="fas fa-redo"></i> СБРОСИТЬ
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="product-details-modal" id="productDetailsModal">
-        <div class="modal-content"></div>
-    </div>
-    <div class="product-modal-overlay" id="productModalOverlay"></div>
-
-    <div class="overlay" id="overlay"></div>
+    </footer>
 
     <script src="script.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const banner1 = document.getElementById('banner1');
-            const banner2 = document.getElementById('banner2');
-            let currentBanner = 1;
-            
-            function switchBanner() {
-                if (currentBanner === 1) {
-                    banner1.classList.remove('active');
-                    banner2.classList.add('active');
-                    currentBanner = 2;
-                } else {
-                    banner2.classList.remove('active');
-                    banner1.classList.add('active');
-                    currentBanner = 1;
-                }
-            }
-            
-            setInterval(switchBanner, 8000);
-        });
-    </script>
 </body>
 </html>

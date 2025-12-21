@@ -9,332 +9,336 @@ const productsPerPage = 8;
 let deliveryAddress = '';
 let isAddressSaved = false;
 let selectedSizes = [];
+let selectedCategories = [];
+let selectedBrands = [];
+let maxPrice = 35000;
 
 const STORAGE_KEYS = {
-    CART: 'edm_sneakers_cart',
-    FAVORITES: 'edm_sneakers_favorites',
-    USER: 'edm_sneakers_user',
-    ADDRESS: 'edm_sneakers_address'
+    CART: 'edm_football_cart',
+    FAVORITES: 'edm_football_favorites',
+    USER: 'edm_football_user',
+    ADDRESS: 'edm_football_address'
 };
 
 const PRODUCTS_DATA = [
     {
         id: 1,
-        name: "Nike Air Jordan 1 Retro High",
-        description: "Культовые кроссовки Nike Air Jordan 1 Retro High в классической красно-черно-белой цветовой гамме. Высококачественная кожа, оригинальная подошва, идеально для коллекционеров и повседневной носки.",
-        price: 24500,
-        oldPrice: 29900,
-        category: "sneakers",
-        size: [40, 41, 42, 43, 44],
-        brand: "Nike",
+        name: "Nike Mercurial Superfly 9 Elite FG",
+        description: "Элитные футбольные бутсы для натурального газона с технологией Flyknit и углеродной пластиной. Максимальная скорость и контроль.",
+        price: 29900,
+        oldPrice: 34900,
+        category: "fg",
+        size: [40, 40.5, 41, 42, 42.5, 43, 44, 45],
+        brand: "nike",
         rating: 4.9,
-        reviews: 412,
-        image: "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-        badge: "hit",
+        reviews: 156,
+        image: "https://images.unsplash.com/photo-1609921212029-bb5a28e60960?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+        badge: "new",
         inStock: true,
         popular: true,
-        specs: ["Высокое голенище", "Кожаный верх", "Воздушная подошва", "Оригинал"]
+        features: ["Flyknit верх", "Углеродная пластина", "FG шипы", "Элитный уровень"]
     },
     {
         id: 2,
-        name: "Adidas Yeezy Boost 350 V2",
-        description: "Adidas Yeezy Boost 350 V2 в цвете 'Zebra' - ультрамодные кроссовки с технологией Boost для максимального комфорта. Primeknit верх обеспечивает идеальную посадку.",
-        price: 32000,
+        name: "Adidas Predator Accuracy.1 FG",
+        description: "Бутсы для контроля мяча с технологией Demonskin и зонами контроля. Идеально для плеймейкеров.",
+        price: 27900,
         oldPrice: 0,
-        category: "sneakers",
+        category: "fg",
         size: [39, 40, 41, 42, 43, 44],
-        brand: "Adidas",
+        brand: "adidas",
         rating: 4.8,
-        reviews: 389,
-        image: "https://images.unsplash.com/photo-1600269452121-4f2416e55c28?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-        badge: "new",
+        reviews: 128,
+        image: "https://images.unsplash.com/photo-1600269452121-4f2416e55c28?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+        badge: "hit",
         inStock: true,
         popular: true,
-        specs: ["Primeknit верх", "Технология Boost", "Стиль Zebra", "Оригинал"]
+        features: ["Demonskin технология", "FG шипы", "Контроль мяча", "Primeknit верх"]
     },
     {
         id: 3,
-        name: "New Balance 550",
-        description: "New Balance 550 - ретро-баскетбольные кроссовки, вернувшиеся в моду. Классический дизайн, кожаный верх и комфортная амортизация. Идеальный выбор для городского стиля.",
-        price: 12500,
-        oldPrice: 14900,
-        category: "basketball",
-        size: [40, 41, 42, 43, 44, 45],
-        brand: "New Balance",
+        name: "Puma Future Ultimate MG",
+        description: "Универсальные бутсы для мультигрунта с адаптивной системой шнуровки и технологией FUZIONFIT+.",
+        price: 18900,
+        oldPrice: 22900,
+        category: "mg",
+        size: [38, 39, 40, 41, 42, 43, 44],
+        brand: "puma",
         rating: 4.7,
-        reviews: 267,
-        image: "https://images.unsplash.com/photo-1605348532760-6753d2c43329?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
+        reviews: 89,
+        image: "https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
         badge: "sale",
         inStock: true,
         popular: true,
-        specs: ["Кожаный верх", "Баскетбольный стиль", "Ретро дизайн", "Комфорт"]
+        features: ["FUZIONFIT+", "MG шипы", "Адаптивная шнуровка", "Универсальные"]
     },
     {
         id: 4,
-        name: "Nike Dunk Low 'Panda'",
-        description: "Nike Dunk Low в классическом черно-белом цвете 'Panda'. Универсальные кроссовки, которые подходят к любому образу. Качественная кожа и культовый силуэт.",
-        price: 18900,
-        oldPrice: 21900,
-        category: "sneakers",
-        size: [38, 39, 40, 41, 42, 43],
-        brand: "Nike",
+        name: "Mizuno Morelia Neo III Beta MIJ",
+        description: "Ручной работы в Японии. Премиальная кенгуру, невероятная посадка и комфорт для натурального газона.",
+        price: 34900,
+        oldPrice: 0,
+        category: "fg",
+        size: [40, 41, 42, 43, 44],
+        brand: "mizuno",
         rating: 4.9,
-        reviews: 512,
-        image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-        badge: "hit",
+        reviews: 67,
+        image: "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+        badge: "new",
         inStock: true,
-        popular: true,
-        specs: ["Низкое голенище", "Кожаный верх", "Черно-белый", "Универсальные"]
+        popular: false,
+        features: ["Кожа кенгуру", "MIJ (Япония)", "FG шипы", "Ручная работа"]
     },
     {
         id: 5,
-        name: "Adidas Ultraboost 22",
-        description: "Adidas Ultraboost 22 - лучшие беговые кроссовки с технологией Boost. Максимальная амортизация и возврат энергии для эффективных тренировок.",
-        price: 15900,
-        oldPrice: 0,
-        category: "running",
-        size: [40, 41, 42, 43, 44, 45],
-        brand: "Adidas",
+        name: "Nike Tiempo Legend 9 Elite AG",
+        description: "Элитные бутсы для искусственного газона с кожей KangaLite и технологией Flyknit для комфорта и контроля.",
+        price: 25900,
+        oldPrice: 29900,
+        category: "ag",
+        size: [39, 40, 41, 42, 43, 44, 45],
+        brand: "nike",
         rating: 4.8,
-        reviews: 421,
-        image: "https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-        badge: null,
+        reviews: 142,
+        image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+        badge: "hit",
         inStock: true,
         popular: true,
-        specs: ["Технология Boost", "Беговые", "Primeknit верх", "Энерго возврат"]
+        features: ["KangaLite кожа", "AG шипы", "Flyknit воротник", "Элитный уровень"]
     },
     {
         id: 6,
-        name: "Converse Chuck Taylor All Star",
-        description: "Легендарные Converse Chuck Taylor All Star в классическом черном цвете. Канвасовый верх, резиновая подошва. Икона уличной моды на все времена.",
-        price: 5900,
-        oldPrice: 6900,
-        category: "sneakers",
-        size: [39, 40, 41, 42, 43, 44],
-        brand: "Converse",
+        name: "Adidas X Speedportal.1 TF",
+        description: "Бутсы для зала с технологией Carbitex и зонами ускорения. Максимальная скорость на твердых покрытиях.",
+        price: 16900,
+        oldPrice: 19900,
+        category: "tf",
+        size: [38, 39, 40, 41, 42, 43],
+        brand: "adidas",
         rating: 4.6,
-        reviews: 892,
-        image: "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
+        reviews: 94,
+        image: "https://images.unsplash.com/photo-1600269452121-4f2416e55c28?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
         badge: "sale",
         inStock: true,
-        popular: false,
-        specs: ["Канвасовый верх", "Классика", "Резиновая подошва", "Унисекс"]
+        popular: true,
+        features: ["Carbitex технология", "TF шипы", "Для зала", "Скорость"]
     },
     {
         id: 7,
-        name: "Air Jordan 4 Retro 'Military Black'",
-        description: "Air Jordan 4 Retro в цвете 'Military Black' - лимитированная серия. Премиум материалы, уникальный дизайн и культовый силуэт для истинных коллекционеров.",
-        price: 42000,
+        name: "Nike Phantom GX Elite FG",
+        description: "Инновационные бутсы для креатива и неожиданных решений. Технология Gripknit для улучшенного контроля.",
+        price: 28900,
         oldPrice: 0,
-        category: "limited",
-        size: [41, 42, 43, 44],
-        brand: "Nike",
-        rating: 4.9,
-        reviews: 187,
-        image: "https://images.unsplash.com/photo-1600269452121-4f2416e55c28?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
+        category: "fg",
+        size: [40, 41, 42, 43, 44],
+        brand: "nike",
+        rating: 4.7,
+        reviews: 113,
+        image: "https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
         badge: "new",
         inStock: true,
         popular: true,
-        specs: ["Лимитированная серия", "Премиум кожа", "Уникальный дизайн", "Коллекционные"]
+        features: ["Gripknit технология", "FG шипы", "Креативный контроль", "Элитный уровень"]
     },
     {
         id: 8,
-        name: "Nike Air Force 1 '07",
-        description: "Культовые Nike Air Force 1 в белом цвете. Самые популярные кроссовки в истории, которые остаются актуальными уже несколько десятилетий.",
-        price: 12900,
-        oldPrice: 14900,
-        category: "sneakers",
-        size: [38, 39, 40, 41, 42, 43, 44, 45],
-        brand: "Nike",
+        name: "Puma King Platinum MG",
+        description: "Премиальные бутсы для мультигрунта с кожей кенгуру и классическим дизайном для тотального контроля.",
+        price: 22900,
+        oldPrice: 26900,
+        category: "mg",
+        size: [39, 40, 41, 42, 43, 44],
+        brand: "puma",
         rating: 4.8,
-        reviews: 1245,
-        image: "https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
+        reviews: 78,
+        image: "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
         badge: "hit",
         inStock: true,
-        popular: true,
-        specs: ["Кожаный верх", "Белый цвет", "Воздушная подошва", "Культовые"]
+        popular: false,
+        features: ["Кожа кенгуру", "MG шипы", "Классический дизайн", "Контроль"]
     },
     {
         id: 9,
-        name: "Adidas Forum 84 Low",
-        description: "Adidas Forum 84 Low - ретро-баскетбольные кроссовки с современными технологиями. Классический дизайн 80-х в современном исполнении.",
-        price: 11500,
+        name: "Adidas Copa Pure.1 FG",
+        description: "Чистый контроль на натуральном газоне. Кожа кенгуру и минималистичный дизайн для пуристов.",
+        price: 24900,
         oldPrice: 0,
-        category: "basketball",
-        size: [40, 41, 42, 43, 44],
-        brand: "Adidas",
-        rating: 4.5,
-        reviews: 198,
-        image: "https://images.unsplash.com/photo-1605348532760-6753d2c43329?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
+        category: "fg",
+        size: [39, 40, 41, 42, 43, 44],
+        brand: "adidas",
+        rating: 4.8,
+        reviews: 87,
+        image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
         badge: null,
         inStock: true,
         popular: true,
-        specs: ["Ретро стиль", "Баскетбольные", "Кожаный верх", "Низкое голенище"]
+        features: ["Кожа кенгуру", "FG шипы", "Минимализм", "Контроль"]
     },
     {
         id: 10,
-        name: "Nike Blazer Mid '77 Vintage",
-        description: "Nike Blazer Mid '77 Vintage - винтажные кроссовки с историей. Толстая резиновая подошва, канвасовый верх и культовый силуэт 70-х годов.",
-        price: 13900,
-        oldPrice: 15900,
-        category: "sneakers",
-        size: [39, 40, 41, 42, 43],
-        brand: "Nike",
-        rating: 4.7,
-        reviews: 312,
-        image: "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
+        name: "Nike Mercurial Vapor 15 Elite AG-Pro",
+        description: "Профессиональные бутсы для искусственного газона с улучшенной амортизацией и сцеплением.",
+        price: 27900,
+        oldPrice: 31900,
+        category: "ag",
+        size: [40, 41, 42, 43, 44, 45],
+        brand: "nike",
+        rating: 4.9,
+        reviews: 134,
+        image: "https://images.unsplash.com/photo-1609921212029-bb5a28e60960?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
         badge: "sale",
         inStock: true,
         popular: true,
-        specs: ["Винтажный стиль", "Канвасовый верх", "Среднее голенище", "Ретро"]
+        features: ["AG-Pro шипы", "Flyknit верх", "Профессиональный уровень", "Скорость"]
     },
     {
         id: 11,
-        name: "Puma Suede Classic",
-        description: "Puma Suede Classic - икона хип-хоп культуры. Замшевый верх, классический силуэт и узнаваемый дизайн. Подлинная классика уличной моды.",
-        price: 8900,
-        oldPrice: 10900,
-        category: "sneakers",
-        size: [38, 39, 40, 41, 42, 43],
-        brand: "Puma",
-        rating: 4.6,
-        reviews: 456,
-        image: "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-        badge: "sale",
+        name: "Mizuno Rebula Cup Elite MG",
+        description: "Элитные бутсы для мультигрунта с технологией 3D Control Panel для превосходного контроля мяча.",
+        price: 26900,
+        oldPrice: 0,
+        category: "mg",
+        size: [40, 41, 42, 43, 44],
+        brand: "mizuno",
+        rating: 4.7,
+        reviews: 56,
+        image: "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+        badge: "new",
         inStock: true,
         popular: false,
-        specs: ["Замшевый верх", "Классика", "Низкое голенище", "Уличный стиль"]
+        features: ["3D Control Panel", "MG шипы", "Кожа кенгуру", "Элитный уровень"]
     },
     {
         id: 12,
-        name: "Nike Air Max 97",
-        description: "Nike Air Max 97 с волнообразным дизайном и полной воздушной подошвой. Футуристичный вид и максимальный комфорт для повседневной носки.",
-        price: 17900,
-        oldPrice: 19900,
-        category: "sneakers",
-        size: [40, 41, 42, 43, 44, 45],
-        brand: "Nike",
+        name: "Puma Ultra Ultimate TF",
+        description: "Ультралегкие бутсы для зала с технологией MATRYXEVO и углеродной пластиной для взрывного старта.",
+        price: 19900,
+        oldPrice: 23900,
+        category: "tf",
+        size: [38, 39, 40, 41, 42, 43, 44],
+        brand: "puma",
         rating: 4.8,
-        reviews: 389,
-        image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
+        reviews: 102,
+        image: "https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
         badge: "hit",
         inStock: true,
         popular: true,
-        specs: ["Полная Air подошва", "Волнообразный дизайн", "Футуристичный", "Комфорт"]
+        features: ["MATRYXEVO технология", "TF шипы", "Ультралегкие", "Скорость"]
     },
     {
         id: 13,
-        name: "Reebok Classic Leather",
-        description: "Reebok Classic Leather - минималистичные кроссовки из премиальной кожи. Чистый дизайн, универсальность и непревзойденный комфорт.",
-        price: 9900,
-        oldPrice: 0,
-        category: "sneakers",
-        size: [39, 40, 41, 42, 43],
-        brand: "Reebok",
-        rating: 4.5,
-        reviews: 234,
-        image: "https://images.unsplash.com/photo-1600269452121-4f2416e55c28?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-        badge: null,
+        name: "Adidas Predator Edge.1 AG",
+        description: "Инновационные бутсы для искусственного газона с технологией Demonskin 2.0 для максимального контроля.",
+        price: 25900,
+        oldPrice: 28900,
+        category: "ag",
+        size: [39, 40, 41, 42, 43, 44, 45],
+        brand: "adidas",
+        rating: 4.7,
+        reviews: 121,
+        image: "https://images.unsplash.com/photo-1600269452121-4f2416e55c28?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+        badge: "sale",
         inStock: true,
-        popular: false,
-        specs: ["Кожаный верх", "Минимализм", "Универсальные", "Классика"]
+        popular: true,
+        features: ["Demonskin 2.0", "AG шипы", "Контроль мяча", "Primeknit верх"]
     },
     {
         id: 14,
-        name: "Nike Air Max 90",
-        description: "Nike Air Max 90 - культовые кроссовки с видимой воздушной подошвой. Легендарный дизайн, проверенный временем комфорт и узнаваемый силуэт.",
-        price: 14900,
-        oldPrice: 16900,
-        category: "sneakers",
-        size: [38, 39, 40, 41, 42, 43, 44],
-        brand: "Nike",
-        rating: 4.8,
-        reviews: 678,
-        image: "https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
+        name: "Nike Tiempo Legend 9 Academy TF",
+        description: "Бутсы для зала начального уровня с кожей KangaLite и классическим дизайном для комфортной игры.",
+        price: 12900,
+        oldPrice: 15900,
+        category: "tf",
+        size: [38, 39, 40, 41, 42, 43, 44, 45],
+        brand: "nike",
+        rating: 4.5,
+        reviews: 167,
+        image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
         badge: "sale",
         inStock: true,
         popular: true,
-        specs: ["Видимая Air подошва", "Культовые", "Комфорт", "Узнаваемый дизайн"]
+        features: ["KangaLite кожа", "TF шипы", "Начальный уровень", "Комфорт"]
     },
     {
         id: 15,
-        name: "Adidas Superstar",
-        description: "Adidas Superstar с характерным мыском в виде ракушки. Икона уличной моды, которая остается актуальной уже более 50 лет.",
-        price: 10900,
-        oldPrice: 12900,
-        category: "sneakers",
-        size: [38, 39, 40, 41, 42, 43, 44],
-        brand: "Adidas",
-        rating: 4.7,
-        reviews: 512,
-        image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-        badge: "hit",
+        name: "Adidas Copa Sense.1 FG",
+        description: "Бутсы с сенсорным контролем мяча. Технология Foam Pods для улучшенного ощущения мяча.",
+        price: 23900,
+        oldPrice: 27900,
+        category: "fg",
+        size: [40, 41, 42, 43, 44],
+        brand: "adidas",
+        rating: 4.6,
+        reviews: 93,
+        image: "https://images.unsplash.com/photo-1600269452121-4f2416e55c28?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+        badge: "sale",
         inStock: true,
-        popular: true,
-        specs: ["Ракушечный мысок", "Кожаный верх", "Классика", "Универсальные"]
+        popular: false,
+        features: ["Foam Pods", "FG шипы", "Сенсорный контроль", "Кожа кенгуру"]
     },
     {
         id: 16,
-        name: "Nike ZoomX Vaporfly Next% 2",
-        description: "Nike ZoomX Vaporfly Next% 2 - революционные беговые кроссовки для марафонов. Технология ZoomX и углеродная пластина для максимальной эффективности.",
-        price: 24900,
-        oldPrice: 0,
-        category: "running",
-        size: [40, 41, 42, 43, 44],
-        brand: "Nike",
-        rating: 4.9,
-        reviews: 289,
-        image: "https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-        badge: "new",
-        inStock: true,
-        popular: true,
-        specs: ["Технология ZoomX", "Углеродная пластина", "Марафонные", "Эффективность"]
-    },
-    {
-        id: 17,
-        name: "Jordan Why Not Zer0.5",
-        description: "Jordan Why Not Zer0.5 - баскетбольные кроссовки Рассела Уэстбрука. Агрессивный дизайн, максимальная поддержка и передовые технологии для игры.",
-        price: 18900,
-        oldPrice: 21900,
-        category: "basketball",
-        size: [41, 42, 43, 44, 45],
-        brand: "Jordan",
-        rating: 4.7,
-        reviews: 156,
-        image: "https://images.unsplash.com/photo-1605348532760-6753d2c43329?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
+        name: "Nike Phantom GT2 Elite FG",
+        description: "Элитные бутсы с технологией Generative Texture для непредсказуемых движений и креативной игры.",
+        price: 26900,
+        oldPrice: 30900,
+        category: "fg",
+        size: [40, 41, 42, 43, 44, 45],
+        brand: "nike",
+        rating: 4.8,
+        reviews: 108,
+        image: "https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
         badge: "sale",
         inStock: true,
         popular: true,
-        specs: ["Баскетбольные", "Поддержка", "Технологичные", "Агрессивный дизайн"]
+        features: ["Generative Texture", "FG шипы", "Креативная игра", "Элитный уровень"]
+    },
+    {
+        id: 17,
+        name: "Mizuno Morelia Neo III Beta AG",
+        description: "Японские бутсы ручной работы для искусственного газона. Невероятное качество и комфорт.",
+        price: 32900,
+        oldPrice: 0,
+        category: "ag",
+        size: [40, 41, 42, 43, 44],
+        brand: "mizuno",
+        rating: 4.9,
+        reviews: 45,
+        image: "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+        badge: "new",
+        inStock: true,
+        popular: false,
+        features: ["Ручная работа", "AG шипы", "MIJ (Япония)", "Кожа кенгуру"]
     },
     {
         id: 18,
-        name: "EDM™ Limited Edition Pro",
-        description: "Эксклюзивная лимитированная серия кроссовок от EDM™. Премиальные материалы, уникальный дизайн и передовые технологии. Только 500 пар по всему миру.",
-        price: 55000,
-        oldPrice: 0,
-        category: "limited",
-        size: [40, 41, 42, 43],
-        brand: "EDM",
-        rating: 5.0,
-        reviews: 89,
-        image: "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-        badge: "new",
+        name: "Puma Future Z 1.4 FG/AG",
+        description: "Гибридные бутсы для натурального и искусственного газона. Адаптивная система FUZIONFIT.",
+        price: 21900,
+        oldPrice: 25900,
+        category: "fg",
+        size: [39, 40, 41, 42, 43, 44],
+        brand: "puma",
+        rating: 4.7,
+        reviews: 134,
+        image: "https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+        badge: "hit",
         inStock: true,
         popular: true,
-        specs: ["Лимитированные", "Премиум материалы", "Уникальный дизайн", "Эксклюзив"]
-    },
+        features: ["FUZIONFIT", "FG/AG шипы", "Гибридные", "Адаптивные"]
+    }
 ];
+
+// ===== ОСНОВНЫЕ ФУНКЦИИ =====
 
 document.addEventListener('DOMContentLoaded', function() {
     initApp();
     loadData();
     renderProducts();
     updateCartCount();
-    setupFilterPopup();
     initEventListeners();
     loadAddress();
-    setupSizeFilters();
+    updateProductsCount();
 });
 
 function initApp() {
@@ -347,8 +351,8 @@ function initApp() {
         };
         
         if (tg.expand) tg.expand();
-        if (tg.setHeaderColor) tg.setHeaderColor('#0a0a0a');
-        if (tg.setBackgroundColor) tg.setBackgroundColor('#0a0a0a');
+        if (tg.setHeaderColor) tg.setHeaderColor('#000000');
+        if (tg.setBackgroundColor) tg.setBackgroundColor('#000000');
     } else {
         user = {
             id: 1,
@@ -384,6 +388,9 @@ function loadData() {
     filteredProducts = [...allProducts];
     cart = loadFromStorage(STORAGE_KEYS.CART, []);
     favorites = loadFromStorage(STORAGE_KEYS.FAVORITES, []);
+    
+    selectedCategories = ['fg', 'ag', 'mg', 'tf'];
+    selectedBrands = ['nike', 'adidas', 'puma', 'mizuno'];
 }
 
 function loadAddress() {
@@ -395,7 +402,6 @@ function loadAddress() {
         if (addressInput) {
             addressInput.value = deliveryAddress;
         }
-        updateAddressStatus();
         updateCheckoutButton();
     }
 }
@@ -407,7 +413,6 @@ function saveAddress() {
         if (deliveryAddress) {
             isAddressSaved = true;
             saveToStorage(STORAGE_KEYS.ADDRESS, deliveryAddress);
-            updateAddressStatus();
             updateCheckoutButton();
             showNotification('Адрес сохранен', 'success');
             return true;
@@ -419,141 +424,11 @@ function saveAddress() {
     return false;
 }
 
-function updateAddressStatus() {
-    const addressStatus = document.getElementById('addressStatus');
-    if (addressStatus) {
-        if (isAddressSaved && deliveryAddress) {
-            addressStatus.innerHTML = `<i class="fas fa-check-circle" style="color: var(--color-success);"></i> Адрес сохранен: ${deliveryAddress.substring(0, 30)}${deliveryAddress.length > 30 ? '...' : ''}`;
-        } else {
-            addressStatus.innerHTML = '<i class="fas fa-exclamation-circle" style="color: var(--color-warning);"></i> Адрес не указан';
-        }
+function updateProductsCount() {
+    const countElement = document.getElementById('productsCount');
+    if (countElement) {
+        countElement.textContent = `${filteredProducts.length} моделей`;
     }
-}
-
-function setupSizeFilters() {
-    const sizeButtons = document.querySelectorAll('.size-btn');
-    sizeButtons.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const size = parseInt(this.dataset.size);
-            this.classList.toggle('active');
-            
-            if (this.classList.contains('active')) {
-                if (!selectedSizes.includes(size)) {
-                    selectedSizes.push(size);
-                }
-            } else {
-                const index = selectedSizes.indexOf(size);
-                if (index > -1) {
-                    selectedSizes.splice(index, 1);
-                }
-            }
-        });
-    });
-}
-
-function renderProducts() {
-    const grid = document.getElementById('productsGrid');
-    if (!grid) return;
-    
-    grid.innerHTML = '';
-    
-    const startIndex = (currentPage - 1) * productsPerPage;
-    const endIndex = startIndex + productsPerPage;
-    const productsToShow = filteredProducts.slice(startIndex, endIndex);
-    
-    if (productsToShow.length === 0) {
-        grid.innerHTML = `
-            <div class="empty-state" style="grid-column: 1/-1; text-align: center; padding: 60px 20px;">
-                <i class="fas fa-search" style="font-size: 3rem; color: var(--color-text-muted); margin-bottom: 20px;"></i>
-                <h3 style="margin-bottom: 10px; color: var(--color-text);">Кроссовки не найдены</h3>
-                <p style="color: var(--color-text-secondary); margin-bottom: 20px;">Попробуйте изменить параметры поиска или фильтры</p>
-                <button class="btn-filter-reset" onclick="resetFilters()" style="margin: 0 auto;">СБРОСИТЬ ФИЛЬТРЫ</button>
-            </div>
-        `;
-        return;
-    }
-    
-    productsToShow.forEach(product => {
-        const isInCart = cart.some(item => item.id === product.id);
-        const isInFavorites = favorites.some(item => item.id === product.id);
-        
-        const card = document.createElement('div');
-        card.className = 'product-card';
-        card.dataset.id = product.id;
-        
-        let badgeHtml = '';
-        if (product.badge === 'new') {
-            badgeHtml = '<span class="badge-new">НОВИНКА</span>';
-        } else if (product.badge === 'sale') {
-            badgeHtml = '<span class="badge-sale">СКИДКА</span>';
-        } else if (product.badge === 'hit') {
-            badgeHtml = '<span class="badge-hit">ХИТ</span>';
-        }
-        
-        const discountPercent = product.oldPrice > 0 
-            ? Math.round((1 - product.price / product.oldPrice) * 100)
-            : 0;
-        
-        const sizesText = product.size.slice(0, 3).join(', ') + (product.size.length > 3 ? '...' : '');
-        
-        card.innerHTML = `
-            <div class="product-badges">
-                ${badgeHtml}
-            </div>
-            <img src="${product.image}" alt="${product.name}" class="product-image">
-            
-            <div class="product-prices-top">
-                <span class="price-current">${product.price.toLocaleString()} ₽</span>
-                ${product.oldPrice > 0 ? `
-                    <div class="price-old-wrapper">
-                        <span class="price-old">${product.oldPrice.toLocaleString()} ₽</span>
-                        <span class="discount-percent">-${discountPercent}%</span>
-                    </div>
-                ` : ''}
-            </div>
-            
-            <h3 class="product-title">${product.name}</h3>
-            
-            <div class="product-description-short">
-                <i class="fas fa-ruler"></i> Размеры: ${sizesText}<br>
-                <i class="fas fa-tag"></i> ${getBrandName(product.brand)}
-            </div>
-            
-            <div class="product-rating-wb">
-                <div class="rating-stars">
-                    ${renderStars(product.rating)}
-                </div>
-                <span class="rating-value-wb">${product.rating}</span>
-                <span class="reviews-count-wb">${product.reviews} оценок</span>
-            </div>
-            
-            <div class="product-actions-wb">
-                <button class="btn-cart-wb ${isInCart ? 'in-cart' : ''}" data-id="${product.id}">
-                    ${isInCart ? '<i class="fas fa-check"></i>' : '<i class="fas fa-shopping-cart"></i>'}
-                    <span>${isInCart ? 'В КОРЗИНЕ' : 'В КОРЗИНУ'}</span>
-                </button>
-                <button class="btn-fav-wb ${isInFavorites ? 'active' : ''}" data-id="${product.id}">
-                    <i class="${isInFavorites ? 'fas' : 'far'} fa-heart"></i>
-                </button>
-            </div>
-        `;
-        
-        grid.appendChild(card);
-    });
-    
-    updatePagination();
-    
-    document.querySelectorAll('.product-card').forEach(card => {
-        card.addEventListener('click', function(e) {
-            if (!e.target.closest('.btn-cart-wb') && !e.target.closest('.btn-fav-wb')) {
-                const productId = parseInt(this.dataset.id);
-                const product = allProducts.find(p => p.id === productId);
-                if (product) {
-                    showProductDetailsModal(product);
-                }
-            }
-        });
-    });
 }
 
 function renderStars(rating) {
@@ -574,9 +449,119 @@ function renderStars(rating) {
     return stars;
 }
 
+function renderProducts() {
+    const grid = document.getElementById('productsGrid');
+    if (!grid) return;
+    
+    grid.innerHTML = '';
+    
+    const startIndex = (currentPage - 1) * productsPerPage;
+    const endIndex = startIndex + productsPerPage;
+    const productsToShow = filteredProducts.slice(startIndex, endIndex);
+    
+    if (productsToShow.length === 0) {
+        grid.innerHTML = `
+            <div class="empty-state" style="grid-column: 1/-1; text-align: center; padding: 60px 20px;">
+                <i class="fas fa-search" style="font-size: 3rem; color: var(--color-gray); margin-bottom: 20px;"></i>
+                <h3 style="margin-bottom: 10px; color: var(--color-white);">Бутсы не найдены</h3>
+                <p style="color: var(--color-gray-light); margin-bottom: 20px;">Попробуйте изменить параметры поиска или фильтры</p>
+                <button class="btn-secondary" onclick="resetFilters()" style="margin: 0 auto;">
+                    СБРОСИТЬ ФИЛЬТРЫ
+                </button>
+            </div>
+        `;
+        updatePagination();
+        updateProductsCount();
+        return;
+    }
+    
+    productsToShow.forEach(product => {
+        const isInCart = cart.some(item => item.id === product.id);
+        const isInFavorites = favorites.some(item => item.id === product.id);
+        
+        const card = document.createElement('div');
+        card.className = 'product-card';
+        card.dataset.id = product.id;
+        
+        let badgeHtml = '';
+        if (product.badge === 'new') {
+            badgeHtml = '<span class="product-badge new">НОВИНКА</span>';
+        } else if (product.badge === 'sale') {
+            badgeHtml = '<span class="product-badge sale">СКИДКА</span>';
+        } else if (product.badge === 'hit') {
+            badgeHtml = '<span class="product-badge hit">ХИТ</span>';
+        }
+        
+        const discountPercent = product.oldPrice > 0 
+            ? Math.round((1 - product.price / product.oldPrice) * 100)
+            : 0;
+        
+        const typeName = getTypeName(product.category);
+        const brandName = getBrandName(product.brand);
+        
+        card.innerHTML = `
+            <div class="product-image-container">
+                <img src="${product.image}" alt="${product.name}" class="product-image">
+                <div class="product-badges">
+                    ${badgeHtml}
+                </div>
+            </div>
+            
+            <div class="product-info">
+                <div class="product-brand">${brandName}</div>
+                <h3 class="product-name">${product.name}</h3>
+                
+                <div class="product-meta">
+                    <div class="product-type">
+                        <i class="fas fa-running"></i>
+                        <span>${typeName}</span>
+                    </div>
+                    <div class="product-rating">
+                        ${renderStars(product.rating)} (${product.reviews})
+                    </div>
+                </div>
+                
+                <div class="product-price">
+                    <span class="current-price">${product.price.toLocaleString()} ₽</span>
+                    ${product.oldPrice > 0 ? `
+                        <span class="old-price">${product.oldPrice.toLocaleString()} ₽</span>
+                        ${discountPercent > 0 ? `<span class="discount">-${discountPercent}%</span>` : ''}
+                    ` : ''}
+                </div>
+                
+                <div class="product-actions">
+                    <button class="btn-add-to-cart ${isInCart ? 'in-cart' : ''}" data-id="${product.id}">
+                        ${isInCart ? '<i class="fas fa-check"></i> В КОРЗИНЕ' : '<i class="fas fa-shopping-bag"></i> В КОРЗИНУ'}
+                    </button>
+                    <button class="btn-favorite ${isInFavorites ? 'active' : ''}" data-id="${product.id}">
+                        <i class="${isInFavorites ? 'fas' : 'far'} fa-heart"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        grid.appendChild(card);
+    });
+    
+    updatePagination();
+    updateProductsCount();
+    
+    document.querySelectorAll('.product-card').forEach(card => {
+        card.addEventListener('click', function(e) {
+            if (!e.target.closest('.btn-add-to-cart') && !e.target.closest('.btn-favorite')) {
+                const productId = parseInt(this.dataset.id);
+                const product = allProducts.find(p => p.id === productId);
+                if (product) {
+                    showProductModal(product);
+                }
+            }
+        });
+    });
+}
+
 function updatePagination() {
     const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
-    const pageNumbers = document.getElementById('pageNumbers');
+    const pageNumbers = document.querySelector('.page-numbers');
     const prevBtn = document.getElementById('prevPage');
     const nextBtn = document.getElementById('nextPage');
     
@@ -593,9 +578,8 @@ function updatePagination() {
     
     for (let i = startPage; i <= endPage; i++) {
         const pageBtn = document.createElement('button');
-        pageBtn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+        pageBtn.className = `page-number ${i === currentPage ? 'active' : ''}`;
         pageBtn.textContent = i;
-        pageBtn.dataset.page = i;
         pageBtn.addEventListener('click', () => goToPage(i));
         pageNumbers.appendChild(pageBtn);
     }
@@ -615,505 +599,32 @@ function goToPage(page) {
     currentPage = page;
     renderProducts();
     
-    const mainContent = document.querySelector('.main-content');
-    if (mainContent) {
-        mainContent.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start'
-        });
-    }
-}
-
-function toggleCart(productId, event) {
-    if (event) {
-        event.stopPropagation();
-        event.preventDefault();
-    }
-    
-    const product = allProducts.find(p => p.id === productId);
-    if (!product) return;
-    
-    const existingItemIndex = cart.findIndex(item => item.id === productId);
-    
-    if (existingItemIndex !== -1) {
-        cart.splice(existingItemIndex, 1);
-        showNotification(`${product.name} удален из корзины`, 'info');
-    } else {
-        cart.push({
-            ...product,
-            quantity: 1,
-            selectedSize: product.size[0],
-            addedAt: new Date().toISOString()
-        });
-        showNotification(`${product.name} добавлен в корзину`, 'success');
-    }
-    
-    saveToStorage(STORAGE_KEYS.CART, cart);
-    
-    updateCartCount();
-    updateCartPopup();
-    renderProducts();
+    window.scrollTo({
+        top: 500,
+        behavior: 'smooth'
+    });
 }
 
 function updateCartCount() {
-    const bottomCartCount = document.getElementById('bottomCartCount');
+    const headerCartCount = document.getElementById('headerCartCount');
     const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
     
-    if (bottomCartCount) {
-        bottomCartCount.textContent = totalItems;
-        bottomCartCount.style.display = totalItems > 0 ? 'flex' : 'none';
+    if (headerCartCount) {
+        headerCartCount.textContent = totalItems;
+        headerCartCount.style.display = totalItems > 0 ? 'flex' : 'none';
     }
-}
-
-function updateCartPopup() {
-    const cartItems = document.getElementById('cartItems');
-    const cartTotal = document.getElementById('cartTotal');
-    const cartFinal = document.getElementById('cartFinal');
-    
-    if (!cartItems || !cartTotal || !cartFinal) return;
-    
-    if (cart.length === 0) {
-        cartItems.innerHTML = `
-            <div class="empty-cart" style="text-align: center; padding: 40px 20px;">
-                <i class="fas fa-shopping-cart" style="font-size: 3rem; color: var(--color-text-muted); margin-bottom: 20px; opacity: 0.3;"></i>
-                <p style="color: var(--color-text-secondary); margin-bottom: 20px;">Ваша корзина пуста</p>
-                <button class="btn-browse-angular" onclick="closeCartPopup()">ПЕРЕЙТИ К ПОКУПКАМ</button>
-            </div>
-        `;
-        cartTotal.textContent = '0 ₽';
-        cartFinal.textContent = '0 ₽';
-        return;
-    }
-    
-    cartItems.innerHTML = '';
-    cart.forEach(item => {
-        const itemElement = document.createElement('div');
-        itemElement.className = 'cart-item';
-        itemElement.innerHTML = `
-            <div class="cart-item-content">
-                <img src="${item.image}" alt="${item.name}" class="cart-item-img">
-                <div class="cart-item-details">
-                    <h4 class="cart-item-title">${item.name}</h4>
-                    <div class="cart-item-meta">
-                        <span class="cart-item-size"><i class="fas fa-ruler"></i> Размер: ${item.selectedSize || item.size[0]}</span>
-                        <span class="cart-item-brand"><i class="fas fa-tag"></i> ${getBrandName(item.brand)}</span>
-                    </div>
-                </div>
-                <div class="cart-item-price">${item.price.toLocaleString()} ₽</div>
-            </div>
-            <div class="cart-item-controls">
-                <div class="quantity-controls">
-                    <button class="quantity-btn minus" onclick="updateQuantity(${item.id}, -1)">-</button>
-                    <input type="number" class="quantity-input" value="${item.quantity}" min="1" max="10" onchange="updateQuantity(${item.id}, 0, this.value)">
-                    <button class="quantity-btn plus" onclick="updateQuantity(${item.id}, 1)">+</button>
-                </div>
-                <button class="remove-item-btn" onclick="removeFromCart(${item.id})" title="Удалить">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-        `;
-        cartItems.appendChild(itemElement);
-    });
-    
-    updateCartSummary();
-    updateCheckoutButton();
-}
-
-function updateCartSummary() {
-    const cartTotal = document.getElementById('cartTotal');
-    const cartFinal = document.getElementById('cartFinal');
-    
-    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const discount = cart.reduce((sum, item) => {
-        if (item.oldPrice > 0) {
-            return sum + ((item.oldPrice - item.price) * item.quantity);
-        }
-        return sum;
-    }, 0);
-    const total = subtotal - discount;
-    
-    cartTotal.textContent = `${subtotal.toLocaleString()} ₽`;
-    cartFinal.textContent = `${total.toLocaleString()} ₽`;
-}
-
-function updateQuantity(productId, delta, newValue = null) {
-    const item = cart.find(item => item.id === productId);
-    if (!item) return;
-    
-    if (newValue !== null) {
-        item.quantity = parseInt(newValue) || 1;
-    } else {
-        item.quantity += delta;
-    }
-    
-    if (item.quantity < 1) item.quantity = 1;
-    if (item.quantity > 10) item.quantity = 10;
-    
-    saveToStorage(STORAGE_KEYS.CART, cart);
-    
-    updateCartCount();
-    updateCartPopup();
-    renderProducts();
-}
-
-function removeFromCart(productId) {
-    cart = cart.filter(item => item.id !== productId);
-    
-    saveToStorage(STORAGE_KEYS.CART, cart);
-    
-    updateCartCount();
-    updateCartPopup();
-    renderProducts();
-    
-    showNotification('Товар удален из корзины', 'info');
-}
-
-function updateCheckoutButton() {
-    const checkoutBtn = document.getElementById('checkoutBtn');
-    if (!checkoutBtn) return;
-    
-    const hasItems = cart.length > 0;
-    
-    if (!isAddressSaved || !deliveryAddress) {
-        checkoutBtn.disabled = true;
-        checkoutBtn.style.opacity = '0.5';
-        checkoutBtn.style.cursor = 'not-allowed';
-    } else if (!hasItems) {
-        checkoutBtn.disabled = true;
-        checkoutBtn.style.opacity = '0.5';
-        checkoutBtn.style.cursor = 'not-allowed';
-    } else {
-        checkoutBtn.disabled = false;
-        checkoutBtn.style.opacity = '1';
-        checkoutBtn.style.cursor = 'pointer';
-    }
-}
-
-function updateFavoritesPopup() {
-    const favoritesItems = document.getElementById('favoritesItems');
-    const favEmpty = document.getElementById('favEmpty');
-    
-    if (!favoritesItems || !favEmpty) return;
-    
-    if (favorites.length === 0) {
-        favoritesItems.style.display = 'none';
-        favEmpty.style.display = 'flex';
-    } else {
-        favoritesItems.style.display = 'block';
-        favEmpty.style.display = 'none';
-        
-        favoritesItems.innerHTML = '';
-        
-        favorites.forEach(item => {
-            const itemElement = document.createElement('div');
-            itemElement.className = 'fav-item';
-            itemElement.dataset.id = item.id;
-            
-            itemElement.innerHTML = `
-                <div class="fav-item-content">
-                    <img src="${item.image}" alt="${item.name}" class="fav-item-img">
-                    <div class="fav-item-details">
-                        <h4 class="fav-item-title">${item.name}</h4>
-                        <div class="fav-item-price">${item.price.toLocaleString()} ₽</div>
-                        <div class="fav-item-meta">
-                            <span class="fav-item-size"><i class="fas fa-ruler"></i> Размеры: ${item.size.slice(0, 3).join(', ')}${item.size.length > 3 ? '...' : ''}</span>
-                            <span class="fav-item-brand"><i class="fas fa-tag"></i> ${getBrandName(item.brand)}</span>
-                        </div>
-                    </div>
-                    <button class="remove-from-fav" onclick="removeFromFavorites(${item.id})">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-                <button class="btn-add-to-cart-from-fav" onclick="toggleCart(${item.id})">
-                    <i class="fas fa-shopping-cart"></i> В КОРЗИНУ
-                </button>
-            `;
-            
-            favoritesItems.appendChild(itemElement);
-        });
-    }
-}
-
-function removeFromFavorites(productId) {
-    const index = favorites.findIndex(item => item.id === productId);
-    if (index !== -1) {
-        const product = favorites[index];
-        favorites.splice(index, 1);
-        saveToStorage(STORAGE_KEYS.FAVORITES, favorites);
-        showNotification(`${product.name} удален из избранного`, 'info');
-        updateFavoritesPopup();
-        renderProducts();
-    }
-}
-
-function showProductDetailsModal(product) {
-    const existingModal = document.getElementById('productDetailsModal');
-    const existingOverlay = document.querySelector('.product-modal-overlay');
-    if (existingModal) existingModal.remove();
-    if (existingOverlay) existingOverlay.remove();
-    
-    const modal = document.createElement('div');
-    modal.className = 'product-details-modal';
-    modal.id = 'productDetailsModal';
-    
-    const isInCart = cart.some(item => item.id === product.id);
-    const isInFavorites = favorites.some(item => item.id === product.id);
-    
-    const discountPercent = product.oldPrice > 0 
-        ? Math.round((1 - product.price / product.oldPrice) * 100)
-        : 0;
-    
-    let badgeHtml = '';
-    if (product.badge === 'new') {
-        badgeHtml = '<span class="modal-badge modal-badge-new">НОВИНКА</span>';
-    } else if (product.badge === 'sale') {
-        badgeHtml = '<span class="modal-badge modal-badge-sale">СКИДКА</span>';
-    } else if (product.badge === 'hit') {
-        badgeHtml = '<span class="modal-badge modal-badge-hit">ХИТ</span>';
-    }
-    
-    const specsHtml = product.specs ? 
-        product.specs.map(spec => `<div class="spec-item">${spec}</div>`).join('') : 
-        '';
-    
-    modal.innerHTML = `
-        <div class="modal-content">
-            <div class="modal-header">
-                <button class="modal-close-btn" id="closeDetailsModalBtn">
-                    <i class="fas fa-times"></i>
-                </button>
-                ${badgeHtml}
-            </div>
-            
-            <div class="modal-body">
-                <div class="product-image-section">
-                    <img src="${product.image}" alt="${product.name}" class="modal-product-image">
-                </div>
-                
-                <div class="product-info-section">
-                    <h2 class="modal-product-title">${product.name}</h2>
-                    
-                    <div class="product-meta">
-                        <span class="meta-category">
-                            <i class="fas fa-tag"></i> ${getCategoryName(product.category)}
-                        </span>
-                        <span class="meta-size">
-                            <i class="fas fa-ruler"></i> Размеры: ${product.size.join(', ')}
-                        </span>
-                        <span class="meta-stock ${product.inStock ? 'in-stock' : 'out-of-stock'}">
-                            <i class="fas ${product.inStock ? 'fa-check-circle' : 'fa-times-circle'}"></i> 
-                            ${product.inStock ? 'В НАЛИЧИИ' : 'НЕТ В НАЛИЧИИ'}
-                        </span>
-                    </div>
-                    
-                    <div class="product-rating-section">
-                        <div class="modal-rating">
-                            <div class="modal-stars">
-                                ${renderStars(product.rating)}
-                            </div>
-                            <span class="modal-rating-value">${product.rating}</span>
-                            <span class="modal-reviews">(${product.reviews} отзывов)</span>
-                        </div>
-                    </div>
-                    
-                    <div class="product-description">
-                        <h3><i class="fas fa-info-circle"></i> ОПИСАНИЕ</h3>
-                        <p>${product.description}</p>
-                    </div>
-                    
-                    <div class="product-specs">
-                        <h3><i class="fas fa-cogs"></i> ХАРАКТЕРИСТИКИ</h3>
-                        <div class="specs-container">
-                            ${specsHtml}
-                        </div>
-                    </div>
-                    
-                    <div class="product-pricing">
-                        <div class="price-section">
-                            <div class="current-price">${product.price.toLocaleString()} ₽</div>
-                            ${product.oldPrice > 0 ? `
-                                <div class="old-price-section">
-                                    <span class="old-price">${product.oldPrice.toLocaleString()} ₽</span>
-                                    <span class="discount-badge">-${discountPercent}%</span>
-                                </div>
-                            ` : ''}
-                        </div>
-                    </div>
-                    
-                    <div class="product-actions-modal">
-                        <button class="btn-add-to-cart ${isInCart ? 'in-cart' : ''}" data-id="${product.id}">
-                            <i class="fas ${isInCart ? 'fa-check' : 'fa-shopping-cart'}"></i>
-                            ${isInCart ? 'В КОРЗИНЕ' : 'ДОБАВИТЬ В КОРЗИНУ'}
-                        </button>
-                        <button class="btn-add-to-fav ${isInFavorites ? 'active' : ''}" data-id="${product.id}">
-                            <i class="${isInFavorites ? 'fas' : 'far'} fa-heart"></i>
-                        </button>
-                    </div>
-                    
-                    <div class="product-features">
-                        <div class="feature">
-                            <i class="fas fa-shipping-fast"></i>
-                            <span>Бесплатная доставка по России</span>
-                        </div>
-                        <div class="feature">
-                            <i class="fas fa-shield-alt"></i>
-                            <span>100% оригинальная продукция</span>
-                        </div>
-                        <div class="feature">
-                            <i class="fas fa-award"></i>
-                            <span>Гарантия подлинности</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(modal);
-    
-    const overlay = document.createElement('div');
-    overlay.className = 'product-modal-overlay';
-    overlay.id = 'productModalOverlay';
-    document.body.appendChild(overlay);
-    
-    setTimeout(() => {
-        modal.classList.add('show');
-        overlay.classList.add('show');
-        document.body.style.overflow = 'hidden';
-    }, 10);
-    
-    setTimeout(() => {
-        const closeBtn = document.getElementById('closeDetailsModalBtn');
-        const overlayEl = document.getElementById('productModalOverlay');
-        const cartBtn = modal.querySelector('.btn-add-to-cart');
-        const favBtn = modal.querySelector('.btn-add-to-fav');
-        
-        if (closeBtn) {
-            closeBtn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                closeProductDetailsModal();
-            });
-        }
-        
-        if (overlayEl) {
-            overlayEl.addEventListener('click', function(e) {
-                e.stopPropagation();
-                closeProductDetailsModal();
-            });
-        }
-        
-        if (cartBtn) {
-            cartBtn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                e.preventDefault();
-                const productId = parseInt(this.dataset.id);
-                toggleCart(productId, e);
-                
-                setTimeout(() => {
-                    const isNowInCart = cart.some(item => item.id === productId);
-                    if (isNowInCart) {
-                        this.innerHTML = '<i class="fas fa-check"></i> В КОРЗИНЕ';
-                        this.classList.add('in-cart');
-                    } else {
-                        this.innerHTML = '<i class="fas fa-shopping-cart"></i> ДОБАВИТЬ В КОРЗИНУ';
-                        this.classList.remove('in-cart');
-                    }
-                }, 100);
-            });
-        }
-        
-        if (favBtn) {
-            favBtn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                e.preventDefault();
-                const productId = parseInt(this.dataset.id);
-                const product = allProducts.find(p => p.id === productId);
-                if (!product) return;
-                
-                const existingIndex = favorites.findIndex(item => item.id === productId);
-                
-                if (existingIndex !== -1) {
-                    favorites.splice(existingIndex, 1);
-                    showNotification(`${product.name} удален из избранного`, 'info');
-                } else {
-                    favorites.push({
-                        ...product,
-                        addedAt: new Date().toISOString()
-                    });
-                    showNotification(`${product.name} добавлен в избранное`, 'success');
-                }
-                
-                saveToStorage(STORAGE_KEYS.FAVORITES, favorites);
-                
-                setTimeout(() => {
-                    const isNowInFav = favorites.some(item => item.id === productId);
-                    if (isNowInFav) {
-                        this.innerHTML = '<i class="fas fa-heart"></i>';
-                        this.classList.add('active');
-                    } else {
-                        this.innerHTML = '<i class="far fa-heart"></i>';
-                        this.classList.remove('active');
-                    }
-                }, 100);
-            });
-        }
-        
-        const escHandler = function(e) {
-            if (e.key === 'Escape') {
-                closeProductDetailsModal();
-            }
-        };
-        document.addEventListener('keydown', escHandler);
-        
-        modal._escHandler = escHandler;
-    }, 20);
-}
-
-function closeProductDetailsModal() {
-    const modal = document.getElementById('productDetailsModal');
-    const overlay = document.getElementById('productModalOverlay');
-    
-    if (modal) {
-        modal.classList.remove('show');
-        if (modal._escHandler) {
-            document.removeEventListener('keydown', modal._escHandler);
-        }
-        
-        setTimeout(() => {
-            if (modal.parentNode) {
-                modal.parentNode.removeChild(modal);
-            }
-        }, 400);
-    }
-    
-    if (overlay) {
-        overlay.classList.remove('show');
-        setTimeout(() => {
-            if (overlay.parentNode) {
-                overlay.parentNode.removeChild(overlay);
-            }
-        }, 400);
-    }
-    
-    document.body.style.overflow = 'auto';
 }
 
 function filterProducts() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-    const priceMin = parseInt(document.getElementById('filterPriceMin').value) || 0;
-    const priceMax = parseInt(document.getElementById('filterPriceMax').value) || 100000;
     const sortBy = document.getElementById('sortBy').value;
+    const priceSlider = document.getElementById('priceSlider');
+    const currentPrice = priceSlider ? parseInt(priceSlider.value) : maxPrice;
     
-    const selectedCategories = Array.from(document.querySelectorAll('.filter-category:checked'))
-        .map(cb => cb.value);
-    
-    const selectedRating = document.querySelector('input[name="filterRating"]:checked');
-    const minRating = selectedRating ? parseFloat(selectedRating.value) : 0;
-
     filteredProducts = allProducts.filter(product => {
         if (searchTerm && !product.name.toLowerCase().includes(searchTerm) && 
             !product.description.toLowerCase().includes(searchTerm) &&
-            !product.brand.toLowerCase().includes(searchTerm)) {
+            !getBrandName(product.brand).toLowerCase().includes(searchTerm)) {
             return false;
         }
         
@@ -1121,7 +632,7 @@ function filterProducts() {
             return false;
         }
         
-        if (product.price < priceMin || product.price > priceMax) {
+        if (selectedBrands.length > 0 && !selectedBrands.includes(product.brand)) {
             return false;
         }
         
@@ -1130,7 +641,7 @@ function filterProducts() {
             if (!hasSize) return false;
         }
         
-        if (product.rating < minRating) {
+        if (product.price > currentPrice) {
             return false;
         }
         
@@ -1170,11 +681,13 @@ function filterProducts() {
 
 function resetFilters() {
     document.getElementById('searchInput').value = '';
-    document.getElementById('filterPriceMin').value = '';
-    document.getElementById('filterPriceMax').value = '';
     document.getElementById('sortBy').value = 'popular';
     
-    document.querySelectorAll('.filter-category').forEach(cb => {
+    selectedCategories = ['fg', 'ag', 'mg', 'tf'];
+    selectedBrands = ['nike', 'adidas', 'puma', 'mizuno'];
+    selectedSizes = [];
+    
+    document.querySelectorAll('.filter-checkbox input').forEach(cb => {
         cb.checked = true;
     });
     
@@ -1182,9 +695,11 @@ function resetFilters() {
         btn.classList.remove('active');
     });
     
-    selectedSizes = [];
-    
-    document.querySelector('input[name="filterRating"][value="0"]').checked = true;
+    const priceSlider = document.getElementById('priceSlider');
+    if (priceSlider) {
+        priceSlider.value = maxPrice;
+        updatePriceDisplay();
+    }
     
     closeFilterPopup();
     
@@ -1193,43 +708,444 @@ function resetFilters() {
     showNotification('Фильтры сброшены', 'info');
 }
 
-function setupFilterPopup() {
-    document.getElementById('applyFilterBtn')?.addEventListener('click', function() {
-        filterProducts();
-        closeFilterPopup();
-        showNotification('Фильтры применены', 'success');
-    });
+function updatePriceDisplay() {
+    const priceSlider = document.getElementById('priceSlider');
+    const minPrice = document.getElementById('minPrice');
+    const maxPriceDisplay = document.getElementById('maxPrice');
     
-    document.getElementById('resetFilterBtn')?.addEventListener('click', resetFilters);
+    if (priceSlider && minPrice && maxPriceDisplay) {
+        maxPriceDisplay.textContent = parseInt(priceSlider.value).toLocaleString();
+    }
 }
 
-function getCategoryName(category) {
-    const categories = {
-        sneakers: 'Кроссовки',
-        limited: 'Лимитированная серия',
-        running: 'Беговые',
-        basketball: 'Баскетбольные',
-        affordable: 'Доступные'
+function toggleCart(productId, event) {
+    if (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+    
+    const product = allProducts.find(p => p.id === productId);
+    if (!product) return;
+    
+    const existingItemIndex = cart.findIndex(item => item.id === productId);
+    
+    if (existingItemIndex !== -1) {
+        cart.splice(existingItemIndex, 1);
+        showNotification(`${product.name} удален из корзины`, 'info');
+    } else {
+        cart.push({
+            ...product,
+            quantity: 1,
+            selectedSize: product.size[0],
+            addedAt: new Date().toISOString()
+        });
+        showNotification(`${product.name} добавлен в корзину`, 'success');
+    }
+    
+    saveToStorage(STORAGE_KEYS.CART, cart);
+    
+    updateCartCount();
+    updateCartPopup();
+    renderProducts();
+}
+
+function updateCartPopup() {
+    const cartItems = document.getElementById('cartItems');
+    const cartEmpty = document.getElementById('cartEmpty');
+    const cartSubtotal = document.getElementById('cartSubtotal');
+    const cartTotal = document.getElementById('cartTotal');
+    
+    if (!cartItems || !cartEmpty) return;
+    
+    if (cart.length === 0) {
+        cartItems.style.display = 'none';
+        cartEmpty.style.display = 'block';
+        cartSubtotal.textContent = '0 ₽';
+        cartTotal.textContent = '0 ₽';
+        return;
+    }
+    
+    cartItems.style.display = 'flex';
+    cartEmpty.style.display = 'none';
+    cartItems.innerHTML = '';
+    
+    cart.forEach(item => {
+        const itemElement = document.createElement('div');
+        itemElement.className = 'cart-item';
+        itemElement.innerHTML = `
+            <img src="${item.image}" alt="${item.name}" class="cart-item-image">
+            <div class="cart-item-info">
+                <h4 class="cart-item-name">${item.name}</h4>
+                <div class="cart-item-meta">
+                    <span>${getTypeName(item.category)} • Размер: ${item.selectedSize || item.size[0]}</span>
+                </div>
+                <div class="cart-item-controls">
+                    <div class="quantity-control">
+                        <button class="quantity-btn minus" onclick="updateQuantity(${item.id}, -1)">-</button>
+                        <input type="number" class="quantity-input" value="${item.quantity}" min="1" max="10">
+                        <button class="quantity-btn plus" onclick="updateQuantity(${item.id}, 1)">+</button>
+                    </div>
+                    <button class="remove-item" onclick="removeFromCart(${item.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="cart-item-price">${(item.price * item.quantity).toLocaleString()} ₽</div>
+        `;
+        cartItems.appendChild(itemElement);
+    });
+    
+    updateCartSummary();
+    updateCheckoutButton();
+}
+
+function updateCartSummary() {
+    const cartSubtotal = document.getElementById('cartSubtotal');
+    const cartTotal = document.getElementById('cartTotal');
+    
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    
+    cartSubtotal.textContent = `${subtotal.toLocaleString()} ₽`;
+    cartTotal.textContent = `${subtotal.toLocaleString()} ₽`;
+}
+
+function updateQuantity(productId, delta) {
+    const item = cart.find(item => item.id === productId);
+    if (!item) return;
+    
+    item.quantity += delta;
+    
+    if (item.quantity < 1) item.quantity = 1;
+    if (item.quantity > 10) item.quantity = 10;
+    
+    saveToStorage(STORAGE_KEYS.CART, cart);
+    
+    updateCartCount();
+    updateCartPopup();
+    renderProducts();
+}
+
+function removeFromCart(productId) {
+    const product = cart.find(item => item.id === productId);
+    cart = cart.filter(item => item.id !== productId);
+    
+    saveToStorage(STORAGE_KEYS.CART, cart);
+    
+    updateCartCount();
+    updateCartPopup();
+    renderProducts();
+    
+    if (product) {
+        showNotification(`${product.name} удален из корзины`, 'info');
+    }
+}
+
+function updateCheckoutButton() {
+    const checkoutBtn = document.getElementById('checkoutBtn');
+    if (!checkoutBtn) return;
+    
+    const hasItems = cart.length > 0;
+    
+    if (!isAddressSaved || !deliveryAddress) {
+        checkoutBtn.disabled = true;
+        checkoutBtn.style.opacity = '0.5';
+        checkoutBtn.style.cursor = 'not-allowed';
+    } else if (!hasItems) {
+        checkoutBtn.disabled = true;
+        checkoutBtn.style.opacity = '0.5';
+        checkoutBtn.style.cursor = 'not-allowed';
+    } else {
+        checkoutBtn.disabled = false;
+        checkoutBtn.style.opacity = '1';
+        checkoutBtn.style.cursor = 'pointer';
+    }
+}
+
+function toggleFavorite(productId, event) {
+    if (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+    
+    const product = allProducts.find(p => p.id === productId);
+    if (!product) return;
+    
+    const existingIndex = favorites.findIndex(item => item.id === productId);
+    
+    if (existingIndex !== -1) {
+        favorites.splice(existingIndex, 1);
+        showNotification(`${product.name} удален из избранного`, 'info');
+    } else {
+        favorites.push({
+            ...product,
+            addedAt: new Date().toISOString()
+        });
+        showNotification(`${product.name} добавлен в избранное`, 'success');
+    }
+    
+    saveToStorage(STORAGE_KEYS.FAVORITES, favorites);
+    
+    updateFavoritesPopup();
+    renderProducts();
+}
+
+function updateFavoritesPopup() {
+    const favoritesItems = document.getElementById('favoritesItems');
+    const favEmpty = document.getElementById('favEmpty');
+    
+    if (!favoritesItems || !favEmpty) return;
+    
+    if (favorites.length === 0) {
+        favoritesItems.style.display = 'none';
+        favEmpty.style.display = 'block';
+    } else {
+        favoritesItems.style.display = 'flex';
+        favEmpty.style.display = 'none';
+        
+        favoritesItems.innerHTML = '';
+        
+        favorites.forEach(item => {
+            const itemElement = document.createElement('div');
+            itemElement.className = 'fav-item';
+            itemElement.innerHTML = `
+                <img src="${item.image}" alt="${item.name}" class="fav-item-image">
+                <div class="fav-item-info">
+                    <h4 class="fav-item-name">${item.name}</h4>
+                    <div class="fav-item-price">${item.price.toLocaleString()} ₽</div>
+                </div>
+                <button class="fav-item-remove" onclick="removeFromFavorites(${item.id})">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            favoritesItems.appendChild(itemElement);
+        });
+    }
+}
+
+function removeFromFavorites(productId) {
+    const index = favorites.findIndex(item => item.id === productId);
+    if (index !== -1) {
+        const product = favorites[index];
+        favorites.splice(index, 1);
+        saveToStorage(STORAGE_KEYS.FAVORITES, favorites);
+        showNotification(`${product.name} удален из избранного`, 'info');
+        updateFavoritesPopup();
+        renderProducts();
+    }
+}
+
+function showProductModal(product) {
+    const existingModal = document.getElementById('productModal');
+    const existingOverlay = document.getElementById('productModalOverlay');
+    
+    if (existingModal) existingModal.remove();
+    if (existingOverlay) existingOverlay.remove();
+    
+    const isInCart = cart.some(item => item.id === product.id);
+    const isInFavorites = favorites.some(item => item.id === product.id);
+    
+    const discountPercent = product.oldPrice > 0 
+        ? Math.round((1 - product.price / product.oldPrice) * 100)
+        : 0;
+    
+    let badgeHtml = '';
+    if (product.badge === 'new') {
+        badgeHtml = '<span class="product-badge new">НОВИНКА</span>';
+    } else if (product.badge === 'sale') {
+        badgeHtml = '<span class="product-badge sale">СКИДКА</span>';
+    } else if (product.badge === 'hit') {
+        badgeHtml = '<span class="product-badge hit">ХИТ</span>';
+    }
+    
+    const modal = document.createElement('div');
+    modal.className = 'product-modal';
+    modal.id = 'productModal';
+    
+    modal.innerHTML = `
+        <div class="modal-header">
+            <button class="modal-close" onclick="closeProductModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            ${badgeHtml}
+        </div>
+        
+        <div class="modal-body">
+            <div class="modal-image-section">
+                <img src="${product.image}" alt="${product.name}" class="modal-product-image">
+            </div>
+            
+            <div class="modal-info-section">
+                <h2 class="modal-product-title">${product.name}</h2>
+                
+                <div class="modal-product-meta">
+                    <span class="modal-brand">${getBrandName(product.brand)}</span>
+                    <span class="modal-type">${getTypeName(product.category)}</span>
+                    <span class="modal-rating">
+                        ${renderStars(product.rating)} (${product.reviews} отзывов)
+                    </span>
+                </div>
+                
+                <div class="modal-description">
+                    <h3><i class="fas fa-info-circle"></i> ОПИСАНИЕ</h3>
+                    <p>${product.description}</p>
+                </div>
+                
+                <div class="modal-specs">
+                    <h3><i class="fas fa-cogs"></i> ХАРАКТЕРИСТИКИ</h3>
+                    <div class="specs-grid">
+                        ${product.features.map(feature => `
+                            <div class="spec-item">${feature}</div>
+                        `).join('')}
+                    </div>
+                </div>
+                
+                <div class="modal-sizes">
+                    <h3><i class="fas fa-ruler"></i> ДОСТУПНЫЕ РАЗМЕРЫ</h3>
+                    <div class="sizes-grid">
+                        ${product.size.map(size => `
+                            <button class="size-option" data-size="${size}">${size}</button>
+                        `).join('')}
+                    </div>
+                </div>
+                
+                <div class="modal-pricing">
+                    <div class="modal-price-current">${product.price.toLocaleString()} ₽</div>
+                    ${product.oldPrice > 0 ? `
+                        <div class="modal-price-old">
+                            <span>${product.oldPrice.toLocaleString()} ₽</span>
+                            <span class="modal-discount">-${discountPercent}%</span>
+                        </div>
+                    ` : ''}
+                </div>
+                
+                <div class="modal-actions">
+                    <button class="btn-add-to-cart-modal ${isInCart ? 'in-cart' : ''}" data-id="${product.id}">
+                        <i class="fas ${isInCart ? 'fa-check' : 'fa-shopping-bag'}"></i>
+                        ${isInCart ? 'В КОРЗИНЕ' : 'ДОБАВИТЬ В КОРЗИНУ'}
+                    </button>
+                    <button class="btn-favorite-modal ${isInFavorites ? 'active' : ''}" data-id="${product.id}">
+                        <i class="${isInFavorites ? 'fas' : 'far'} fa-heart"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.id = 'productModalOverlay';
+    overlay.onclick = closeProductModal;
+    document.body.appendChild(overlay);
+    
+    setTimeout(() => {
+        modal.classList.add('active');
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }, 10);
+    
+    setTimeout(() => {
+        const cartBtn = modal.querySelector('.btn-add-to-cart-modal');
+        const favBtn = modal.querySelector('.btn-favorite-modal');
+        
+        if (cartBtn) {
+            cartBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const productId = parseInt(this.dataset.id);
+                toggleCart(productId, e);
+                
+                setTimeout(() => {
+                    const isNowInCart = cart.some(item => item.id === productId);
+                    if (isNowInCart) {
+                        this.innerHTML = '<i class="fas fa-check"></i> В КОРЗИНЕ';
+                        this.classList.add('in-cart');
+                    } else {
+                        this.innerHTML = '<i class="fas fa-shopping-bag"></i> ДОБАВИТЬ В КОРЗИНУ';
+                        this.classList.remove('in-cart');
+                    }
+                }, 100);
+            });
+        }
+        
+        if (favBtn) {
+            favBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const productId = parseInt(this.dataset.id);
+                toggleFavorite(productId, e);
+                
+                setTimeout(() => {
+                    const isNowInFav = favorites.some(item => item.id === productId);
+                    if (isNowInFav) {
+                        this.innerHTML = '<i class="fas fa-heart"></i>';
+                        this.classList.add('active');
+                    } else {
+                        this.innerHTML = '<i class="far fa-heart"></i>';
+                        this.classList.remove('active');
+                    }
+                }, 100);
+            });
+        }
+        
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeProductModal();
+            }
+        });
+    }, 20);
+}
+
+function closeProductModal() {
+    const modal = document.getElementById('productModal');
+    const overlay = document.getElementById('productModalOverlay');
+    
+    if (modal) {
+        modal.classList.remove('active');
+        setTimeout(() => {
+            if (modal.parentNode) {
+                modal.parentNode.removeChild(modal);
+            }
+        }, 300);
+    }
+    
+    if (overlay) {
+        overlay.classList.remove('active');
+        setTimeout(() => {
+            if (overlay.parentNode) {
+                overlay.parentNode.removeChild(overlay);
+            }
+        }, 300);
+    }
+    
+    document.body.style.overflow = 'auto';
+}
+
+function getTypeName(type) {
+    const types = {
+        'fg': 'FG (Газон)',
+        'ag': 'AG (Искусств.)',
+        'mg': 'MG (Мульти)',
+        'tf': 'TF (Зал)',
+        'limited': 'Лимит'
     };
-    return categories[category] || category;
+    return types[type] || type;
 }
 
 function getBrandName(brand) {
     const brands = {
-        'Nike': 'Nike',
-        'Adidas': 'Adidas',
-        'Jordan': 'Jordan',
-        'New Balance': 'New Balance',
-        'Converse': 'Converse',
-        'Puma': 'Puma',
-        'Reebok': 'Reebok',
-        'EDM': 'EDM™'
+        'nike': 'Nike',
+        'adidas': 'Adidas',
+        'puma': 'Puma',
+        'mizuno': 'Mizuno'
     };
     return brands[brand] || brand;
 }
 
 function showNotification(message, type = 'info') {
-    document.querySelectorAll('.notification').forEach(n => n.remove());
+    const existingNotification = document.querySelector('.notification');
+    if (existingNotification) {
+        existingNotification.remove();
+    }
     
     const notification = document.createElement('div');
     notification.className = `notification notification-${type}`;
@@ -1249,66 +1165,49 @@ function showNotification(message, type = 'info') {
     document.body.appendChild(notification);
     
     setTimeout(() => {
-        if (notification.parentNode) {
-            notification.parentNode.removeChild(notification);
-        }
+        notification.classList.add('show');
+    }, 10);
+    
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
     }, 3000);
 }
 
 function initEventListeners() {
-    const searchInput = document.getElementById('searchInput');
-    const searchBtn = document.getElementById('searchBtn');
-    
-    if (searchInput) {
-        searchInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                filterProducts();
-            }
-        });
-        
-        searchInput.addEventListener('input', function() {
-            clearTimeout(this._timer);
-            this._timer = setTimeout(() => {
-                if (this.value.trim() === '') {
-                    filteredProducts = [...allProducts];
-                    currentPage = 1;
-                    renderProducts();
-                } else {
-                    filterProducts();
-                }
-            }, 500);
-        });
-    }
-    
-    if (searchBtn) {
-        searchBtn.addEventListener('click', function() {
+    document.getElementById('searchInput')?.addEventListener('input', function() {
+        clearTimeout(this._timer);
+        this._timer = setTimeout(() => {
             filterProducts();
-        });
-    }
+        }, 500);
+    });
+    
+    document.getElementById('searchInput')?.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            filterProducts();
+        }
+    });
     
     document.getElementById('sortBy')?.addEventListener('change', filterProducts);
     
-    document.getElementById('navFavorites')?.addEventListener('click', function() {
-        updateFavoritesPopup();
-        openFavoritesPopup();
-    });
+    document.getElementById('filterBtn')?.addEventListener('click', openFilterPopup);
+    document.getElementById('applyFilters')?.addEventListener('click', applyFilters);
+    document.getElementById('resetFilters')?.addEventListener('click', resetFilters);
     
-    document.getElementById('navCart')?.addEventListener('click', openCartPopup);
-    document.getElementById('navFilter')?.addEventListener('click', openFilterPopup);
+    document.getElementById('cartBtn')?.addEventListener('click', openCartPopup);
+    document.getElementById('closeCart')?.addEventListener('click', closeCartPopup);
+    document.getElementById('checkoutBtn')?.addEventListener('click', checkoutOrder);
+    document.getElementById('continueShopping')?.addEventListener('click', closeCartPopup);
     
-    document.getElementById('saveAddressBtn')?.addEventListener('click', function() {
-        if (saveAddress()) {
-            updateCheckoutButton();
-        }
-    });
+    document.getElementById('favoritesBtn')?.addEventListener('click', openFavoritesPopup);
+    document.getElementById('closeFavorites')?.addEventListener('click', closeFavoritesPopup);
+    document.getElementById('browseCatalog')?.addEventListener('click', closeFavoritesPopup);
     
-    document.getElementById('deliveryAddress')?.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            if (saveAddress()) {
-                updateCheckoutButton();
-            }
-        }
-    });
+    document.getElementById('navFavoritesBottom')?.addEventListener('click', openFavoritesPopup);
     
     document.getElementById('deliveryAddress')?.addEventListener('input', function() {
         clearTimeout(this._timer);
@@ -1317,100 +1216,93 @@ function initEventListeners() {
                 deliveryAddress = this.value.trim();
                 isAddressSaved = true;
                 saveToStorage(STORAGE_KEYS.ADDRESS, deliveryAddress);
-                updateAddressStatus();
                 updateCheckoutButton();
             }
         }, 1000);
     });
     
-    document.getElementById('browseBtn')?.addEventListener('click', function() {
-        closeFavoritesPopup();
-        resetFilters();
-    });
-    
-    document.getElementById('closeCart')?.addEventListener('click', closeCartPopup);
-    document.getElementById('closeFav')?.addEventListener('click', closeFavoritesPopup);
-    document.getElementById('closeFilter')?.addEventListener('click', closeFilterPopup);
-    
-    document.getElementById('overlay')?.addEventListener('click', function() {
-        closeCartPopup();
-        closeFavoritesPopup();
-        closeFilterPopup();
-        closeProductDetailsModal();
-    });
-    
-    document.getElementById('checkoutBtn')?.addEventListener('click', function() {
-        if (cart.length === 0) {
-            showNotification('Добавьте товары в корзину', 'info');
-            return;
+    document.getElementById('deliveryAddress')?.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            saveAddress();
         }
-        
-        if (!isAddressSaved || !deliveryAddress) {
-            showNotification('Сначала укажите адрес доставки', 'warning');
+    });
+    
+    document.querySelectorAll('.category-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const category = this.dataset.category;
+            document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
             
-            this.classList.add('shake');
-            setTimeout(() => this.classList.remove('shake'), 500);
-            
-            const addressInput = document.getElementById('deliveryAddress');
-            if (addressInput) {
-                addressInput.focus();
+            if (category === 'all') {
+                selectedCategories = ['fg', 'ag', 'mg', 'tf'];
+            } else {
+                selectedCategories = [category];
             }
-            return;
-        }
-        
-        const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        const orderItems = cart.map(item => 
-            `${item.name} (Размер: ${item.selectedSize || item.size[0]}) - ${item.quantity} × ${item.price.toLocaleString()}₽ = ${(item.price * item.quantity).toLocaleString()}₽`
-        ).join('\n');
-        
-        const orderText = `
-👟 **НОВЫЙ ЗАКАЗ В EDM™**
-
-📦 **Товары:**
-${orderItems}
-
-🧾 **Итого:** ${total.toLocaleString()}₽
-📍 **Адрес доставки:** ${deliveryAddress}
-📅 **Дата:** ${new Date().toLocaleString('ru-RU')}
-
-💬 **Связь:** @EDM_Sneakers
-👤 **Покупатель:** ${user.firstName} ${user.lastName || ''}
-        `.trim();
-        
-        if (tg.sendData) {
-            const orderData = {
-                userId: user.id,
-                username: user.username,
-                items: cart,
-                total: total,
-                deliveryAddress: deliveryAddress,
-                timestamp: new Date().toISOString()
-            };
             
-            tg.sendData(JSON.stringify(orderData));
-            tg.showAlert(`Заказ оформлен!\n\nСумма: ${total.toLocaleString()}₽\nТоваров: ${cart.length}\nАдрес: ${deliveryAddress}\n\nС вами свяжется менеджер для подтверждения.`);
-        } else {
-            const telegramUrl = `https://t.me/EDM_Sneakers?text=${encodeURIComponent(orderText)}`;
-            window.open(telegramUrl, '_blank');
-            showNotification(`Заказ на ${total.toLocaleString()}₽ отправлен менеджеру`, 'success');
-        }
-        
-        cart = [];
-        saveToStorage(STORAGE_KEYS.CART, cart);
-        updateCartCount();
-        updateCartPopup();
-        renderProducts();
-        
-        closeCartPopup();
+            filterProducts();
+        });
+    });
+    
+    document.querySelectorAll('.filter-checkbox input').forEach(cb => {
+        cb.addEventListener('change', function() {
+            const name = this.name;
+            const value = this.value;
+            const isChecked = this.checked;
+            
+            if (name === 'type') {
+                if (isChecked) {
+                    if (!selectedCategories.includes(value)) {
+                        selectedCategories.push(value);
+                    }
+                } else {
+                    const index = selectedCategories.indexOf(value);
+                    if (index > -1) {
+                        selectedCategories.splice(index, 1);
+                    }
+                }
+            } else if (name === 'brand') {
+                if (isChecked) {
+                    if (!selectedBrands.includes(value)) {
+                        selectedBrands.push(value);
+                    }
+                } else {
+                    const index = selectedBrands.indexOf(value);
+                    if (index > -1) {
+                        selectedBrands.splice(index, 1);
+                    }
+                }
+            }
+        });
+    });
+    
+    document.querySelectorAll('.size-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const size = this.dataset.size;
+            this.classList.toggle('active');
+            
+            if (this.classList.contains('active')) {
+                if (!selectedSizes.includes(parseFloat(size))) {
+                    selectedSizes.push(parseFloat(size));
+                }
+            } else {
+                const index = selectedSizes.indexOf(parseFloat(size));
+                if (index > -1) {
+                    selectedSizes.splice(index, 1);
+                }
+            }
+        });
+    });
+    
+    document.getElementById('priceSlider')?.addEventListener('input', function() {
+        updatePriceDisplay();
     });
     
     document.addEventListener('click', function(event) {
         const target = event.target;
         
-        const cartBtn = target.closest('.btn-cart-wb');
+        const cartBtn = target.closest('.btn-add-to-cart');
         if (cartBtn) {
             event.stopPropagation();
-            event.preventDefault();
             const productId = parseInt(cartBtn.dataset.id);
             if (productId) {
                 toggleCart(productId, event);
@@ -1418,10 +1310,10 @@ ${orderItems}
                 setTimeout(() => {
                     const isNowInCart = cart.some(item => item.id === productId);
                     if (isNowInCart) {
-                        cartBtn.innerHTML = '<i class="fas fa-check"></i><span>В КОРЗИНЕ</span>';
+                        cartBtn.innerHTML = '<i class="fas fa-check"></i> В КОРЗИНЕ';
                         cartBtn.classList.add('in-cart');
                     } else {
-                        cartBtn.innerHTML = '<i class="fas fa-shopping-cart"></i><span>В КОРЗИНУ</span>';
+                        cartBtn.innerHTML = '<i class="fas fa-shopping-bag"></i> В КОРЗИНУ';
                         cartBtn.classList.remove('in-cart');
                     }
                 }, 100);
@@ -1429,29 +1321,12 @@ ${orderItems}
             return;
         }
         
-        const favBtn = target.closest('.btn-fav-wb');
+        const favBtn = target.closest('.btn-favorite');
         if (favBtn) {
             event.stopPropagation();
-            event.preventDefault();
             const productId = parseInt(favBtn.dataset.id);
             if (productId) {
-                const product = allProducts.find(p => p.id === productId);
-                if (!product) return;
-                
-                const existingIndex = favorites.findIndex(item => item.id === productId);
-                
-                if (existingIndex !== -1) {
-                    favorites.splice(existingIndex, 1);
-                    showNotification(`${product.name} удален из избранного`, 'info');
-                } else {
-                    favorites.push({
-                        ...product,
-                        addedAt: new Date().toISOString()
-                    });
-                    showNotification(`${product.name} добавлен в избранное`, 'success');
-                }
-                
-                saveToStorage(STORAGE_KEYS.FAVORITES, favorites);
+                toggleFavorite(productId, event);
                 
                 setTimeout(() => {
                     const isNowInFav = favorites.some(item => item.id === productId);
@@ -1467,70 +1342,160 @@ ${orderItems}
             return;
         }
     });
-    
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            closeCartPopup();
-            closeFavoritesPopup();
-            closeFilterPopup();
-            closeProductDetailsModal();
-        }
-    });
+}
+
+function openFilterPopup() {
+    document.getElementById('filterPopup').classList.add('active');
+    document.getElementById('filterOverlay').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeFilterPopup() {
+    document.getElementById('filterPopup').classList.remove('active');
+    document.getElementById('filterOverlay').classList.remove('active');
+    document.body.style.overflow = 'auto';
+}
+
+function applyFilters() {
+    filterProducts();
+    closeFilterPopup();
+    showNotification('Фильтры применены', 'success');
 }
 
 function openCartPopup() {
-    document.getElementById('cartPopup').classList.add('show');
-    document.getElementById('overlay').classList.add('show');
+    document.getElementById('cartPopup').classList.add('active');
+    document.getElementById('cartOverlay').classList.add('active');
     document.body.style.overflow = 'hidden';
     updateCartPopup();
 }
 
 function closeCartPopup() {
-    document.getElementById('cartPopup').classList.remove('show');
-    document.getElementById('overlay').classList.remove('show');
+    document.getElementById('cartPopup').classList.remove('active');
+    document.getElementById('cartOverlay').classList.remove('active');
     document.body.style.overflow = 'auto';
 }
 
 function openFavoritesPopup() {
-    document.getElementById('favoritesPopup').classList.add('show');
-    document.getElementById('overlay').classList.add('show');
+    document.getElementById('favoritesPopup').classList.add('active');
+    document.getElementById('favoritesOverlay').classList.add('active');
     document.body.style.overflow = 'hidden';
     updateFavoritesPopup();
 }
 
 function closeFavoritesPopup() {
-    document.getElementById('favoritesPopup').classList.remove('show');
-    document.getElementById('overlay').classList.remove('show');
+    document.getElementById('favoritesPopup').classList.remove('active');
+    document.getElementById('favoritesOverlay').classList.remove('active');
     document.body.style.overflow = 'auto';
 }
 
-function openFilterPopup() {
-    document.getElementById('filterPopup').classList.add('show');
-    document.getElementById('overlay').classList.add('show');
-    document.body.style.overflow = 'hidden';
+function checkoutOrder() {
+    if (cart.length === 0) {
+        showNotification('Добавьте товары в корзину', 'info');
+        return;
+    }
+    
+    if (!isAddressSaved || !deliveryAddress) {
+        showNotification('Сначала укажите адрес доставки', 'warning');
+        return;
+    }
+    
+    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const orderItems = cart.map(item => 
+        `${item.name} (${getTypeName(item.category)}, Размер: ${item.selectedSize || item.size[0]}) - ${item.quantity} × ${item.price.toLocaleString()}₽ = ${(item.price * item.quantity).toLocaleString()}₽`
+    ).join('\n');
+    
+    const orderText = `
+⚽ **НОВЫЙ ЗАКАЗ ФУТБОЛЬНЫХ БУТС**
+
+👟 **Товары:**
+${orderItems}
+
+💰 **Итого:** ${total.toLocaleString()}₽
+📍 **Адрес доставки:** ${deliveryAddress}
+📅 **Дата:** ${new Date().toLocaleString('ru-RU')}
+
+📞 **Связь:** @EDM_Sneakers
+👤 **Покупатель:** ${user.firstName} ${user.lastName || ''}
+    `.trim();
+    
+    if (tg.sendData) {
+        const orderData = {
+            userId: user.id,
+            username: user.username,
+            items: cart,
+            total: total,
+            deliveryAddress: deliveryAddress,
+            timestamp: new Date().toISOString()
+        };
+        
+        tg.sendData(JSON.stringify(orderData));
+        tg.showAlert(`Заказ оформлен!\n\nСумма: ${total.toLocaleString()}₽\nТоваров: ${cart.length}\nАдрес: ${deliveryAddress}\n\nС вами свяжется менеджер для подтверждения.`);
+    } else {
+        const telegramUrl = `https://t.me/EDM_Sneakers?text=${encodeURIComponent(orderText)}`;
+        window.open(telegramUrl, '_blank');
+        showNotification(`Заказ на ${total.toLocaleString()}₽ отправлен менеджеру`, 'success');
+    }
+    
+    cart = [];
+    saveToStorage(STORAGE_KEYS.CART, cart);
+    updateCartCount();
+    updateCartPopup();
+    renderProducts();
+    
+    closeCartPopup();
 }
 
-function closeFilterPopup() {
-    document.getElementById('filterPopup').classList.remove('show');
-    document.getElementById('overlay').classList.remove('show');
-    document.body.style.overflow = 'auto';
-}
+// CSS для уведомлений
+const notificationStyles = document.createElement('style');
+notificationStyles.textContent = `
+    .notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background-color: var(--color-black);
+        border: 1px solid var(--color-white);
+        border-radius: var(--radius-md);
+        padding: var(--space-sm) var(--space-md);
+        color: var(--color-white);
+        font-weight: 500;
+        z-index: 10000;
+        box-shadow: var(--shadow-lg);
+        transform: translateX(100%);
+        opacity: 0;
+        transition: all 0.3s ease;
+        max-width: 300px;
+        display: flex;
+        align-items: center;
+        gap: var(--space-sm);
+    }
+    
+    .notification.show {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    
+    .notification-success {
+        border-color: var(--color-success);
+        background-color: rgba(0, 214, 143, 0.1);
+    }
+    
+    .notification-warning {
+        border-color: var(--color-warning);
+        background-color: rgba(255, 170, 0, 0.1);
+    }
+    
+    .notification-error {
+        border-color: var(--color-danger);
+        background-color: rgba(255, 61, 113, 0.1);
+    }
+    
+    .notification-content {
+        display: flex;
+        align-items: center;
+        gap: var(--space-sm);
+    }
+`;
 
-window.edm = {
-    user,
-    allProducts,
-    cart,
-    favorites,
-    filteredProducts,
-    filterProducts,
-    toggleCart,
-    showProductDetailsModal,
-    closeProductDetailsModal,
-    resetFilters,
-    openCartPopup,
-    openFavoritesPopup,
-    openFilterPopup,
-    saveAddress
-};
+document.head.appendChild(notificationStyles);
 
-console.log('EDM™ Sneakers Shop приложение инициализировано');
+console.log('EDM™ Football Boots Shop приложение инициализировано');
