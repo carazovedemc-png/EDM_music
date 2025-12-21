@@ -247,7 +247,7 @@ const PRODUCTS_DATA = [
     {
         id: 10,
         name: "Lacoste green",
-        description: "Мужские духи. Это — фужерный, цитрусовый аромат для мужчин. стойкое звучание аромата благодаря натуральным маслам и отсутствию спирта; шлейф благодаря тяжёлым молекулам, который раскрывается неторопливо под воздействием тепла кожи и перемены окружающей среды; изменчивость аромата: в тёплом помещении или на жаркой летней улице духи звучат сильнее, раскрываясь под воздействием температуры. Верхние ноты: грейпфрут, дыня, ноты бергамота. Ноты сердца: лимонная вербена, лаванда, тмин. Базовые ноты: берёза, инжир.",
+        description: "Мужские духи. Это — фужерный, цитрусовый аромат для мужчин. стойкое звучание аромата благодаря натуральным маслам и отсутствию спирта; шлейф благодаря тяжёлым молекулам, который раскрывается неторопливо под воздействием тепла кожи и перемены окружающей среды; изменчивость аромата: в тёплом помещении или на жаркой летной улице духи звучат сильнее, раскрываясь под воздействием температуры. Верхние ноты: грейпфрут, дыня, ноты бергамота. Ноты сердца: лимонная вербена, лаванда, тмин. Базовые ноты: берёза, инжир.",
         price: 350,
         oldPrice: 0,
         category: "premium",
@@ -628,50 +628,124 @@ function renderBanners() {
     
     bannerContainer.innerHTML = '';
     
-    // Если только один баннер - показываем его статично
-    if (BANNERS_DATA.length === 1) {
-        const banner = BANNERS_DATA[0];
-        const bannerElement = createBannerElement(banner);
-        bannerElement.classList.add('active');
-        bannerContainer.appendChild(bannerElement);
-        return;
-    }
+    // Создаем обертку для скролла
+    const slidesWrapper = document.createElement('div');
+    slidesWrapper.className = 'banner-slides-wrapper';
     
-    // Если несколько баннеров - создаем слайдер
+    // Создаем контейнер для слайдов
+    const slidesContainer = document.createElement('div');
+    slidesContainer.className = 'banner-slides';
+    
+    // Добавляем баннеры
     BANNERS_DATA.forEach((banner, index) => {
         const bannerElement = createBannerElement(banner);
-        if (index === 0) bannerElement.classList.add('active');
-        bannerContainer.appendChild(bannerElement);
+        bannerElement.dataset.index = index;
+        slidesContainer.appendChild(bannerElement);
     });
     
-    // Автоматическое переключение баннеров
-    let currentBannerIndex = 0;
-    let prevBannerIndex = -1;
+    slidesWrapper.appendChild(slidesContainer);
+    bannerContainer.appendChild(slidesWrapper);
     
-    function switchBanner() {
-        const allBanners = bannerContainer.querySelectorAll('.banner-slide');
+    // Добавляем точки-индикаторы
+    if (BANNERS_DATA.length > 1) {
+        const dotsContainer = document.createElement('div');
+        dotsContainer.className = 'banner-dots';
         
-        // Убираем активный класс с текущего
-        allBanners[currentBannerIndex].classList.remove('active');
-        if (prevBannerIndex >= 0) {
-            allBanners[prevBannerIndex].classList.remove('prev');
+        BANNERS_DATA.forEach((_, index) => {
+            const dot = document.createElement('div');
+            dot.className = `banner-dot ${index === 0 ? 'active' : ''}`;
+            dot.dataset.index = index;
+            dot.addEventListener('click', () => goToBanner(index));
+            dotsContainer.appendChild(dot);
+        });
+        
+        bannerContainer.appendChild(dotsContainer);
+        
+        // Автоматическое переключение баннеров
+        let currentBannerIndex = 0;
+        let bannerInterval;
+        
+        function startAutoSlide() {
+            bannerInterval = setInterval(() => {
+                currentBannerIndex = (currentBannerIndex + 1) % BANNERS_DATA.length;
+                goToBanner(currentBannerIndex);
+            }, 10000); // 10 секунд
         }
         
-        // Запоминаем предыдущий
-        prevBannerIndex = currentBannerIndex;
-        
-        // Переходим к следующему
-        currentBannerIndex = (currentBannerIndex + 1) % BANNERS_DATA.length;
-        
-        // Добавляем классы для анимации
-        if (prevBannerIndex >= 0) {
-            allBanners[prevBannerIndex].classList.add('prev');
+        function goToBanner(index) {
+            if (index < 0 || index >= BANNERS_DATA.length) return;
+            
+            currentBannerIndex = index;
+            
+            // Прокрутка к баннеру
+            const bannerElement = slidesContainer.children[index];
+            bannerElement.scrollIntoView({
+                behavior: 'smooth',
+                block: 'nearest',
+                inline: 'center'
+            });
+            
+            // Обновляем точки
+            document.querySelectorAll('.banner-dot').forEach((dot, i) => {
+                dot.classList.toggle('active', i === index);
+            });
         }
-        allBanners[currentBannerIndex].classList.add('active');
+        
+        // Обработка ручного скролла
+        let isScrolling = false;
+        let scrollTimeout;
+        
+        slidesWrapper.addEventListener('scroll', () => {
+            clearTimeout(scrollTimeout);
+            
+            if (!isScrolling) {
+                isScrolling = true;
+                clearInterval(bannerInterval);
+            }
+            
+            scrollTimeout = setTimeout(() => {
+                isScrolling = false;
+                
+                // Определяем текущий баннер
+                const scrollLeft = slidesWrapper.scrollLeft;
+                const bannerWidth = slidesWrapper.clientWidth;
+                const currentIndex = Math.round(scrollLeft / bannerWidth);
+                
+                if (currentIndex >= 0 && currentIndex < BANNERS_DATA.length) {
+                    currentBannerIndex = currentIndex;
+                    
+                    // Обновляем точки
+                    document.querySelectorAll('.banner-dot').forEach((dot, i) => {
+                        dot.classList.toggle('active', i === currentIndex);
+                    });
+                }
+                
+                // Перезапускаем автоскролл
+                startAutoSlide();
+            }, 100);
+        });
+        
+        // Запускаем автоскролл
+        startAutoSlide();
+        
+        // Останавливаем автоскролл при наведении
+        slidesWrapper.addEventListener('mouseenter', () => {
+            clearInterval(bannerInterval);
+        });
+        
+        slidesWrapper.addEventListener('mouseleave', () => {
+            startAutoSlide();
+        });
+        
+        // Для touch-устройств
+        slidesWrapper.addEventListener('touchstart', () => {
+            clearInterval(bannerInterval);
+        });
+        
+        slidesWrapper.addEventListener('touchend', () => {
+            startAutoSlide();
+        });
     }
-    
-    // Переключаем баннеры каждые 10 секунд
-    setInterval(switchBanner, 10000);
 }
 
 function createBannerElement(banner) {

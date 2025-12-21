@@ -216,38 +216,47 @@ body {
     font-size: 0.9rem;
 }
 
-/* ===== БАННЕР С ПЕРЕКЛЮЧЕНИЕМ ===== */
+/* ===== БАННЕР С ГОРИЗОНТАЛЬНОЙ КАРУСЕЛЬЮ ===== */
 .banner-container {
     position: relative;
     height: 180px;
     margin: var(--space-lg) 0;
     border-radius: var(--radius-lg);
     overflow: hidden;
+    width: 100%;
+}
+
+.banner-slides-wrapper {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+}
+
+.banner-slides-wrapper::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+}
+
+.banner-slides {
+    display: flex;
+    height: 100%;
+    min-width: 100%;
+    transition: transform 0.5s ease-in-out;
 }
 
 .banner-slide {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
+    flex: 0 0 100%;
     height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
-    opacity: 0;
-    transform: translateX(100%);
-    transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
     padding: var(--space-xl) var(--space-lg);
     text-align: center;
-}
-
-.banner-slide.active {
-    opacity: 1;
-    transform: translateX(0);
-}
-
-.banner-slide.prev {
-    transform: translateX(-100%);
+    scroll-snap-align: start;
 }
 
 .banner-slide.exclusive {
@@ -312,6 +321,31 @@ body {
     display: block;
     margin: 8px 0;
     content: "";
+}
+
+.banner-dots {
+    position: absolute;
+    bottom: 15px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    z-index: 10;
+}
+
+.banner-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.banner-dot.active {
+    background: white;
+    transform: scale(1.2);
 }
 
 /* ===== ОСНОВНОЙ КОНТЕНТ ===== */
