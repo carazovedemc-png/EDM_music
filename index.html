@@ -3,329 +3,221 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EDM™ | Футбольные бутсы</title>
+    <title>Aura Atelier - эксклюзивные духи</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Roboto+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/x-icon" href="https://img.icons8.com/ios/100/football-boot.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="https://img.icons8.com/color/96/000000/perfume-bottle.png">
 </head>
 <body>
-    <!-- Верхняя навигация -->
-    <header class="main-header">
-        <nav class="header-nav">
-            <div class="nav-section">
-                <button class="nav-icon-btn" id="menuBtn">
-                    <i class="fas fa-bars"></i>
-                </button>
+    <!-- Верхняя панель -->
+    <header class="top-header">
+        <div class="container">
+            <div class="header-top-row">
+                <!-- Логотип -->
                 <div class="logo">
-                    <span class="logo-text">EDM™</span>
-                    <span class="logo-sub">PRO FOOTBALL</span>
+                    <div class="logo-icon-wrapper">
+                        <img src="https://sun9-82.userapi.com/s/v1/ig2/5F_JvkmONdoYqXz2czQN9q6pwM2zvdUBjebAw_mIMCPmYvieHPy4z4TAR8RfTRrYwBX8xsXsOrtOLOcsR8PPWWkM.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,448x448&from=bu&u=go-YJKFAACv9HaySzsp64EDmHmtNbKSmWlHpMACSshU&cs=448x0" alt="Aura Atelier" class="logo-img">
+                    </div>
+                    <div class="logo-text">
+                        <span class="logo-main">Aura Atelier</span>
+                        <span class="logo-sub">эксклюзивные духи</span>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="nav-section">
+                
+                <!-- Поиск -->
                 <div class="search-container">
                     <div class="search-box">
-                        <i class="fas fa-search search-icon"></i>
-                        <input type="text" id="searchInput" placeholder="Поиск бутс...">
+                        <input type="text" id="searchInput" placeholder="Поиск">
+                        <button class="search-btn-glass" id="searchBtn">
+                            <div class="search-glass-circle">
+                                <i class="fas fa-search"></i>
+                            </div>
+                        </button>
                     </div>
                 </div>
             </div>
-            
-            <div class="nav-section">
-                <button class="nav-icon-btn" id="favoritesBtn">
-                    <i class="far fa-heart"></i>
-                </button>
-                <button class="nav-icon-btn cart-btn" id="cartBtn">
-                    <i class="fas fa-shopping-bag"></i>
-                    <span class="cart-count" id="headerCartCount">0</span>
-                </button>
-            </div>
-        </nav>
+        </div>
     </header>
 
-    <!-- Категории -->
-    <div class="categories-bar">
-        <div class="categories-container">
-            <button class="category-btn active" data-category="all">Все</button>
-            <button class="category-btn" data-category="fg">FG (Газон)</button>
-            <button class="category-btn" data-category="ag">AG (Искусств.)</button>
-            <button class="category-btn" data-category="mg">MG (Мульти)</button>
-            <button class="category-btn" data-category="tf">TF (Зал)</button>
-            <button class="category-btn" data-category="limited">Лимит</button>
+    <!-- Баннер с переключением -->
+    <div class="container">
+        <div class="banner-container" id="bannerContainer">
+            <!-- Баннеры загружаются динамически из script.js -->
         </div>
     </div>
 
     <!-- Основной контент -->
-    <main class="main-container">
-        <!-- Баннер -->
-        <div class="hero-banner">
-            <div class="banner-content">
-                <h1 class="banner-title">ЭЛИТНЫЕ ФУТБОЛЬНЫЕ БУТСЫ</h1>
-                <p class="banner-subtitle">Профессиональные модели 2024 | Бесплатная доставка</p>
-                <div class="banner-badges">
-                    <span class="banner-badge">НОВИНКИ</span>
-                    <span class="banner-badge">PRO</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Сортировка и фильтры -->
-        <div class="controls-bar">
-            <div class="controls-left">
-                <button class="filter-btn" id="filterBtn">
-                    <i class="fas fa-sliders-h"></i> ФИЛЬТРЫ
-                </button>
-                <div class="sort-select">
+    <main class="container main-container">
+        <section class="main-content">
+            <div class="products-header">
+                <h2 id="categoryTitle">Рекомендации</h2>
+                <div class="sort-select-glass">
                     <select id="sortBy">
                         <option value="popular">По популярности</option>
-                        <option value="new">Сначала новые</option>
-                        <option value="price-low">Цена: низкая → высокая</option>
-                        <option value="price-high">Цена: высокая → низкая</option>
+                        <option value="new">Сначала новинки</option>
+                        <option value="price-low">Цена: по возрастанию</option>
+                        <option value="price-high">Цена: по убыванию</option>
                         <option value="rating">По рейтингу</option>
                     </select>
                     <i class="fas fa-chevron-down"></i>
                 </div>
             </div>
-            <div class="results-count">
-                <span id="productsCount">12 моделей</span>
-            </div>
-        </div>
 
-        <!-- Сетка товаров -->
-        <div class="products-grid" id="productsGrid">
-            <!-- Товары будут загружены через JS -->
-        </div>
-
-        <!-- Пагинация -->
-        <div class="pagination">
-            <button class="pagination-btn" id="prevPage" disabled>
-                <i class="fas fa-chevron-left"></i>
-            </button>
-            <div class="page-numbers">
-                <button class="page-number active">1</button>
-                <button class="page-number">2</button>
+            <!-- Карточки товаров -->
+            <div class="products-grid" id="productsGrid">
+                <!-- Товары загружаются через JS -->
             </div>
-            <button class="pagination-btn" id="nextPage">
-                <i class="fas fa-chevron-right"></i>
-            </button>
-        </div>
+            
+            <!-- Пагинация -->
+            <div class="pagination">
+                <button class="page-btn prev" id="prevPage" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <div class="page-numbers" id="pageNumbers">
+                    <button class="page-btn active" data-page="1">1</button>
+                    <button class="page-btn" data-page="2">2</button>
+                    <button class="page-btn" data-page="3">3</button>
+                </div>
+                <button class="page-btn next" id="nextPage">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </section>
     </main>
 
-    <!-- Попап фильтров -->
-    <div class="popup-overlay" id="filterOverlay"></div>
-    <div class="filter-popup" id="filterPopup">
-        <div class="popup-header">
-            <h3><i class="fas fa-filter"></i> ФИЛЬТРЫ</h3>
-            <button class="popup-close" id="closeFilter">
-                <i class="fas fa-times"></i>
+    <!-- Нижняя панель -->
+    <nav class="bottom-nav-glass">
+        <div class="nav-inner">
+            <button class="nav-btn" id="navFavorites">
+                <i class="far fa-heart"></i>
             </button>
+            <div class="nav-divider"></div>
+            
+            <button class="nav-btn" id="navCart">
+                <i class="fas fa-shopping-cart"></i>
+                <span class="nav-badge" id="bottomCartCount">0</span>
+            </button>
+            <div class="nav-divider"></div>
+            
+            <button class="nav-btn" id="navFilter">
+                <i class="fas fa-filter"></i>
+            </button>
+            <div class="nav-divider"></div>
+            
+            <a href="https://t.me/Ayder505" target="_blank" class="nav-btn" id="navContact">
+                <i class="fab fa-telegram"></i>
+            </a>
         </div>
-        
-        <div class="popup-body">
-            <!-- Категории -->
-            <div class="filter-section">
-                <h4>ТИП ШИПОВ</h4>
-                <div class="filter-options">
-                    <label class="filter-checkbox">
-                        <input type="checkbox" name="type" value="fg" checked>
-                        <span class="checkmark"></span>
-                        FG (Натуральный газон)
-                    </label>
-                    <label class="filter-checkbox">
-                        <input type="checkbox" name="type" value="ag" checked>
-                        <span class="checkmark"></span>
-                        AG (Искусственный газон)
-                    </label>
-                    <label class="filter-checkbox">
-                        <input type="checkbox" name="type" value="mg" checked>
-                        <span class="checkmark"></span>
-                        MG (Мультигрунт)
-                    </label>
-                    <label class="filter-checkbox">
-                        <input type="checkbox" name="type" value="tf" checked>
-                        <span class="checkmark"></span>
-                        TF (Зал/Асфальт)
-                    </label>
-                </div>
-            </div>
-
-            <!-- Бренды -->
-            <div class="filter-section">
-                <h4>БРЕНДЫ</h4>
-                <div class="filter-options">
-                    <label class="filter-checkbox">
-                        <input type="checkbox" name="brand" value="nike" checked>
-                        <span class="checkmark"></span>
-                        Nike
-                    </label>
-                    <label class="filter-checkbox">
-                        <input type="checkbox" name="brand" value="adidas" checked>
-                        <span class="checkmark"></span>
-                        Adidas
-                    </label>
-                    <label class="filter-checkbox">
-                        <input type="checkbox" name="brand" value="puma" checked>
-                        <span class="checkmark"></span>
-                        Puma
-                    </label>
-                    <label class="filter-checkbox">
-                        <input type="checkbox" name="brand" value="mizuno" checked>
-                        <span class="checkmark"></span>
-                        Mizuno
-                    </label>
-                </div>
-            </div>
-
-            <!-- Размеры -->
-            <div class="filter-section">
-                <h4>РАЗМЕР (EU)</h4>
-                <div class="size-filters">
-                    <div class="size-row">
-                        <button class="size-btn" data-size="38">38</button>
-                        <button class="size-btn" data-size="39">39</button>
-                        <button class="size-btn" data-size="40">40</button>
-                        <button class="size-btn" data-size="40.5">40.5</button>
-                        <button class="size-btn" data-size="41">41</button>
-                    </div>
-                    <div class="size-row">
-                        <button class="size-btn" data-size="42">42</button>
-                        <button class="size-btn" data-size="42.5">42.5</button>
-                        <button class="size-btn" data-size="43">43</button>
-                        <button class="size-btn" data-size="44">44</button>
-                        <button class="size-btn" data-size="45">45</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Цена -->
-            <div class="filter-section">
-                <h4>ЦЕНА, ₽</h4>
-                <div class="price-range">
-                    <div class="range-values">
-                        <span id="minPrice">5 000</span>
-                        <span id="maxPrice">35 000</span>
-                    </div>
-                    <div class="range-slider">
-                        <input type="range" id="priceSlider" min="5000" max="35000" value="20000">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Кнопки фильтров -->
-            <div class="filter-actions">
-                <button class="btn-secondary" id="resetFilters">
-                    СБРОСИТЬ
-                </button>
-                <button class="btn-primary" id="applyFilters">
-                    ПРИМЕНИТЬ
-                </button>
-            </div>
-        </div>
-    </div>
+    </nav>
 
     <!-- Попап корзины -->
-    <div class="popup-overlay" id="cartOverlay"></div>
-    <div class="cart-popup" id="cartPopup">
+    <div class="cart-popup glass-popup" id="cartPopup">
         <div class="popup-header">
-            <h3><i class="fas fa-shopping-bag"></i> КОРЗИНА</h3>
-            <button class="popup-close" id="closeCart">
+            <h3>Корзина</h3>
+            <button class="close-popup" id="closeCart">
                 <i class="fas fa-times"></i>
             </button>
         </div>
-        
         <div class="popup-body">
+            <div class="cart-header">
+                <div class="select-all-container" id="selectAllContainer">
+                    <div class="select-all-checkbox" id="selectAllCheckbox">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <span>Выбрать все</span>
+                </div>
+                <div id="selectedCount">Выбрано: 0</div>
+            </div>
+            
             <div class="cart-items" id="cartItems">
                 <!-- Товары в корзине -->
             </div>
             
-            <div class="cart-empty" id="cartEmpty">
-                <i class="fas fa-shopping-bag"></i>
-                <p>Ваша корзина пуста</p>
-                <button class="btn-secondary" id="continueShopping">
-                    ПРОДОЛЖИТЬ ПОКУПКИ
-                </button>
+            <!-- Адрес доставки -->
+            <div class="delivery-address-section">
+                <h4>Адрес доставки</h4>
+                <div class="address-input-container">
+                    <input type="text" id="deliveryAddress" class="address-input" placeholder="Введите адрес доставки">
+                    <button class="save-address-btn" id="saveAddressBtn">
+                        <i class="fas fa-check"></i>
+                    </button>
+                </div>
+                <div id="addressStatus" style="font-size: 0.8rem; color: var(--color-text-secondary); margin-top: 5px;">
+                    Адрес не указан
+                </div>
             </div>
             
             <div class="cart-summary">
                 <div class="summary-row">
                     <span>Товары</span>
-                    <span id="cartSubtotal">0 ₽</span>
-                </div>
-                <div class="summary-row">
-                    <span>Доставка</span>
-                    <span>Бесплатно</span>
-                </div>
-                <div class="summary-row total">
-                    <span>ИТОГО</span>
                     <span id="cartTotal">0 ₽</span>
                 </div>
-                
-                <div class="delivery-section">
-                    <h4><i class="fas fa-map-marker-alt"></i> Адрес доставки</h4>
-                    <input type="text" id="deliveryAddress" placeholder="Город, улица, дом">
+                <div class="summary-row total">
+                    <span>Итого</span>
+                    <span id="cartFinal">0 ₽</span>
                 </div>
-                
-                <button class="btn-checkout" id="checkoutBtn">
+                <button class="btn-checkout-glass" id="checkoutBtn">
                     <i class="fas fa-paper-plane"></i>
-                    ОФОРМИТЬ ЗАКАЗ
+                    Оформить заказ
                 </button>
             </div>
         </div>
     </div>
 
     <!-- Попап избранного -->
-    <div class="popup-overlay" id="favoritesOverlay"></div>
-    <div class="favorites-popup" id="favoritesPopup">
+    <div class="favorites-popup glass-popup" id="favoritesPopup">
         <div class="popup-header">
-            <h3><i class="fas fa-heart"></i> ИЗБРАННОЕ</h3>
-            <button class="popup-close" id="closeFavorites">
+            <h3>Избранное</h3>
+            <button class="close-popup" id="closeFav">
                 <i class="fas fa-times"></i>
             </button>
         </div>
-        
         <div class="popup-body">
             <div class="fav-items" id="favoritesItems">
                 <!-- Товары в избранном -->
             </div>
-            
             <div class="fav-empty" id="favEmpty">
                 <i class="far fa-heart"></i>
                 <p>В избранном пока ничего нет</p>
-                <button class="btn-secondary" id="browseCatalog">
-                    СМОТРЕТЬ КАТАЛОГ
+                <button class="btn-browse-glass" id="browseBtn">
+                    <i class="fas fa-store"></i>
+                    Перейти в каталог
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Модальное окно товара -->
-    <div class="modal-overlay" id="productModalOverlay"></div>
-    <div class="product-modal" id="productModal">
-        <!-- Контент будет заполнен через JS -->
-    </div>
-
-    <!-- Нижняя панель -->
-    <footer class="bottom-nav">
-        <div class="nav-container">
-            <button class="bottom-nav-btn active" id="navHome">
-                <i class="fas fa-home"></i>
-                <span>Главная</span>
-            </button>
-            <button class="bottom-nav-btn" id="navCatalog">
-                <i class="fas fa-th-large"></i>
-                <span>Каталог</span>
-            </button>
-            <button class="bottom-nav-btn" id="navFavoritesBottom">
-                <i class="far fa-heart"></i>
-                <span>Избранное</span>
-            </button>
-            <button class="bottom-nav-btn" id="navProfile">
-                <i class="fas fa-user"></i>
-                <span>Профиль</span>
+    <!-- Попап фильтров -->
+    <div class="filter-popup glass-popup" id="filterPopup">
+        <div class="popup-header">
+            <h3>Фильтры</h3>
+            <button class="close-popup" id="closeFilter">
+                <i class="fas fa-times"></i>
             </button>
         </div>
-    </footer>
+        <div class="popup-body">
+            <div class="filter-content" id="filterContent">
+                <!-- Фильтры загружаются динамически -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Кнопка сброса фильтров -->
+    <button class="filter-reset-btn" id="filterResetBtn">
+        <i class="fas fa-redo"></i>
+    </button>
+
+    <!-- Модальное окно товара -->
+    <div class="product-details-modal" id="productDetailsModal">
+        <div class="modal-content">
+            <!-- Контент загружается динамически -->
+        </div>
+    </div>
+    <div class="product-modal-overlay" id="productModalOverlay"></div>
+
+    <!-- Оверлей для попапов -->
+    <div class="overlay" id="overlay"></div>
 
     <script src="script.js"></script>
 </body>
