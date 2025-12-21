@@ -203,8 +203,8 @@
         </div>
     </div>
 
-    <!-- Кнопка сброса фильтров -->
-    <button class="filter-reset-btn" id="filterResetBtn">
+    <!-- Кнопка сброса фильтров (скрыта по умолчанию) -->
+    <button class="filter-reset-btn" id="filterResetBtn" style="display: none;">
         <i class="fas fa-redo"></i>
     </button>
 
@@ -218,6 +218,11 @@
 
     <!-- Оверлей для попапов -->
     <div class="overlay" id="overlay"></div>
+
+    <!-- Скрытая кнопка для отладки (обновление кэша) -->
+    <button id="refreshCacheBtn" style="display: none;">
+        <i class="fas fa-sync-alt"></i> Обновить кэш
+    </button>
 
     <script src="script.js"></script>
 </body>

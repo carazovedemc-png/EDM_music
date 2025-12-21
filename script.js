@@ -22,13 +22,18 @@ let filterState = {
     cashback: false
 };
 
+// Версия данных (меняйте при обновлении товаров)
+const DATA_VERSION = '1.0.1';
+
 // Ключи для localStorage
 const STORAGE_KEYS = {
     CART: 'aura_atelier_cart',
     FAVORITES: 'aura_atelier_favorites',
     USER: 'aura_atelier_user',
     ADDRESS: 'aura_atelier_address',
-    FILTERS: 'aura_atelier_filters'
+    FILTERS: 'aura_atelier_filters',
+    PRODUCTS: 'aura_atelier_products',
+    PRODUCTS_VERSION: 'aura_atelier_products_version'
 };
 
 // БАННЕРЫ (легко редактируются)
@@ -38,9 +43,9 @@ const BANNERS_DATA = [
         type: 'exclusive',
         title: 'Эксклюзивные ароматы',
         description: 'Только оригинальная парфюмерия с гарантией качества',
-        image: null, // URL картинки (если null - используется градиент)
+        image: null,
         gradient: true,
-        link: null
+        link: 'https://t.me/Aa_Atelier'
     },
     {
         id: 2,
@@ -461,6 +466,9 @@ function initApp() {
     
     // Сохраняем пользователя в localStorage
     saveToStorage(STORAGE_KEYS.USER, user);
+    
+    // Проверяем состояние кэша
+    checkCacheStatus();
 }
 
 // ===== LOCALSTORAGE ФУНКЦИИ =====
@@ -482,9 +490,68 @@ function loadFromStorage(key, defaultValue = null) {
     }
 }
 
+function saveProductsToCache() {
+    // Сохраняем товары в кэш
+    const productsData = {
+        version: DATA_VERSION,
+        products: PRODUCTS_DATA,
+        timestamp: new Date().toISOString()
+    };
+    saveToStorage(STORAGE_KEYS.PRODUCTS, productsData);
+    saveToStorage(STORAGE_KEYS.PRODUCTS_VERSION, DATA_VERSION);
+    console.log('Товары сохранены в кэш, версия:', DATA_VERSION);
+}
+
+function loadProductsFromCache() {
+    // Проверяем, есть ли сохраненные товары
+    const cachedProducts = loadFromStorage(STORAGE_KEYS.PRODUCTS);
+    const cachedVersion = loadFromStorage(STORAGE_KEYS.PRODUCTS_VERSION);
+    
+    if (!cachedProducts || !cachedVersion || cachedVersion !== DATA_VERSION) {
+        console.log('Кэш товаров не найден или устарел, загружаем исходные данные');
+        saveProductsToCache(); // Сохраняем текущие товары в кэш
+        return PRODUCTS_DATA;
+    }
+    
+    // Проверяем, не устарели ли данные (например, больше недели)
+    const cacheTimestamp = new Date(cachedProducts.timestamp);
+    const now = new Date();
+    const daysDiff = (now - cacheTimestamp) / (1000 * 60 * 60 * 24);
+    
+    if (daysDiff > 7) { // Обновляем кэш раз в неделю
+        console.log('Кэш устарел (больше 7 дней), обновляем');
+        saveProductsToCache();
+        return PRODUCTS_DATA;
+    }
+    
+    console.log('Товары загружены из кэша, версия:', cachedVersion);
+    return cachedProducts.products;
+}
+
+function clearProductsCache() {
+    localStorage.removeItem(STORAGE_KEYS.PRODUCTS);
+    localStorage.removeItem(STORAGE_KEYS.PRODUCTS_VERSION);
+    console.log('Кэш товаров очищен');
+}
+
+function checkCacheStatus() {
+    const cachedVersion = loadFromStorage(STORAGE_KEYS.PRODUCTS_VERSION);
+    const cachedProducts = loadFromStorage(STORAGE_KEYS.PRODUCTS);
+    
+    if (!cachedVersion || !cachedProducts) {
+        console.log('Кэш не найден, создаём новый');
+        saveProductsToCache();
+    } else if (cachedVersion !== DATA_VERSION) {
+        console.log('Обнаружена новая версия данных, обновляем кэш');
+        saveProductsToCache();
+    } else {
+        console.log('Кэш актуален, версия:', cachedVersion);
+    }
+}
+
 function loadData() {
-    // Загружаем товары
-    allProducts = PRODUCTS_DATA;
+    // Загружаем товары из кэша или исходных данных
+    allProducts = loadProductsFromCache();
     filteredProducts = [...allProducts];
     
     // Загружаем корзину из localStorage
@@ -495,6 +562,8 @@ function loadData() {
     
     // Инициализируем выбранные товары в корзине
     selectedCartItems = cart.map(item => item.id);
+    
+    console.log('Загружено товаров:', allProducts.length);
 }
 
 function loadFilterState() {
@@ -577,13 +646,27 @@ function renderBanners() {
     
     // Автоматическое переключение баннеров
     let currentBannerIndex = 0;
+    let prevBannerIndex = -1;
     
     function switchBanner() {
         const allBanners = bannerContainer.querySelectorAll('.banner-slide');
-        allBanners[currentBannerIndex].classList.remove('active');
         
+        // Убираем активный класс с текущего
+        allBanners[currentBannerIndex].classList.remove('active');
+        if (prevBannerIndex >= 0) {
+            allBanners[prevBannerIndex].classList.remove('prev');
+        }
+        
+        // Запоминаем предыдущий
+        prevBannerIndex = currentBannerIndex;
+        
+        // Переходим к следующему
         currentBannerIndex = (currentBannerIndex + 1) % BANNERS_DATA.length;
         
+        // Добавляем классы для анимации
+        if (prevBannerIndex >= 0) {
+            allBanners[prevBannerIndex].classList.add('prev');
+        }
         allBanners[currentBannerIndex].classList.add('active');
     }
     
@@ -596,6 +679,7 @@ function createBannerElement(banner) {
     bannerElement.className = `banner-slide ${banner.type}`;
     bannerElement.dataset.id = banner.id;
     
+    // Стили фона
     if (banner.image) {
         bannerElement.style.background = `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('${banner.image}') center/cover`;
     } else if (banner.gradient) {
@@ -613,7 +697,7 @@ function createBannerElement(banner) {
     if (banner.type === 'contacts' && banner.contacts) {
         const contactsHtml = banner.contacts.map(contact => {
             if (contact.label === 'Telegram channel') {
-                return `<br><a href="${contact.value}" target="_blank">${contact.value}</a>`;
+                return `<br><a href="${contact.value}" target="_blank" style="color: white; text-decoration: underline;">${contact.value}</a>`;
             }
             return `<br><strong>${contact.value}</strong>`;
         }).join('');
@@ -627,7 +711,7 @@ function createBannerElement(banner) {
     } else {
         contentHtml = `
             <h1>${banner.title}</h1>
-            <p>${banner.description}</p>
+            ${banner.description ? `<p>${banner.description}</p>` : ''}
         `;
     }
     
@@ -637,9 +721,12 @@ function createBannerElement(banner) {
         </div>
     `;
     
+    // Добавляем кликабельность если есть ссылка
     if (banner.link) {
         bannerElement.style.cursor = 'pointer';
-        bannerElement.addEventListener('click', function() {
+        bannerElement.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
             window.open(banner.link, '_blank');
         });
     }
@@ -691,27 +778,10 @@ function renderProducts() {
             ? Math.round((1 - product.price / product.oldPrice) * 100)
             : 0;
         
-        // Получаем иконку для пола
-        let genderIcon = '';
-        let genderColor = '';
-        if (product.gender === 'male') {
-            genderIcon = 'mars';
-            genderColor = 'var(--color-primary-light)';
-        } else if (product.gender === 'female') {
-            genderIcon = 'venus';
-            genderColor = 'var(--color-accent)';
-        } else {
-            genderIcon = 'transgender';
-            genderColor = 'var(--color-secondary)';
-        }
-        
+        // УБРАЛИ отображение пола с карточки товара
         card.innerHTML = `
             <div class="product-badges">
                 ${badgeHtml}
-                <span style="font-size: 0.7rem; color: ${genderColor}; margin-top: 4px;">
-                    <i class="fas fa-${genderIcon}"></i>
-                    ${product.gender === 'male' ? 'Мужские' : product.gender === 'female' ? 'Женские' : 'Унисекс'}
-                </span>
             </div>
             <img src="${product.image}" alt="${product.name}" class="product-image">
             
@@ -1125,6 +1195,7 @@ function updateFavoritesPopup() {
             itemElement.className = 'fav-item';
             itemElement.dataset.id = item.id;
             
+            // ИСПРАВЛЕНО: добавлен атрибут title для кнопки удаления
             itemElement.innerHTML = `
                 <div class="fav-item-content">
                     <img src="${item.image}" alt="${item.name}" class="fav-item-img">
@@ -1137,7 +1208,7 @@ function updateFavoritesPopup() {
                             <span class="fav-item-gender">${getGenderName(item.gender)}</span>
                         </div>
                     </div>
-                    <button class="remove-from-fav" onclick="removeFromFavorites(${item.id})">
+                    <button class="remove-from-fav" onclick="removeFromFavorites(${item.id})" title="Удалить из избранного">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
@@ -1853,6 +1924,7 @@ function closeFavoritesPopup() {
 function openFilterPopup() {
     document.getElementById('filterPopup').classList.add('show');
     document.getElementById('overlay').classList.add('show');
+    // ПОКАЗАТЬ кнопку сброса только при открытии фильтров
     document.getElementById('filterResetBtn').style.display = 'flex';
     document.body.style.overflow = 'hidden';
 }
@@ -1860,6 +1932,7 @@ function openFilterPopup() {
 function closeFilterPopup() {
     document.getElementById('filterPopup').classList.remove('show');
     document.getElementById('overlay').classList.remove('show');
+    // Скрыть кнопку сброса при закрытии фильтров
     document.getElementById('filterResetBtn').style.display = 'none';
     document.body.style.overflow = 'auto';
 }
@@ -2161,6 +2234,12 @@ ${orderItems}
             closeProductDetailsModal();
         }
     });
+    
+    // Прячем кнопку сброса фильтров при загрузке
+    setTimeout(() => {
+        const resetBtn = document.getElementById('filterResetBtn');
+        if (resetBtn) resetBtn.style.display = 'none';
+    }, 100);
 }
 
 // ===== ГЛОБАЛЬНЫЙ ЭКСПОРТ =====
@@ -2179,7 +2258,11 @@ window.app = {
     openFavoritesPopup,
     openFilterPopup,
     saveAddress,
-    toggleFilterSubgroup
+    toggleFilterSubgroup,
+    saveProductsToCache,
+    clearProductsCache
 };
 
 console.log('Aura Atelier приложение инициализировано');
+console.log('Версия данных:', DATA_VERSION);
+console.log('Товаров в кэше:', allProducts.length);

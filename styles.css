@@ -235,13 +235,19 @@ body {
     align-items: center;
     justify-content: center;
     opacity: 0;
-    transition: opacity 1s ease-in-out;
+    transform: translateX(100%);
+    transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
     padding: var(--space-xl) var(--space-lg);
     text-align: center;
 }
 
 .banner-slide.active {
     opacity: 1;
+    transform: translateX(0);
+}
+
+.banner-slide.prev {
+    transform: translateX(-100%);
 }
 
 .banner-slide.exclusive {
@@ -900,6 +906,7 @@ body {
     z-index: 1003;
     box-shadow: var(--shadow-glass);
     transition: all 0.3s ease;
+    display: none; /* Скрыта по умолчанию */
 }
 
 .filter-reset-btn:hover {
