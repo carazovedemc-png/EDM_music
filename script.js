@@ -62,10 +62,10 @@ const BANNERS_DATA = [
     },
     {
         id: 3,
-        type: 'contacts',
+        type: 'exclusive',
         title: '',
         description: '',
-        image: "https://sun9-55.userapi.com/s/v1/ig2/vB79POpdyOxwTj0vI5gvMA85cxWPXhPo-mMxyB28FE9rrd_K5PhTj1oD9TncuZUEwKjyxGTk8y3aYIREpEGknj9L.jpg?quality=95&as=32x14,48x22,72x33,108x49,160x72,240x109,360x163,480x217,540x244,640x289,720x326,1080x488,1280x579,1440x651,1793x811&from=bu&u=-Tms6GB_id-mrtVAf0kMCMQdPxNK_uAOnPgAqOhN6PY&cs=640x0",
+        image: "https://sun9-63.userapi.com/s/v1/ig2/08QQmfcwGorKcFQPSAocILkdLdmUYKOf8yB_z_WOYANV6PhJns32WPqbEtbp1_H3YRwE8AV6Tx2_IaxcaCxnTe2w.jpg?quality=95&as=32x15,48x22,72x34,108x50,160x75,240x112,360x168,480x224,540x252,640x299,720x336,1080x504,1280x597,1440x672,1732x808&from=bu&u=0t0jjC50h5nlaHCgJuh891ec4TKp5fN3Nf59Wz0IFRU&cs=640x0",
         gradient: false,
         link: 'https://t.me/EDM_TM'
     }
