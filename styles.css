@@ -216,120 +216,98 @@ body {
     font-size: 0.9rem;
 }
 
-/* ===== НОВЫЙ ДИЗАЙН БАННЕРОВ БЕЗ ТОЧЕК ===== */
+/* ===== БАННЕР С ГОРИЗОНТАЛЬНОЙ КАРУСЕЛЬЮ ===== */
 .banner-container {
     position: relative;
     height: 180px;
     margin: var(--space-lg) 0;
-    width: 100%;
+    border-radius: var(--radius-lg);
     overflow: hidden;
-    user-select: none;
-    -webkit-user-select: none;
-    -webkit-touch-callout: none;
+    width: 100%;
 }
 
 .banner-slides-wrapper {
+    display: flex;
     width: 100%;
     height: 100%;
-    overflow: hidden;
-    position: relative;
-    touch-action: pan-y;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
 }
 
-.banner-slides-track {
+.banner-slides-wrapper::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+}
+
+.banner-slides {
     display: flex;
     height: 100%;
-    transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    will-change: transform;
-    position: relative;
+    min-width: 100%;
+    transition: transform 0.5s ease-in-out;
 }
 
 .banner-slide {
     flex: 0 0 100%;
     height: 100%;
-    position: relative;
-    border-radius: 20px;
-    overflow: hidden;
-    border: 3px solid rgba(0, 0, 0, 0.8);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.9));
-    margin: 0 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-xl) var(--space-lg);
+    text-align: center;
+    scroll-snap-align: start;
 }
 
-/* Градиенты для баннеров без изображений */
 .banner-slide.exclusive {
     background: linear-gradient(135deg, 
         rgba(138, 43, 226, 0.9), 
         rgba(0, 206, 209, 0.8), 
-        rgba(255, 107, 139, 0.7)) !important;
+        rgba(255, 107, 139, 0.7));
+    background-size: 200% 200%;
+    animation: gradientMove 8s ease infinite;
 }
 
 .banner-slide.contacts {
     background: linear-gradient(135deg, 
         rgba(0, 206, 209, 0.9), 
         rgba(255, 107, 139, 0.8), 
-        rgba(138, 43, 226, 0.7)) !important;
+        rgba(138, 43, 226, 0.7));
+    background-size: 200% 200%;
+    animation: gradientMove 8s ease infinite 4s;
 }
 
-/* Изображение баннера */
-.banner-image {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    z-index: 1;
-    border-radius: 17px;
-}
-
-/* Содержимое баннера */
 .banner-content {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: var(--space-md);
+    max-width: 600px;
+    position: relative;
     z-index: 2;
-    background: rgba(0, 0, 0, 0.5);
 }
 
-/* Заголовок баннера */
 .banner-content h1 {
-    font-size: 1.5rem;
+    font-size: 1.8rem;
     font-weight: 800;
-    margin-bottom: var(--space-xs);
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
-    line-height: 1.2;
-    color: white;
-}
-
-/* Текст баннера */
-.banner-content p {
-    font-size: 0.9rem;
-    color: rgba(255, 255, 255, 0.95);
-    text-shadow: 0 1px 5px rgba(0, 0, 0, 0.5);
-    line-height: 1.4;
     margin-bottom: var(--space-sm);
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    line-height: 1.2;
 }
 
-/* Контакты в баннере */
+.banner-content p {
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.95);
+    text-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
+    line-height: 1.4;
+}
+
 .banner-contacts {
-    font-size: 0.85rem;
-    margin-top: var(--space-xs);
+    font-size: 0.9rem;
+    margin-top: var(--space-sm);
 }
 
 .banner-contacts strong {
     color: white;
     font-weight: 700;
     display: inline-block;
-    margin: 0 3px;
+    margin: 0 5px;
 }
 
 .banner-contacts a {
@@ -339,26 +317,35 @@ body {
     word-break: break-all;
 }
 
-/* Эффект для видимых соседних баннеров */
-.banner-slides-wrapper::before,
-.banner-slides-wrapper::after {
-    content: '';
+.banner-contacts br {
+    display: block;
+    margin: 8px 0;
+    content: "";
+}
+
+.banner-dots {
     position: absolute;
-    top: 0;
-    width: 20%;
-    height: 100%;
-    z-index: 2;
-    pointer-events: none;
-}
-
-.banner-slides-wrapper::before {
+    bottom: 15px;
     left: 0;
-    background: linear-gradient(to right, var(--color-bg) 0%, transparent 100%);
+    right: 0;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    z-index: 10;
 }
 
-.banner-slides-wrapper::after {
-    right: 0;
-    background: linear-gradient(to left, var(--color-bg) 0%, transparent 100%);
+.banner-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.banner-dot.active {
+    background: white;
+    transform: scale(1.2);
 }
 
 /* ===== ОСНОВНОЙ КОНТЕНТ ===== */
@@ -443,9 +430,6 @@ body {
     cursor: pointer;
     height: 390px;
     overflow: hidden;
-    will-change: transform, opacity;
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
 }
 
 .product-badges {
@@ -748,7 +732,7 @@ body {
     justify-content: center;
 }
 
-/* ===== НОВЫЙ ФИЛЬТР С ГАЛОЧКОЙ ===== */
+/* ===== НОВЫЙ ФИЛЬТР ===== */
 .filter-popup.glass-popup {
     max-height: 80vh;
     overflow-y: auto;
@@ -850,26 +834,22 @@ body {
     align-items: center;
     justify-content: center;
     transition: all 0.3s ease;
-    position: relative;
 }
 
 .filter-checkbox input:checked ~ .checkmark {
+    background: var(--color-primary);
     border-color: var(--color-primary);
 }
 
-/* ГАЛОЧКА - отдельный элемент поверх квадратика */
-.filter-checkbox input:checked ~ .checkmark::after {
-    content: "✓";
-    position: absolute;
-    color: var(--color-primary);
-    font-size: 14px;
-    font-weight: bold;
-    opacity: 1;
+.filter-checkbox .checkmark i {
+    color: white;
+    font-size: 0.8rem;
+    opacity: 0;
     transition: opacity 0.3s ease;
 }
 
-.filter-checkbox .checkmark i {
-    display: none;
+.filter-checkbox input:checked ~ .checkmark i {
+    opacity: 1;
 }
 
 .filter-checkbox input {
@@ -917,26 +897,22 @@ body {
     align-items: center;
     justify-content: center;
     transition: all 0.3s ease;
-    position: relative;
 }
 
 .filter-single input:checked ~ .checkmark {
+    background: var(--color-primary);
     border-color: var(--color-primary);
 }
 
-/* ГАЛОЧКА для одиночных фильтров */
-.filter-single input:checked ~ .checkmark::after {
-    content: "✓";
-    position: absolute;
-    color: var(--color-primary);
-    font-size: 16px;
-    font-weight: bold;
-    opacity: 1;
+.filter-single .checkmark i {
+    color: white;
+    font-size: 0.9rem;
+    opacity: 0;
     transition: opacity 0.3s ease;
 }
 
-.filter-single .checkmark i {
-    display: none;
+.filter-single input:checked ~ .checkmark i {
+    opacity: 1;
 }
 
 .filter-single input {
@@ -964,7 +940,7 @@ body {
     z-index: 1003;
     box-shadow: var(--shadow-glass);
     transition: all 0.3s ease;
-    display: none;
+    display: none; /* Скрыта по умолчанию */
 }
 
 .filter-reset-btn:hover {
@@ -993,9 +969,6 @@ body {
     transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     overflow: hidden;
     transform-origin: center center;
-    will-change: transform, opacity;
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
 }
 
 .glass-popup.show {
@@ -1603,9 +1576,6 @@ body {
     transform: translateY(20px) scale(0.95);
     opacity: 0;
     transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-    will-change: transform, opacity;
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
 }
 
 .product-details-modal.show .modal-content {
@@ -1961,50 +1931,7 @@ body {
     }
 }
 
-/* ===== ДОПОЛНИТЕЛЬНЫЕ СТИЛИ ДЛЯ АДАПТИВНОСТИ И ОПТИМИЗАЦИИ ===== */
-
-/* Оптимизация для мобильных устройств */
-@media (max-width: 768px) {
-    .banner-container {
-        height: 160px;
-    }
-    
-    .banner-slide {
-        height: 140px;
-    }
-    
-    .banner-content h1 {
-        font-size: 1.3rem;
-    }
-    
-    .banner-content p {
-        font-size: 0.8rem;
-    }
-    
-    .products-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: var(--space-sm);
-    }
-    
-    .product-card {
-        height: auto;
-        min-height: 320px;
-    }
-    
-    .product-image {
-        height: 120px;
-    }
-    
-    .product-title {
-        font-size: 0.8rem;
-        min-height: 38px;
-    }
-    
-    .product-description-short {
-        min-height: 36px;
-    }
-}
-
+/* ===== АДАПТИВНОСТЬ ===== */
 @media (max-width: 480px) {
     .container {
         padding: 0 var(--space-sm);
@@ -2039,44 +1966,26 @@ body {
         height: 30px;
     }
     
-    .banner-container {
-        height: 160px;
-        margin: var(--space-md) 0;
-    }
-    
-    .banner-content h1 {
-        font-size: 1.3rem;
-    }
-    
-    .banner-content p {
-        font-size: 0.8rem;
-        display: none;
-    }
-    
-    .banner-contacts {
-        font-size: 0.75rem;
-    }
-    
     .products-header h2 {
         font-size: 1.8rem;
     }
     
     .products-grid {
         grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
+        gap: var(--space-sm);
     }
     
     .product-card {
-        padding: 12px;
-        min-height: 300px;
+        height: 360px;
+        padding: var(--space-sm);
     }
     
     .product-image {
-        height: 100px;
+        height: 120px;
     }
     
-    .price-current {
-        font-size: 1.1rem;
+    .product-title {
+        font-size: 0.8rem;
     }
     
     .btn-cart-wb {
@@ -2097,7 +2006,8 @@ body {
     }
     
     .nav-btn {
-        height: 48px;
+        padding: 4px;
+        height: 45px;
     }
     
     .nav-btn i {
@@ -2115,6 +2025,19 @@ body {
     .glass-popup {
         width: 95%;
         max-width: 350px;
+    }
+    
+    .banner-container {
+        height: 150px;
+        margin: var(--space-md) 0;
+    }
+    
+    .banner-content h1 {
+        font-size: 1.5rem;
+    }
+    
+    .banner-content p {
+        font-size: 0.9rem;
     }
     
     .sort-select-glass {
@@ -2180,257 +2103,77 @@ body {
 }
 
 @media (max-width: 360px) {
+    .products-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--space-sm);
+    }
+    
     .logo-main {
-        font-size: 0.9rem;
+        font-size: 0.85rem;
+        max-width: 90px;
     }
     
     .search-container {
-        max-width: 140px;
+        max-width: 120px;
     }
     
     .search-box input {
-        font-size: 0.8rem;
         padding: 8px;
+        font-size: 0.8rem;
+        margin-right: 6px;
     }
     
-    .banner-container {
-        height: 120px;
+    .search-glass-circle {
+        width: 28px;
+        height: 28px;
     }
     
-    .banner-slide {
-        height: 100px;
-    }
-    
-    .banner-content h1 {
-        font-size: 1rem;
-    }
-    
-    .banner-contacts {
-        font-size: 0.7rem;
-    }
-    
-    .products-header h2 {
-        font-size: 1.3rem;
-    }
-    
-    .products-grid {
-        grid-template-columns: 1fr;
-        gap: 12px;
-    }
-    
-    .product-card {
-        min-height: 280px;
+    .search-glass-circle i {
+        font-size: 0.8rem;
     }
     
     .bottom-nav-glass {
         width: calc(100% - 16px);
         padding: 6px 8px;
+        bottom: 12px;
     }
     
     .nav-btn {
-        height: 44px;
+        padding: 2px;
+        height: 40px;
     }
     
     .nav-btn i {
         font-size: 1.1rem;
     }
-}
-
-/* Улучшение производительности анимаций */
-.product-card,
-.banner-slide,
-.glass-popup {
-    transform: translateZ(0);
-    -webkit-transform: translateZ(0);
-}
-
-/* Предотвращение мерцания в Safari */
-@media screen and (-webkit-min-device-pixel-ratio: 0) {
-    .product-card,
-    .banner-slide {
-        -webkit-backface-visibility: hidden;
-        backface-visibility: hidden;
-        -webkit-transform-style: preserve-3d;
-        transform-style: preserve-3d;
-    }
-}
-
-/* Оптимизация для слабых устройств */
-@media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-        scroll-behavior: auto !important;
-    }
     
-    .banner-slides-track {
-        transition: none !important;
-    }
-}
-
-/* Исправление для старых iOS */
-@supports (-webkit-touch-callout: none) {
-    .bottom-nav-glass {
-        padding-bottom: calc(10px + env(safe-area-inset-bottom));
-    }
-    
-    body {
-        padding-bottom: calc(100px + env(safe-area-inset-bottom));
-    }
-}
-
-/* Исправление для Firefox */
-@-moz-document url-prefix() {
-    .search-box {
-        background: rgba(255, 255, 255, 0.08);
-    }
-    
-    .glass-popup {
-        background: rgba(30, 30, 46, 0.98);
-    }
-}
-
-/* Улучшение читаемости на светлом фоне (для режима высокой контрастности) */
-@media (prefers-contrast: high) {
-    :root {
-        --color-text: #000000;
-        --color-text-secondary: #333333;
-        --color-text-muted: #666666;
-    }
-    
-    body {
-        background: #FFFFFF;
-    }
-    
-    .product-card,
-    .glass-popup {
-        border: 2px solid #000000;
-    }
-}
-
-/* Улучшение для людей с дислексией */
-@media (prefers-reduced-transparency: reduce) {
-    .top-header,
-    .bottom-nav-glass,
-    .glass-popup,
-    .product-card {
-        background: var(--color-bg);
-        backdrop-filter: none;
-        -webkit-backdrop-filter: none;
-    }
-}
-
-/* Поддержка портретного и ландшафтного режимов */
-@media (orientation: landscape) and (max-height: 500px) {
     .banner-container {
-        height: 120px;
-        margin: var(--space-sm) 0;
+        height: 130px;
     }
     
-    .banner-slide {
-        height: 100px;
+    .banner-content h1 {
+        font-size: 1.2rem;
     }
     
-    .main-content {
-        padding-bottom: var(--space-lg);
+    .banner-content p {
+        font-size: 0.8rem;
     }
     
-    .bottom-nav-glass {
-        bottom: 10px;
-    }
-}
-
-/* Исправление для очень больших экранов */
-@media (min-width: 1200px) {
-    .container {
-        max-width: 1200px;
+    .products-header h2 {
+        font-size: 1.1rem;
     }
     
-    .products-grid {
-        grid-template-columns: repeat(5, 1fr);
+    .sort-select-glass {
+        min-width: 110px;
+    }
+    
+    .sort-select-glass select {
+        padding: 7px 24px 7px 8px;
+        font-size: 0.75rem;
+    }
+    
+    .sort-select-glass i {
+        right: 8px;
+        font-size: 0.7rem;
     }
 }
-
-/* Анимация для кнопок */
-button, 
-.btn-cart-wb, 
-.btn-fav-wb,
-.nav-btn {
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-button:active,
-.btn-cart-wb:active,
-.btn-fav-wb:active,
-.nav-btn:active {
-    transform: scale(0.95);
-}
-
-/* Улучшение фокуса для доступности */
-:focus-visible {
-    outline: 2px solid var(--color-primary);
-    outline-offset: 2px;
-}
-
-/* Скрытие элементов для скринридеров */
-.visually-hidden {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-}
-
-/* Плавный скролл для попапов */
-.popup-body {
-    scroll-behavior: smooth;
-}
-
-/* Исправление для переполнения текста */
-.product-title,
-.cart-item-title,
-.fav-item-title {
-    word-break: break-word;
-    overflow-wrap: break-word;
-}
-
-/* Улучшение отображения изображений при загрузке */
-.product-image,
-.cart-item-img,
-.fav-item-img,
-.banner-image {
-    background: linear-gradient(45deg, 
-        rgba(255, 255, 255, 0.05) 25%, 
-        transparent 25%, 
-        transparent 50%, 
-        rgba(255, 255, 255, 0.05) 50%, 
-        rgba(255, 255, 255, 0.05) 75%, 
-        transparent 75%, 
-        transparent);
-    background-size: 20px 20px;
-    animation: placeholderShimmer 2s infinite linear;
-}
-
-@keyframes placeholderShimmer {
-    0% { background-position: -40px 0; }
-    100% { background-position: 40px 0; }
-}
-
-/* Улучшение доступности для инвалидов по зрению */
-@media (prefers-reduced-motion: reduce) {
-    .product-image,
-    .cart-item-img,
-    .fav-item-img,
-    .banner-image {
-        animation: none;
-    }
-}
-
-/* Конец файла styles.css */
