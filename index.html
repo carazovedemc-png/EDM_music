@@ -195,18 +195,24 @@
 
     <!-- Попап профиля -->
     <div class="profile-popup glass-popup" id="profilePopup">
-        <div class="popup-header">
+        <div class="popup-header profile-popup-header">
+            <!-- Кнопка входа слева -->
+            <div class="profile-login-btn-container" id="loginBtnContainer">
+                <button class="profile-login-btn" id="profileLoginBtn">
+                    <i class="fab fa-telegram"></i>
+                    <span id="loginBtnText">Войти через Telegram</span>
+                </button>
+            </div>
+            
+            <!-- Заголовок по центру -->
+            <h3 class="profile-popup-title">Профиль</h3>
+            
+            <!-- Крестик закрытия справа -->
             <button class="profile-close-btn" id="profileCloseBtn">
                 <i class="fas fa-times"></i>
             </button>
-            <h3></h3>
-            <div class="profile-login-btn-container" id="loginBtnContainer">
-                <button class="profile-login-btn" id="profileLoginBtn">
-                    <i class="fas fa-sign-in-alt"></i>
-                    <span id="loginBtnText">Войти</span>
-                </button>
-            </div>
         </div>
+        
         <div class="popup-body profile-body">
             <div class="profile-user-info" id="userInfo" style="display: none;">
                 <div class="user-avatar">
@@ -244,7 +250,12 @@
                     <i class="fas fa-external-link-alt"></i>
                 </a>
                 
-                <button class="profile-menu-item logout-btn" id="logoutBtn" style="display: none;">
+                <!-- Кнопка выхода будет добавляться динамически -->
+            </div>
+            
+            <!-- Контейнер для кнопки выхода -->
+            <div class="logout-container" id="logoutContainer" style="display: none;">
+                <button class="profile-menu-item logout-btn" id="logoutBtn">
                     <i class="fas fa-sign-out-alt"></i>
                     <span>Выйти</span>
                 </button>
