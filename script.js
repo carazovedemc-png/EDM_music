@@ -47,7 +47,18 @@ let bannerConfig = {
             imageUrl: "https://example.com/image.jpg", // Ваше изображение
             link: "https://example.com",
             enabled: false // Отключен по умолчанию
+        },
+        {
+            id: 4,
+            title: "",
+            text: "",
+            type: "image",
+            gradient: "",
+            imageUrl: "https://sun9-63.userapi.com/s/v1/ig2/08QQmfcwGorKcFQPSAocILkdLdmUYKOf8yB_z_WOYANV6PhJns32WPqbEtbp1_H3YRwE8AV6Tx2_IaxcaCxnTe2w.jpg?quality=95&as=32x15,48x22,72x34,108x50,160x75,240x112,360x168,480x224,540x252,640x299,720x336,1080x504,1280x597,1440x672,1732x808&from=bu&u=0t0jjC50h5nlaHCgJuh891ec4TKp5fN3Nf59Wz0IFRU&cs=640x0",
+            link: "https://t.me/EDM_TM",
+            enabled: true
         }
+
     ],
     switchInterval: 10000 // Интервал переключения в миллисекундах
 };
