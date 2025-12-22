@@ -40,10 +40,10 @@
         </div>
     </header>
 
-    <!-- Баннер с горизонтальной каруселью -->
+    <!-- Баннер с переключением -->
     <div class="container">
         <div class="banner-container" id="bannerContainer">
-            <!-- Баннеры загружаются динамически из script.js -->
+            <!-- Баннеры загружаются через JS -->
         </div>
     </div>
 
@@ -120,16 +120,6 @@
             </button>
         </div>
         <div class="popup-body">
-            <div class="cart-header">
-                <div class="select-all-container" id="selectAllContainer">
-                    <div class="select-all-checkbox" id="selectAllCheckbox">
-                        <i class="fas fa-check"></i>
-                    </div>
-                    <span>Выбрать все</span>
-                </div>
-                <div id="selectedCount">Выбрано: 0</div>
-            </div>
-            
             <div class="cart-items" id="cartItems">
                 <!-- Товары в корзине -->
             </div>
@@ -157,7 +147,7 @@
                     <span>Итого</span>
                     <span id="cartFinal">0 ₽</span>
                 </div>
-                <button class="btn-checkout-glass" id="checkoutBtn">
+                <button class="btn-checkout-glass" id="checkoutBtn" title="Выберите товары для заказа">
                     <i class="fas fa-paper-plane"></i>
                     Оформить заказ
                 </button>
@@ -197,16 +187,97 @@
             </button>
         </div>
         <div class="popup-body">
-            <div class="filter-content" id="filterContent">
-                <!-- Фильтры загружаются динамически -->
+            <div class="filter-content">
+                <div class="filter-group">
+                    <h4>Категории</h4>
+                    <div class="checkbox-group">
+                        <label class="checkbox">
+                            <input type="checkbox" class="filter-category" value="arabian" checked>
+                            <span class="checkmark"></span>
+                            Арабские духи
+                        </label>
+                        <label class="checkbox">
+                            <input type="checkbox" class="filter-category" value="premium" checked>
+                            <span class="checkmark"></span>
+                            Премиум
+                        </label>
+                        <label class="checkbox">
+                            <input type="checkbox" class="filter-category" value="affordable" checked>
+                            <span class="checkmark"></span>
+                            Доступные
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="filter-group">
+                    <h4>Цена</h4>
+                    <div class="price-range">
+                        <div class="range-inputs">
+                            <input type="number" id="filterPriceMin" placeholder="350" min="350" value="350">
+                            <span class="range-divider">-</span>
+                            <input type="number" id="filterPriceMax" placeholder="50000" min="350">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="filter-group">
+                    <h4>Объем, мл</h4>
+                    <div class="checkbox-group">
+                        <label class="checkbox">
+                            <input type="checkbox" class="filter-volume" value="6">
+                            <span class="checkmark"></span>
+                            6 мл
+                        </label>
+                        <label class="checkbox">
+                            <input type="checkbox" class="filter-volume" value="10">
+                            <span class="checkmark"></span>
+                            10 мл
+                        </label>
+                        <label class="checkbox">
+                            <input type="checkbox" class="filter-volume" value="25">
+                            <span class="checkmark"></span>
+                            25 мл
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="filter-group">
+                    <h4>Дополнительные фильтры</h4>
+                    <div class="checkbox-group">
+                        <label class="checkbox checkbox-with-icon">
+                            <input type="checkbox" id="filterRating47" class="filter-rating47">
+                            <span class="checkmark"></span>
+                            <i class="fas fa-star" style="color: #FFAA00;"></i> С рейтингом от 4.7
+                        </label>
+                        <label class="checkbox checkbox-with-icon">
+                            <input type="checkbox" id="filterOriginal" class="filter-original">
+                            <span class="checkmark"></span>
+                            <i class="fas fa-shield-alt"></i> Оригинальный товар
+                        </label>
+                        <label class="checkbox checkbox-with-icon">
+                            <input type="checkbox" id="filterSale" class="filter-sale">
+                            <span class="checkmark"></span>
+                            <i class="fas fa-fire"></i> Распродажа
+                        </label>
+                        <label class="checkbox checkbox-with-icon">
+                            <input type="checkbox" id="filterCashback" class="filter-cashback">
+                            <span class="checkmark"></span>
+                            <i class="fas fa-money-bill-wave"></i> Кэшбэк
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="filter-buttons">
+                    <button class="btn-filter-apply" id="applyFilterBtn">
+                        <i class="fas fa-check"></i> Применить
+                    </button>
+                    <button class="btn-filter-reset" id="resetFilterBtn">
+                        <i class="fas fa-redo"></i> Сбросить
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-
-    <!-- Кнопка сброса фильтров (скрыта по умолчанию) -->
-    <button class="filter-reset-btn" id="filterResetBtn" style="display: none;">
-        <i class="fas fa-redo"></i>
-    </button>
 
     <!-- Модальное окно товара -->
     <div class="product-details-modal" id="productDetailsModal">
@@ -218,11 +289,6 @@
 
     <!-- Оверлей для попапов -->
     <div class="overlay" id="overlay"></div>
-
-    <!-- Скрытая кнопка для отладки (обновление кэша) -->
-    <button id="refreshCacheBtn" style="display: none;">
-        <i class="fas fa-sync-alt"></i> Обновить кэш
-    </button>
 
     <script src="script.js"></script>
 </body>

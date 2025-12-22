@@ -10,78 +10,62 @@ const productsPerPage = 8;
 let deliveryAddress = '';
 let isAddressSaved = false;
 let selectedCartItems = [];
-let filterState = {
-    categories: [],
-    genders: [],
-    brands: [],
-    volumes: [],
-    notes: [],
-    rating47: false,
-    original: false,
-    sale: false,
-    cashback: false
-};
 
-// Версия данных (меняйте при обновлении товаров)
-const DATA_VERSION = '1.0.1';
+// Конфигурация баннеров (легко редактировать)
+let bannerConfig = {
+    banners: [
+        {
+            id: 1,
+            title: "Эксклюзивные ароматы",
+            text: "Только оригинальная парфюмерия с гарантией качества",
+            type: "gradient", // "gradient" или "image"
+            gradient: "exclusive", // "exclusive" или "contacts"
+            imageUrl: "", // URL изображения, если type="image"
+            link: "", // Ссылка при клике (оставить пустым для отключения)
+            enabled: true // true/false для включения/отключения
+        },
+        {
+            id: 2,
+            title: "Заказы оформляем в лс",
+            text: "@Ayder505<br>Telegram channel:<br><a href='https://t.me/Aa_Atelier' target='_blank'>https://t.me/Aa_Atelier</a>",
+            type: "gradient",
+            gradient: "contacts",
+            imageUrl: "",
+            link: "",
+            enabled: true
+        },
+        // Пример баннера с изображением (отключен по умолчанию)
+        {
+            id: 3,
+            title: "Пример баннера с изображением",
+            text: "Этот баннер использует изображение",
+            type: "image",
+            gradient: "",
+            imageUrl: "https://example.com/image.jpg", // Ваше изображение
+            link: "https://example.com",
+            enabled: false // Отключен по умолчанию
+        }
+    ],
+    switchInterval: 10000 // Интервал переключения в миллисекундах
+};
 
 // Ключи для localStorage
 const STORAGE_KEYS = {
     CART: 'aura_atelier_cart',
     FAVORITES: 'aura_atelier_favorites',
     USER: 'aura_atelier_user',
-    ADDRESS: 'aura_atelier_address',
-    FILTERS: 'aura_atelier_filters',
-    PRODUCTS: 'aura_atelier_products',
-    PRODUCTS_VERSION: 'aura_atelier_products_version'
+    ADDRESS: 'aura_atelier_address'
 };
 
-// БАННЕРЫ (легко редактируются)
-const BANNERS_DATA = [
-    {
-        id: 1,
-        type: 'exclusive',
-        title: 'Эксклюзивные ароматы',
-        description: 'Только оригинальная парфюмерия с гарантией качества',
-        image: null,
-        gradient: true,
-        link: 'https://t.me/Aa_Atelier'
-    },
-    {
-        id: 2,
-        type: 'contacts',
-        title: 'Заказы оформляем в лс',
-        description: '',
-        contacts: [
-            { label: 'Telegram', value: '@Ayder505' },
-            { label: 'Telegram channel', value: 'https://t.me/Aa_Atelier' }
-        ],
-        image: null,
-        gradient: true,
-        link: 'https://t.me/Ayder505'
-    },
-    {
-        id: 3,
-        type: 'exclusive',
-        title: '',
-        description: '',
-        image: "https://sun9-63.userapi.com/s/v1/ig2/08QQmfcwGorKcFQPSAocILkdLdmUYKOf8yB_z_WOYANV6PhJns32WPqbEtbp1_H3YRwE8AV6Tx2_IaxcaCxnTe2w.jpg?quality=95&as=32x15,48x22,72x34,108x50,160x75,240x112,360x168,480x224,540x252,640x299,720x336,1080x504,1280x597,1440x672,1732x808&from=bu&u=0t0jjC50h5nlaHCgJuh891ec4TKp5fN3Nf59Wz0IFRU&cs=640x0",
-        gradient: false,
-        link: 'https://t.me/EDM_TM'
-    }
-];
-
-// ТОВАРЫ (легко редактируются)
+// КАРТОЧКИ ТОВАРОВ
 const PRODUCTS_DATA = [
     {
         id: 1,
         name: "Aris 222 VIP Bleck",
-        description: "Мужские духи. Представленный на изображении товар — это Aris 222 VIP Black, концентрированное парфюмерное масло духи без спирта. Верхние ноты: Абсент, анис и фенхель. Средняя нота: Лаванда. Базовые ноты: Черная ваниль и мускус.",
+        description: "Представленный на изображении товар — это Aris 222 VIP Black, концентрированное парфюмерное масло духи без спирта. Верхние ноты: Абсент, анис и фенхель. Средняя нота: Лаванда. Базовые ноты: Черная ваниль и мускус.",
         price: 350,
         oldPrice: 0,
         category: "premium",
-        gender: "male",
-        brand: "Aris",
         volume: 6,
         rating: 4.8,
         reviews: 124,
@@ -89,19 +73,15 @@ const PRODUCTS_DATA = [
         badge: "hit",
         inStock: true,
         popular: true,
-        notes: ["лаванда", "чёрная ваниль", "мускус"],
-        original: true,
-        cashback: true
+        notes: ["лаванда", "чёрная ваниль", "мускус"]
     },
     {
         id: 2,
         name: "Dalal",
-        description: "Женские духи. Dalal — масляные духи бренда Al Rehab из ОАЭ. Относятся к семейству сладких, древесных и гурманских ароматов. Благодаря масляной консистенции духи имеют хорошую стойкость и экономичны в расходе. Запах держится до 12 часов! Аромат:  Верхние ноты: апельсин. Ноты сердца: карамель, ваниль. Базовые ноты: сандаловое дерево.Композиция напоминает о карамельном чизкейке и ванильном мороженом с апельсиновым джемом",
+        description: "Dalal — масляные духи бренда Al Rehab из ОАЭ. Относятся к семейству сладких, древесных и гурманских ароматов. Благодаря масляной консистенции духи имеют хорошую стойкость и экономичны в расходе. Запах держится до 12 часов! Аромат:  Верхние ноты: апельсин. Ноты сердца: карамель, ваниль. Базовые ноты: сандаловое дерево.Композиция напоминает о карамельном чизкейке и ванильном мороженом с апельсиновым джемом",
         price: 350,
         oldPrice: 0,
         category: "premium",
-        gender: "female",
-        brand: "Al Rehab",
         volume: 6,
         rating: 4.9,
         reviews: 100,
@@ -109,39 +89,31 @@ const PRODUCTS_DATA = [
         badge: "hit",
         inStock: true,
         popular: true,
-        notes: ["апельсин", "карамель", "ваниль", "сандаловое дерево"],
-        original: true,
-        cashback: true
+        notes: ["апельсин", "карамель", "ваниль", "сандаловое дерево"]
     },
     {
         id: 3,
         name: "Black Opium",
-        description: "Женские духи. Это - женские духи из группы восточные гурманские. Композиция глубокая, насыщенная, сладкая и притягательная. Верхние ноты: груша, розовый перец и цветок апельсина. Средние ноты: кофе, жасмин, горький миндаль и лакричник. Базовые ноты: ваниль, пачули, кедр и кашемировое дерево.",
+        description: "Это - женские духи из группы восточные гурманские. Композиция глубокая, насыщенная, сладкая и притягательная. Верхние ноты: груша, розовый перец и цветок апельсина. Средние ноты: кофе, жасмин, горький миндаль и лакричник. Базовые ноты: ваниль, пачули, кедр и кашемировое дерево.",
         price: 350,
         oldPrice: 0,
         category: "affordable",
-        gender: "female",
-        brand: "Yves Saint Laurent",
         volume: 6,
         rating: 4.6,
         reviews: 100,
         image: "https://sun9-43.userapi.com/s/v1/ig2/7OuPKSCxdwp7oHCuEccqLkHkK_-ovx6ks842VjcS4nIExZ1VGhdLfUhSz-ueglS4PgI_fh29HEvPqFLzNlKj3tej.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=DTS3NJnjcShlWzwIHzZ9tgVLIOKUx8JWVEEhGsoYZH0&cs=640x0",
-        badge: null,
+        badge: "null",
         inStock: true,
         popular: false,
-        notes: ["кофе", "жасмин", "ваниль", "кедр", "горький миндаль"],
-        original: false,
-        cashback: false
+        notes: ["кофе", "жасмин", "ваниль", "кедр", "горький миндаль"]
     },
     {
         id: 4,
         name: "Creed Aventus For Her",
-        description: "Женские духи. Limited Edition Creed Aventus For Her - женский аромат. Это фруктово шипровая парфюмерная вода с нотами зеленого яблока, лимона, бергамота, розы, сандала и мускуса",
+        description: "Limited Edition Creed Aventus For Her - женский аромат. Это фруктово шипровая парфюмерная вода с нотами зеленого яблока, лимона, бергамота, розы, сандала и мускуса",
         price: 350,
         oldPrice: 0,
         category: "premium",
-        gender: "female",
-        brand: "Creed",
         volume: 6,
         rating: 4.9,
         reviews: 167,
@@ -149,39 +121,31 @@ const PRODUCTS_DATA = [
         badge: "hit",
         inStock: true,
         popular: true,
-        notes: ["бергамот", "мускус", "роза", "лимон", "сандал", "зелёное яблоко"],
-        original: true,
-        cashback: true
+        notes: ["бергамот", "мускус", "роза", "лимон", "сандал", "зелёное яблоко"]
     },
     {
         id: 5,
         name: "Kirki Aksa",
-        description: "Унисекс духи. Концентрированное эфирное масло Kirki Aksa - это унисекс парфюм с фруктово шипровым ароматом. Верхние ноты - Маракуйя персик, малина, лист черной смородины, груша, песок. Средние ноты - Ландыш. Базовые ноты - Гелиотроп, сандал, ваниль, пачули, мускус.",
+        description: "Концентрированное эфирное масло Kirki Aksa - это унисекс парфюм с фруктово шипровым ароматом. Верхние ноты - Маракуйя персик, малина, лист черной смородины, груша, песок. Средние ноты - Ландыш. Базовые ноты - Гелиотроп, сандал, ваниль, пачули, мускус.",
         price: 350,
         oldPrice: 0,
         category: "premium",
-        gender: "unisex",
-        brand: "Kirki",
         volume: 6,
         rating: 4.7,
         reviews: 187,
         image: "https://sun9-84.userapi.com/s/v1/ig2/LDMpV1ihJnWYPte5wGmG-BxwBsBptbz7QSARpRMRdZt-fpO0wy_4ZPiEPS0oWkLxjFPzRm1wdDYeA2n88xh7Fegn.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=QhV-dEoaJC83x6egk46Ej6FZETeNOMWtoQnFpIMrEII&cs=360x0",
-        badge: null,
+        badge: "null",
         inStock: true,
         popular: true,
-        notes: ["маракуйя", "персик", "ваниль"],
-        original: true,
-        cashback: false
+        notes: ["маракуйя", "персик", "ваниль"]
     },
     {
         id: 6,
         name: "Black Opium",
-        description: "Женские духи. Это масляные духи с феромонами Black Opium — это женская парфюмерная вода",
+        description: "Это масляные духи с феромонами Black Opium — это женская парфюмерная вода",
         price: 350,
         oldPrice: 0,
         category: "affordable",
-        gender: "female",
-        brand: "Pheromon Limited Edition",
         volume: 6,
         rating: 4.5,
         reviews: 92,
@@ -189,39 +153,31 @@ const PRODUCTS_DATA = [
         badge: null,
         inStock: true,
         popular: false,
-        notes: ["жасмин", "груша", "кофе"],
-        original: false,
-        cashback: true
+        notes: ["жасмин", "груша", "кофе"]
     },
     {
         id: 7,
         name: "YARAN Voux",
-        description: "Унисекс духи. YARAN Voux от Aris Perfumes — это концентрированное парфюмерное масло (CPO). Это унисекс-аромат, который относится к восточным или гурманским коллекциям, схожим с другими ароматами от брендов, таких как Paris Corner.",
+        description: "YARAN Voux от Aris Perfumes — это концентрированное парфюмерное масло (CPO). Это унисекс-аромат, который относится к восточным или гурманским коллекциям, схожим с другими ароматами от брендов, таких как Paris Corner.",
         price: 350,
         oldPrice: 0,
         category: "premium",
-        gender: "unisex",
-        brand: "Aris",
         volume: 6,
         rating: 4.8,
         reviews: 143,
         image: "https://sun9-18.userapi.com/s/v1/ig2/JPe8xzc_vL633B2Y0VenFoeipK_joP7GR9FZZ565Z7XEuh8CeoYJxM7GmBFilsfBbropmaZze7L5RJ5ISim-VNa8.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=DwhSt-8w64gm4QVZgK4wKRnie5o2V4HtkWzexyWhaos&cs=360x0",
-        badge: null,
+        badge: "null",
         inStock: true,
         popular: true,
-        notes: ["ваниль", "сандал", "мускус"],
-        original: true,
-        cashback: true
+        notes: ["ваниль", "сандал", "мускус"]
     },
     {
         id: 8,
         name: "Al Rayan G&D Limperatrice",
-        description: "Женские духи. Al Rayan G&D Limperatrice — это концентрированное масляное парфюмерное масло аттар. Композиция аромата включает следующие ноты: Верхние ноты: Розовый перец, ревень, киви. Средние ноты сердце: Арбуз, цикламен, жасмин. Базовые ноты: Мускус, сандал, лимонное китайское дерево. Описание Аромат описывается как яркий, игривый и энергичный, с доминирующими аккордами сочных тропических фруктов и свежестью. Он подходит для дневного ношения, особенно в весенне-летний период.",
+        description: "Al Rayan G&D Limperatrice — это концентрированное масляное парфюмерное масло аттар. Композиция аромата включает следующие ноты: Верхние ноты: Розовый перец, ревень, киви. Средние ноты сердце: Арбуз, цикламен, жасмин. Базовые ноты: Мускус, сандал, лимонное китайское дерево. Описание Аромат описывается как яркий, игривый и энергичный, с доминирующими аккордами сочных тропических фруктов и свежестью. Он подходит для дневного ношения, особенно в весенне-летний период.",
         price: 350,
         oldPrice: 0,
         category: "affordable",
-        gender: "female",
-        brand: "Al Rayan",
         volume: 6,
         rating: 4.6,
         reviews: 56,
@@ -229,39 +185,31 @@ const PRODUCTS_DATA = [
         badge: "new",
         inStock: true,
         popular: true,
-        notes: ["ревень", "киви", "арбуз", "мускус"],
-        original: false,
-        cashback: true
+        notes: ["ревень", "киви", "арбуз", "мускус"]
     },
     {
         id: 9,
         name: "Al-Rayan Kilian By In The City",
-        description: "Мужские духи. Представленный на изображении товар - это масляные духи Al-Rayan Kilian By In The City Верхние ноты - Бергамот, гватемальский кардамон и розовый перец. Ноты сердца - Абрикос, карамелизованная слива, турецкая роза и ладан. Базовые ноты: Кедр, индонезийский пачули.",
+        description: "Представленный на изображении товар - это масляные духи Al-Rayan Kilian By In The City Верхние ноты - Бергамот, гватемальский кардамон и розовый перец. Ноты сердца - Абрикос, карамелизованная слива, турецкая роза и ладан. Базовые ноты: Кедр, индонезийский пачули.",
         price: 350,
         oldPrice: 0,
         category: "affordable",
-        gender: "male",
-        brand: "Al Rayan",
         volume: 6,
         rating: 4.4,
         reviews: 234,
         image: "https://sun9-6.userapi.com/s/v1/ig2/j3IQyd0QOc9sOzrhRtrqAih-tEG7x5xPiZMfCVxsQyVlb3HjvwSl6OAQK_7QVoRurh9X7w1zX0dEDG12-77JCtQs.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=ytxGprY0FWbTGBoY3EXaC9oX0EfZcJY43B7M6hNMe5g&cs=360x0",
-        badge: null,
+        badge: "null",
         inStock: true,
         popular: true,
-        notes: ["кедр", "абрикос", "розовый перец"],
-        original: false,
-        cashback: false
+        notes: ["кедр", "абрикос", "розовый перец"]
     },
     {
         id: 10,
         name: "Lacoste green",
-        description: "Мужские духи. Это — фужерный, цитрусовый аромат для мужчин. стойкое звучание аромата благодаря натуральным маслам и отсутствию спирта; шлейф благодаря тяжёлым молекулам, который раскрывается неторопливо под воздействием тепла кожи и перемены окружающей среды; изменчивость аромата: в тёплом помещении или на жаркой летной улице духи звучат сильнее, раскрываясь под воздействием температуры. Верхние ноты: грейпфрут, дыня, ноты бергамота. Ноты сердца: лимонная вербена, лаванда, тмин. Базовые ноты: берёза, инжир.",
+        description: "Это — фужерный, цитрусовый аромат для мужчин. стойкое звучание аромата благодаря натуральным маслам и отсутствию спирта; шлейф благодаря тяжёлым молекулам, который раскрывается неторопливо под воздействием тепла кожи и перемены окружающей среды; изменчивость аромата: в тёплом помещении или на жаркой летной улице духи звучат сильнее, раскрываясь под воздействием температуры. Верхние ноты: грейпфрут, дыня, ноты бергамота. Ноты сердца: лимонная вербена, лаванда, тмин. Базовые ноты: берёза, инжир.",
         price: 350,
         oldPrice: 0,
         category: "premium",
-        gender: "male",
-        brand: "Lacoste",
         volume: 6,
         rating: 4.9,
         reviews: 189,
@@ -269,19 +217,15 @@ const PRODUCTS_DATA = [
         badge: "hit",
         inStock: true,
         popular: true,
-        notes: ["дыня", "береза", "инжир"],
-        original: true,
-        cashback: true
+        notes: ["дыня", "береза", "инжир"]
     },
     {
         id: 11,
         name: "Black Afgano",
-        description: "Унисекс духи. Изображенный на фото товар — это масляные духи с феромонами объемом  6 мл под названием Black Afgano, выпущенные под маркой Pheromon Limited Edition. Описание продукта: Масляные духи с феромонами унисекс. Аромат: Это парфюмерное масло вдохновлено известным оригинальным ароматом Nasomatto Black Afgano, который отличается густым, дымным, древесным и плотным звучанием с нотами  смолы, кофе, табака и ладана",
+        description: "Изображенный на фото товар — это масляные духи с феромонами объемом  6 мл под названием Black Afgano, выпущенные под маркой Pheromon Limited Edition. Описание продукта: Масляные духи с феромонами унисекс. Аромат: Это парфюмерное масло вдохновлено известным оригинальным ароматом Nasomatto Black Afgano, который отличается густым, дымным, древесным и плотным звучанием с нотами  смолы, кофе, табака и ладана",
         price: 350,
         oldPrice: 0,
         category: "affordable",
-        gender: "unisex",
-        brand: "Pheromon Limited Edition",
         volume: 6,
         rating: 4.5,
         reviews: 78,
@@ -289,19 +233,15 @@ const PRODUCTS_DATA = [
         badge: null,
         inStock: true,
         popular: false,
-        notes: ["табак", "смола", "кофе"],
-        original: false,
-        cashback: false
+        notes: ["табак", "смола", "кофе"]
     },
     {
         id: 12,
         name: "Lost cherry Tom ford",
-        description: "Женские духи. Детали продукта Оригинальный аромат: Lost Cherry от Tom Ford - это люксовая восточно-цветочная парфюмерная вода Eau de Parfum для мужчин и женщин, выпущенная в 2018 году. Продукт на изображении, является масляными духами, вдохновленными оригинальным ароматом, часто с добавлением синтетических феромонов.",
+        description: "Детали продукта Оригинальный аромат: Lost Cherry от Tom Ford - это люксовая восточно-цветочная парфюмерная вода Eau de Parfum для мужчин и женщин, выпущенная в 2018 году. Продукт на изображении, является масляными духами, вдохновленными оригинальным ароматом, часто с добавлением синтетических феромонов.",
         price: 350,
         oldPrice: 0,
         category: "premium",
-        gender: "female",
-        brand: "Tom Ford",
         volume: 6,
         rating: 4.8,
         reviews: 312,
@@ -309,19 +249,15 @@ const PRODUCTS_DATA = [
         badge: "hit",
         inStock: true,
         popular: true,
-        notes: ["вишня", "миндаль", "роза"],
-        original: true,
-        cashback: true
+        notes: [".", ".", "."]
     },
     {
         id: 13,
         name: "LACOSTE ESSENTIAL",
-        description: "Мужские духи. Lacoste essential pheromon Limited Edition — это масляные духи с феромонами. Тип аромата: Древесный, фужерный",
+        description: "Lacoste essential pheromon Limited Edition — это масляные духи с феромонами. Тип аромата: Древесный, фужерный",
         price: 350,
         oldPrice: 0,
         category: "affordable",
-        gender: "male",
-        brand: "Lacoste",
         volume: 6,
         rating: 4.5,
         reviews: 137,
@@ -329,19 +265,15 @@ const PRODUCTS_DATA = [
         badge: null,
         inStock: true,
         popular: false,
-        notes: ["фужерный", "древесный"],
-        original: false,
-        cashback: true
+        notes: ["фужерный", "древестный"]
     },
     {
         id: 14,
         name: "Allur Home Sport",
-        description: "Мужские духи. Парфюм на изображении — это Pheromon Limited Edition Allur Home Sport, который представляет собой версию с феромонами, вдохновленную известным ароматом Chanel Allure Homme Sport. Аромат: Мужской, относится к группе древесных пряных ароматов. Композиция сочетает цитрусовые, морские и древесные ноты.",
+        description: "Парфюм на изображении — это Pheromon Limited Edition Allur Home Sport, который представляет собой версию с феромонами, вдохновленную известным ароматом Chanel Allure Homme Sport. Аромат: Мужской, относится к группе древесных пряных ароматов. Композиция сочетает цитрусовые, морские и древесные ноты.",
         price: 350,
         oldPrice: 0,
         category: "affordable",
-        gender: "male",
-        brand: "Chanel",
         volume: 6,
         rating: 4.4,
         reviews: 146,
@@ -349,19 +281,15 @@ const PRODUCTS_DATA = [
         badge: null,
         inStock: true,
         popular: false,
-        notes: ["цитрус", "морские ноты", "кедр"],
-        original: false,
-        cashback: false
+        notes: ["нота1", "нота", "нота3"]
     },
     {
         id: 15,
         name: "Acqua Di Gio Giorgio Armani",
-        description: "Мужские духи. Pheromon Limited Edition Acqua Di Gio Giorgio Armani — это версия туалетной воды Acqua Di Gio, представленная в формате масляных духов с феромонами. Ноты: Композиция включает морские ноты, розмарин, жасмин, кедр и пачули.",
+        description: "Pheromon Limited Edition Acqua Di Gio Giorgio Armani — это версия туалетной воды Acqua Di Gio, представленная в формате масляных духов с феромонами. Ноты: Композиция включает морские ноты, розмарин, жасмин, кедр и пачули.",
         price: 350,
         oldPrice: 0,
         category: "affordable",
-        gender: "male",
-        brand: "Giorgio Armani",
         volume: 6,
         rating: 4.7,
         reviews: 155,
@@ -369,19 +297,15 @@ const PRODUCTS_DATA = [
         badge: null,
         inStock: true,
         popular: false,
-        notes: ["кедр", "жасмин", "пачули"],
-        original: true,
-        cashback: true
+        notes: ["кедр", "жасмин", "пачули"]
     },
     {
         id: 16,
         name: "Sospiro Erba Pura",
-        description: "Унисекс духи. Представленный товар — это масляные духи с феромонами Sospiro Erba Pura Limited Edition. Аромат: Композиция описывается как свежая, с нотами апельсина, лимона и бергамота в верхних нотах, фруктовым сердцем и базой из амбры, белого мускуса и мадагаскарской ванили.",
+        description: "Представленный товар — это масляные духи с феромонами Sospiro Erba Pura Limited Edition. Аромат: Композиция описывается как свежая, с нотами апельсина, лимона и бергамота в верхних нотах, фруктовым сердцем и базой из амбры, белого мускуса и мадагаскарской ванили.",
         price: 350,
         oldPrice: 0,
         category: "affordable",
-        gender: "unisex",
-        brand: "Sospiro",
         volume: 6,
         rating: 4.6,
         reviews: 212,
@@ -389,19 +313,15 @@ const PRODUCTS_DATA = [
         badge: null,
         inStock: true,
         popular: false,
-        notes: ["лимон", "белый мускус", "бергамот"],
-        original: false,
-        cashback: true
+        notes: ["лимон", "белый мускус", "бергамот"]
     },
     {
         id: 17,
         name: "Aamal Perfume Kirkèy",
-        description: "Женские духи. Aamal Perfume Kirkèy — выразительный и устойчивый аромат в стильном серебристом  флаконе объёмом 10 мл. Композиция раскрывается яркими верхними акцентами, продолжает с насыщенным сердцем, а в базе остаётся тёплая, благородная древесно-амбровая подложка.",
+        description: "Aamal Perfume Kirkèy — выразительный и устойчивый аромат в стильном серебристом  флаконе объёмом 10 мл. Композиция раскрывается яркими верхними акцентами, продолжает с насыщенным сердцем, а в базе остаётся тёплая, благородная древесно-амбровая подложка.",
         price: 600,
         oldPrice: 0,
         category: "premium",
-        gender: "female",
-        brand: "Aamal",
         volume: 10,
         rating: 4.9,
         reviews: 812,
@@ -409,20 +329,15 @@ const PRODUCTS_DATA = [
         badge: "new",
         inStock: true,
         popular: true,
-        notes: ["дерево", "амбра", "сердце"],
-        original: true,
-        cashback: true,
-        sale: true
+        notes: ["дерево", "амбра", "сердце"]
     },   
     {
         id: 18,
         name: "DolceGabbana L'IMPÉRATRICE 3",
-        description: "Женские духи. DolceGabbana L'IMPÉRATRICE 3 - изящный и игривый фруктово-цветочный парфюм в концентрации Eau de Parfum. Аромат раскрывается сочными акцентами цитрусовых и зелёных фруктов, плавно переходит в сердце из нежных цветочных нот и завершает композицию лёгкой мускусно-древесной базой. Подчёркивает женственность и хорошее настроение, отлично подойдёт для дневных выходов, свиданий и в качестве подарка. Рекомендации по использованию и уходу: Наносите на чистую кожу на запястья и шею. Храните в прохладном, сухом месте вдали от прямых солнечных лучей.",
+        description: "DolceGabbana L'IMPÉRATRICE 3 - изящный и игривый фруктово-цветочный парфюм в концентрации Eau de Parfum. Аромат раскрывается сочными акцентами цитрусовых и зелёных фруктов, плавно переходит в сердце из нежных цветочных нот и завершает композицию лёгкой мускусно-древесной базой. Подчёркивает женственность и хорошее настроение, отлично подойдёт для дневных выходов, свиданий и в качестве подарка. Рекомендации по использованию и уходу: Наносите на чистую кожу на запястья и шею. Храните в прохладном, сухом месте вдали от прямых солнечных лучей.",
         price: 800,
         oldPrice: 0,
         category: "premium",
-        gender: "female",
-        brand: "Dolce & Gabbana",
         volume: 25,
         rating: 4.9,
         reviews: 832,
@@ -430,10 +345,82 @@ const PRODUCTS_DATA = [
         badge: "new",
         inStock: true,
         popular: true,
-        notes: ["цитрусы", "зелёные фрукты", "древесно-мускусный"],
-        original: true,
-        cashback: true,
-        sale: true
+        notes: ["цитрусы", "зелёные фрукты", "древесно-мускусный"]
+    },
+    {
+        id: 19,
+        name: "Narcotiq Aksa Esans",
+        description: "Авто духи Narcotiq Aksa Esans — это идеальное решение для тех, кто хочет добавить уникальный аромат в свой автомобиль Особенности Narcotiq Aksa Esans: Уникальный аромат: Сочетание свежести и теплоты, которое создаст атмосферу уюта и комфорта в вашем автомобиле. Почему стоит выбрать Narcotiq Aksa Esans? Эти авто духи идеально подходят для любых автомобилей и станут отличным подарком для друзей и близких. Создайте уникальную атмосферу в своем автомобиле с Narcotiq Aksa Esans! Не упустите возможность сделать ваши поездки более приятными! Заказывайте уже сегодня! Эти духи созданы с использованием высококачественных ингредиентов, что обеспечивает стойкость и насыщенность аромата.",
+        price: 350,
+        oldPrice: 0,
+        category: "new",
+        volume: 6,
+        rating: 4.9,
+        reviews: 152,
+        image: "https://sun9-21.userapi.com/s/v1/ig2/3APuudW8_9XaoVk5ejtsGuhqnMUEvnAwTe_2PPc2d2JqW5p0kFY-JiA39U11ooLnSje7xtPr0es-r2KjmLkPwI8E.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=XI58JvJb2axcWb8x7spZ00qQmoorfkkdf53Oosgg6t4&cs=360x0",
+        badge: "new",
+        inStock: true,
+        popular: true,
+    },
+    {
+        id: 20,
+        name: "Savage Aksa Esans",
+        description: "Авто духи Savage Aksa Esans. Описание продукта: Авто духи Savage Aksa Esans — это уникальный аромат для вашего автомобиля, который наполняет пространство свежестью и создает атмосферу комфорта. Характеристики: Форма: Масляные духи без спиртовой основы. Производитель: Турецкая компания Aksa Esans. Стойкость: Длительное время, благодаря концентрированной формуле. Аромат: Savage Aksa Esans сочетает в себе насыщенные восточные и древесные ноты, создавая гармоничное и притягательное звучание. Способ применения: Нанесите несколько капель на вату или специальный ароматизатор и разместите в салоне автомобиля. Также можно использовать в качестве ароматизатора для помещений.",
+        price: 350,
+        oldPrice: 0,
+        category: "new",
+        volume: 6,
+        rating: 4.9,
+        reviews: 104,
+        image: "https://sun9-16.userapi.com/s/v1/ig2/R1rTPUArQ0ZySKG16cmdEx6t-FsPqsE2_dmTvKjA8J890RnY9EXEEBvFW77WBGAXqPVcWcaBGEkc2_F1IPnUrN2x.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=9ZwHw-HBGKjeL1YyOjr20WYtv-XhFDMjw7bWMU3Rlg4&cs=360x0",
+        badge: "new",
+        inStock: true,
+        popular: true,
+    },
+    {
+        id: 21,
+        name: "White Horse (Al-Rehab)",
+        description: "White Horse (Al-Rehab) Характер аромата: свежее начало с лёгкими цитрусово-зелёными акцентами, цветочно-пряное сердце и тёплая база с древесно-амбровыми и мускусными оттенкам — элегантно и универсально. Подходит: унисекс, для дневного и вечернего ношения, особенно приятен в прохладную погоду.",
+        price: 350,
+        oldPrice: 0,
+        category: "new",
+        volume: 6,
+        rating: 5.0,
+        reviews: 244,
+        image: "https://sun9-39.userapi.com/s/v1/ig2/LTjwjGG__SCRXVQfIgd2cx-2OV8nng3r-Gvo18Hpqxete9VKjGgrsb8K7-E5XSrKjMwRhrG2JlV7bzn5hTxObl06.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=LOordP3a_j18NgabckULWlTMPxtGLtYD2yXIB7jA6G8&cs=360x0",
+        badge: "new",
+        inStock: true,
+        popular: true,
+    },
+    {
+        id: 22,
+        name: "AKSA Esans — ECLAD",
+        description: "AKSA Esans — ECLAD Изысканный цветочно‑восточный аромат Нежная роза в сердце композиции гармонично сочетается со сладкими и пряными акцентами, раскрываясь теплым, мягким базисом.",
+        price: 350,
+        oldPrice: 0,
+        category: "new",
+        volume: 6,
+        rating: 4.7,
+        reviews: 201,
+        image: "https://sun9-61.userapi.com/s/v1/ig2/RL0hQOXGOQqhq3G6OdtOkwsVcWy72U03b3PQ8ebmkcFwKHEZ-gRf5VVkOxZ1Hv6iqYqa_WfPV-OEGt_4SDIYiTvi.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=19GFWqJdGo4RLXtt5RJW4_zWH2nu4HrbJ_mxBNSAFWk&cs=360x0",
+        badge: "new",
+        inStock: true,
+        popular: true,
+    },
+    {
+        id: 23,
+        name: "Crown Perfumes (Al‑Rehab)",
+        description: "Crown Perfumes (Al‑Rehab) - Аромат создает образ уверенного, стильного мужчины: начинается насыщенными верхними нотами, раскрывается мягкими пряными сердечными акцентами и ложится теплым древесно‑амбровым шлейфом.",
+        price: 350,
+        oldPrice: 0,
+        category: "new",
+        volume: 6,
+        rating: 4.8,
+        reviews: 167,
+        image: "https://sun9-74.userapi.com/s/v1/ig2/oOCV-RGTvzmgaKkjeS5dUale0YWiGwO7k69b6wZ2sZFuI8De9wyFnR6wSA96G-Pa-MZVXqGcoKJAtRsAdn0GRq0I.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=PdfutB6y1btkbh8q2oenNOx87J7D50up_n0P7Z3qXbk&cs=360x0",
+        badge: "new",
+        inStock: true,
+        popular: true,
     },
 ];
 
@@ -441,13 +428,12 @@ const PRODUCTS_DATA = [
 document.addEventListener('DOMContentLoaded', function() {
     initApp();
     loadData();
-    renderBanners();
+    setupBanners();
     renderProducts();
     updateCartCount();
     setupFilterPopup();
     initEventListeners();
     loadAddress();
-    loadFilterState();
 });
 
 function initApp() {
@@ -475,9 +461,6 @@ function initApp() {
     
     // Сохраняем пользователя в localStorage
     saveToStorage(STORAGE_KEYS.USER, user);
-    
-    // Проверяем состояние кэша
-    checkCacheStatus();
 }
 
 // ===== LOCALSTORAGE ФУНКЦИИ =====
@@ -499,68 +482,9 @@ function loadFromStorage(key, defaultValue = null) {
     }
 }
 
-function saveProductsToCache() {
-    // Сохраняем товары в кэш
-    const productsData = {
-        version: DATA_VERSION,
-        products: PRODUCTS_DATA,
-        timestamp: new Date().toISOString()
-    };
-    saveToStorage(STORAGE_KEYS.PRODUCTS, productsData);
-    saveToStorage(STORAGE_KEYS.PRODUCTS_VERSION, DATA_VERSION);
-    console.log('Товары сохранены в кэш, версия:', DATA_VERSION);
-}
-
-function loadProductsFromCache() {
-    // Проверяем, есть ли сохраненные товары
-    const cachedProducts = loadFromStorage(STORAGE_KEYS.PRODUCTS);
-    const cachedVersion = loadFromStorage(STORAGE_KEYS.PRODUCTS_VERSION);
-    
-    if (!cachedProducts || !cachedVersion || cachedVersion !== DATA_VERSION) {
-        console.log('Кэш товаров не найден или устарел, загружаем исходные данные');
-        saveProductsToCache(); // Сохраняем текущие товары в кэш
-        return PRODUCTS_DATA;
-    }
-    
-    // Проверяем, не устарели ли данные (например, больше недели)
-    const cacheTimestamp = new Date(cachedProducts.timestamp);
-    const now = new Date();
-    const daysDiff = (now - cacheTimestamp) / (1000 * 60 * 60 * 24);
-    
-    if (daysDiff > 7) { // Обновляем кэш раз в неделю
-        console.log('Кэш устарел (больше 7 дней), обновляем');
-        saveProductsToCache();
-        return PRODUCTS_DATA;
-    }
-    
-    console.log('Товары загружены из кэша, версия:', cachedVersion);
-    return cachedProducts.products;
-}
-
-function clearProductsCache() {
-    localStorage.removeItem(STORAGE_KEYS.PRODUCTS);
-    localStorage.removeItem(STORAGE_KEYS.PRODUCTS_VERSION);
-    console.log('Кэш товаров очищен');
-}
-
-function checkCacheStatus() {
-    const cachedVersion = loadFromStorage(STORAGE_KEYS.PRODUCTS_VERSION);
-    const cachedProducts = loadFromStorage(STORAGE_KEYS.PRODUCTS);
-    
-    if (!cachedVersion || !cachedProducts) {
-        console.log('Кэш не найден, создаём новый');
-        saveProductsToCache();
-    } else if (cachedVersion !== DATA_VERSION) {
-        console.log('Обнаружена новая версия данных, обновляем кэш');
-        saveProductsToCache();
-    } else {
-        console.log('Кэш актуален, версия:', cachedVersion);
-    }
-}
-
 function loadData() {
-    // Загружаем товары из кэша или исходных данных
-    allProducts = loadProductsFromCache();
+    // Загружаем товары
+    allProducts = PRODUCTS_DATA;
     filteredProducts = [...allProducts];
     
     // Загружаем корзину из localStorage
@@ -569,21 +493,8 @@ function loadData() {
     // Загружаем избранное из localStorage
     favorites = loadFromStorage(STORAGE_KEYS.FAVORITES, []);
     
-    // Инициализируем выбранные товары в корзине
-    selectedCartItems = cart.map(item => item.id);
-    
-    console.log('Загружено товаров:', allProducts.length);
-}
-
-function loadFilterState() {
-    const savedState = loadFromStorage(STORAGE_KEYS.FILTERS);
-    if (savedState) {
-        filterState = savedState;
-    }
-}
-
-function saveFilterState() {
-    saveToStorage(STORAGE_KEYS.FILTERS, filterState);
+    // Сортируем по новизне (по умолчанию)
+    filteredProducts.sort((a, b) => b.id - a.id);
 }
 
 function loadAddress() {
@@ -631,190 +542,64 @@ function updateAddressStatus() {
 }
 
 // ===== БАННЕРЫ =====
-function renderBanners() {
+function setupBanners() {
     const bannerContainer = document.getElementById('bannerContainer');
-    if (!bannerContainer || BANNERS_DATA.length === 0) return;
+    if (!bannerContainer) return;
     
+    // Очищаем контейнер
     bannerContainer.innerHTML = '';
     
-    // Создаем обертку для скролла
-    const slidesWrapper = document.createElement('div');
-    slidesWrapper.className = 'banner-slides-wrapper';
+    // Фильтруем включенные баннеры
+    const enabledBanners = bannerConfig.banners.filter(b => b.enabled);
     
-    // Создаем контейнер для слайдов
-    const slidesContainer = document.createElement('div');
-    slidesContainer.className = 'banner-slides';
-    
-    // Добавляем баннеры
-    BANNERS_DATA.forEach((banner, index) => {
-        const bannerElement = createBannerElement(banner);
-        bannerElement.dataset.index = index;
-        slidesContainer.appendChild(bannerElement);
-    });
-    
-    slidesWrapper.appendChild(slidesContainer);
-    bannerContainer.appendChild(slidesWrapper);
-    
-    // Добавляем точки-индикаторы
-    if (BANNERS_DATA.length > 1) {
-        const dotsContainer = document.createElement('div');
-        dotsContainer.className = 'banner-dots';
-        
-        BANNERS_DATA.forEach((_, index) => {
-            const dot = document.createElement('div');
-            dot.className = `banner-dot ${index === 0 ? 'active' : ''}`;
-            dot.dataset.index = index;
-            dot.addEventListener('click', () => goToBanner(index));
-            dotsContainer.appendChild(dot);
-        });
-        
-        bannerContainer.appendChild(dotsContainer);
-        
-        // Автоматическое переключение баннеров
-        let currentBannerIndex = 0;
-        let bannerInterval;
-        
-        function startAutoSlide() {
-            bannerInterval = setInterval(() => {
-                currentBannerIndex = (currentBannerIndex + 1) % BANNERS_DATA.length;
-                goToBanner(currentBannerIndex);
-            }, 10000); // 10 секунд
-        }
-        
-        function goToBanner(index) {
-            if (index < 0 || index >= BANNERS_DATA.length) return;
-            
-            currentBannerIndex = index;
-            
-            // Прокрутка к баннеру
-            const bannerElement = slidesContainer.children[index];
-            bannerElement.scrollIntoView({
-                behavior: 'smooth',
-                block: 'nearest',
-                inline: 'center'
-            });
-            
-            // Обновляем точки
-            document.querySelectorAll('.banner-dot').forEach((dot, i) => {
-                dot.classList.toggle('active', i === index);
-            });
-        }
-        
-        // Обработка ручного скролла
-        let isScrolling = false;
-        let scrollTimeout;
-        
-        slidesWrapper.addEventListener('scroll', () => {
-            clearTimeout(scrollTimeout);
-            
-            if (!isScrolling) {
-                isScrolling = true;
-                clearInterval(bannerInterval);
-            }
-            
-            scrollTimeout = setTimeout(() => {
-                isScrolling = false;
-                
-                // Определяем текущий баннер
-                const scrollLeft = slidesWrapper.scrollLeft;
-                const bannerWidth = slidesWrapper.clientWidth;
-                const currentIndex = Math.round(scrollLeft / bannerWidth);
-                
-                if (currentIndex >= 0 && currentIndex < BANNERS_DATA.length) {
-                    currentBannerIndex = currentIndex;
-                    
-                    // Обновляем точки
-                    document.querySelectorAll('.banner-dot').forEach((dot, i) => {
-                        dot.classList.toggle('active', i === currentIndex);
-                    });
-                }
-                
-                // Перезапускаем автоскролл
-                startAutoSlide();
-            }, 100);
-        });
-        
-        // Запускаем автоскролл
-        startAutoSlide();
-        
-        // Останавливаем автоскролл при наведении
-        slidesWrapper.addEventListener('mouseenter', () => {
-            clearInterval(bannerInterval);
-        });
-        
-        slidesWrapper.addEventListener('mouseleave', () => {
-            startAutoSlide();
-        });
-        
-        // Для touch-устройств
-        slidesWrapper.addEventListener('touchstart', () => {
-            clearInterval(bannerInterval);
-        });
-        
-        slidesWrapper.addEventListener('touchend', () => {
-            startAutoSlide();
-        });
-    }
-}
-
-function createBannerElement(banner) {
-    const bannerElement = document.createElement('div');
-    bannerElement.className = `banner-slide ${banner.type}`;
-    bannerElement.dataset.id = banner.id;
-    
-    // Стили фона
-    if (banner.image) {
-        bannerElement.style.background = `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('${banner.image}') center/cover`;
-    } else if (banner.gradient) {
-        if (banner.type === 'exclusive') {
-            bannerElement.classList.add('exclusive');
-        } else if (banner.type === 'contacts') {
-            bannerElement.classList.add('contacts');
-        } else {
-            bannerElement.style.background = 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))';
-        }
+    if (enabledBanners.length === 0) {
+        bannerContainer.style.display = 'none';
+        return;
     }
     
-    let contentHtml = '';
-    
-    if (banner.type === 'contacts' && banner.contacts) {
-        const contactsHtml = banner.contacts.map(contact => {
-            if (contact.label === 'Telegram channel') {
-                return `<br><a href="${contact.value}" target="_blank" style="color: white; text-decoration: underline;">${contact.value}</a>`;
-            }
-            return `<br><strong>${contact.value}</strong>`;
-        }).join('');
+    enabledBanners.forEach((banner, index) => {
+        const slide = document.createElement('div');
+        slide.className = `banner-slide ${banner.type === 'image' ? 'image-banner' : banner.gradient} ${index === 0 ? 'active' : ''}`;
+        slide.dataset.bannerId = banner.id;
         
-        contentHtml = `
-            <h1>${banner.title}</h1>
-            <div class="banner-contacts">
-                ${contactsHtml}
+        // Устанавливаем изображение если тип image
+        if (banner.type === 'image' && banner.imageUrl) {
+            slide.style.backgroundImage = `url('${banner.imageUrl}')`;
+        }
+        
+        // Добавляем ссылку если указана
+        if (banner.link) {
+            const link = document.createElement('a');
+            link.className = 'banner-link';
+            link.href = banner.link;
+            if (banner.link.startsWith('http')) {
+                link.target = '_blank';
+            }
+            slide.appendChild(link);
+        }
+        
+        slide.innerHTML += `
+            <div class="banner-content">
+                <h1>${banner.title}</h1>
+                <p>${banner.text}</p>
             </div>
         `;
-    } else {
-        contentHtml = `
-            <h1>${banner.title}</h1>
-            ${banner.description ? `<p>${banner.description}</p>` : ''}
-        `;
+        
+        bannerContainer.appendChild(slide);
+    });
+    
+    // Автопереключение баннеров
+    if (enabledBanners.length > 1) {
+        let currentBannerIndex = 0;
+        setInterval(() => {
+            const slides = bannerContainer.querySelectorAll('.banner-slide');
+            if (slides.length <= 1) return;
+            
+            slides[currentBannerIndex].classList.remove('active');
+            currentBannerIndex = (currentBannerIndex + 1) % slides.length;
+            slides[currentBannerIndex].classList.add('active');
+        }, bannerConfig.switchInterval);
     }
-    
-    bannerElement.innerHTML = `
-        <div class="banner-content">
-            ${contentHtml}
-        </div>
-    `;
-    
-    // Добавляем кликабельность если есть ссылка
-    if (banner.link) {
-        bannerElement.style.cursor = 'pointer';
-        bannerElement.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            window.open(banner.link, '_blank');
-        });
-    }
-    
-    return bannerElement;
 }
 
 // ===== РЕНДЕРИНГ ТОВАРОВ =====
@@ -861,7 +646,6 @@ function renderProducts() {
             ? Math.round((1 - product.price / product.oldPrice) * 100)
             : 0;
         
-        // УБРАЛИ отображение пола с карточки товара
         card.innerHTML = `
             <div class="product-badges">
                 ${badgeHtml}
@@ -922,9 +706,9 @@ function renderProducts() {
 
 function renderStars(rating, showOneStar = false) {
     if (showOneStar) {
-        if (rating >= 4.7) {
+        if (rating >= 4.5) {
             return '<i class="fas fa-star"></i>';
-        } else if (rating >= 4.0) {
+        } else if (rating >= 3.5) {
             return '<i class="fas fa-star-half-alt"></i>';
         } else {
             return '<i class="far fa-star"></i>';
@@ -1013,7 +797,7 @@ function toggleCart(productId, event) {
     
     if (existingItemIndex !== -1) {
         cart.splice(existingItemIndex, 1);
-        // Удаляем из выбранных
+        // Удаляем из выбранных, если был выбран
         const selectedIndex = selectedCartItems.indexOf(productId);
         if (selectedIndex !== -1) {
             selectedCartItems.splice(selectedIndex, 1);
@@ -1025,8 +809,6 @@ function toggleCart(productId, event) {
             quantity: 1,
             addedAt: new Date().toISOString()
         });
-        // Добавляем в выбранные
-        selectedCartItems.push(productId);
         showNotification(`${product.name} добавлен в корзину`, 'success');
     }
     
@@ -1035,7 +817,6 @@ function toggleCart(productId, event) {
     updateCartCount();
     updateCartPopup();
     renderProducts();
-    updateSelectedCount();
 }
 
 function updateCartCount() {
@@ -1065,21 +846,39 @@ function updateCartPopup() {
         `;
         cartTotal.textContent = '0 ₽';
         cartFinal.textContent = '0 ₽';
-        updateSelectedCount();
         return;
     }
     
-    cartItems.innerHTML = '';
+    // Добавляем контролы выбора
+    cartItems.innerHTML = `
+        <div class="cart-selection-controls">
+            <div class="select-all-container">
+                <div class="select-all-checkbox ${selectedCartItems.length === cart.length && cart.length > 0 ? 'checked' : ''}" id="selectAllCheckbox">
+                    <i class="fas fa-check"></i>
+                </div>
+                <span class="select-all-label" id="selectAllLabel">Выбрать всё</span>
+            </div>
+            <span class="selected-count" id="selectedCount">Выбрано: ${selectedCartItems.length}</span>
+        </div>
+    `;
+    
+    // Добавляем обработчик для "Выбрать всё"
+    document.getElementById('selectAllCheckbox').addEventListener('click', toggleSelectAll);
+    document.getElementById('selectAllLabel').addEventListener('click', toggleSelectAll);
+    
+    // Отрисовываем товары
     cart.forEach(item => {
         const isSelected = selectedCartItems.includes(item.id);
-        
         const itemElement = document.createElement('div');
         itemElement.className = `cart-item ${isSelected ? 'selected' : ''}`;
         itemElement.dataset.id = item.id;
         
         itemElement.innerHTML = `
-            <div class="cart-item-select ${isSelected ? 'selected' : ''}" onclick="toggleCartItemSelection(${item.id})">
-                <i class="fas fa-check"></i>
+            <div class="cart-item-checkbox">
+                <input type="checkbox" class="cart-item-select" ${isSelected ? 'checked' : ''} data-id="${item.id}">
+                <div class="checkmark ${isSelected ? 'checked' : ''}">
+                    <i class="fas fa-check"></i>
+                </div>
             </div>
             <div class="cart-item-content">
                 <img src="${item.image}" alt="${item.name}" class="cart-item-img">
@@ -1088,10 +887,9 @@ function updateCartPopup() {
                     <div class="cart-item-meta">
                         <span class="cart-item-volume">${item.volume} мл</span>
                         <span class="cart-item-category">${getCategoryName(item.category)}</span>
-                        <span class="cart-item-gender">${getGenderName(item.gender)}</span>
                     </div>
                 </div>
-                <div class="cart-item-price">${(item.price * item.quantity).toLocaleString()} ₽</div>
+                <div class="cart-item-price">${item.price.toLocaleString()} ₽</div>
             </div>
             <div class="cart-item-controls">
                 <div class="quantity-controls">
@@ -1107,66 +905,98 @@ function updateCartPopup() {
         cartItems.appendChild(itemElement);
     });
     
+    // Добавляем обработчики для чекбоксов товаров
+    document.querySelectorAll('.cart-item-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const productId = parseInt(this.querySelector('input').dataset.id);
+            toggleCartItemSelection(productId);
+        });
+    });
+    
     updateCartSummary();
     updateCheckoutButton();
-    updateSelectedCount();
 }
 
 function toggleCartItemSelection(productId) {
     const index = selectedCartItems.indexOf(productId);
+    
     if (index === -1) {
+        // Добавляем
         selectedCartItems.push(productId);
     } else {
+        // Удаляем
         selectedCartItems.splice(index, 1);
     }
     
-    updateCartPopup();
+    // Обновляем UI
+    const itemElement = document.querySelector(`.cart-item[data-id="${productId}"]`);
+    const checkbox = document.querySelector(`.cart-item-checkbox input[data-id="${productId}"]`);
+    const checkmark = document.querySelector(`.cart-item-checkbox .checkmark`);
+    
+    if (itemElement) {
+        if (selectedCartItems.includes(productId)) {
+            itemElement.classList.add('selected');
+            if (checkbox) checkbox.checked = true;
+            if (checkmark) checkmark.classList.add('checked');
+        } else {
+            itemElement.classList.remove('selected');
+            if (checkbox) checkbox.checked = false;
+            if (checkmark) checkmark.classList.remove('checked');
+        }
+    }
+    
+    // Обновляем счетчик
     updateSelectedCount();
-    updateSelectAllCheckbox();
+    updateSelectAllState();
+    updateCheckoutButton();
 }
 
 function toggleSelectAll() {
-    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
-    if (!selectAllCheckbox) return;
-    
-    const isCurrentlyChecked = selectAllCheckbox.classList.contains('checked');
-    
-    if (isCurrentlyChecked) {
-        // Снимаем все выделения
-        selectedCartItems = [];
-        selectAllCheckbox.classList.remove('checked');
-    } else {
-        // Выделяем все товары
-        selectedCartItems = cart.map(item => item.id);
-        selectAllCheckbox.classList.add('checked');
-    }
-    
-    updateCartPopup();
-    updateSelectedCount();
-}
-
-function updateSelectAllCheckbox() {
-    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
-    if (!selectAllCheckbox) return;
-    
-    if (cart.length === 0) {
-        selectAllCheckbox.classList.remove('checked');
-        return;
-    }
-    
-    const allSelected = cart.every(item => selectedCartItems.includes(item.id));
+    const allSelected = selectedCartItems.length === cart.length && cart.length > 0;
     
     if (allSelected) {
-        selectAllCheckbox.classList.add('checked');
+        // Снимаем выделение со всех
+        selectedCartItems = [];
     } else {
-        selectAllCheckbox.classList.remove('checked');
+        // Выбираем все
+        selectedCartItems = cart.map(item => item.id);
     }
+    
+    // Обновляем UI
+    document.querySelectorAll('.cart-item').forEach(item => {
+        const productId = parseInt(item.dataset.id);
+        const checkbox = item.querySelector('.cart-item-checkbox input');
+        const checkmark = item.querySelector('.cart-item-checkbox .checkmark');
+        
+        if (selectedCartItems.includes(productId)) {
+            item.classList.add('selected');
+            if (checkbox) checkbox.checked = true;
+            if (checkmark) checkmark.classList.add('checked');
+        } else {
+            item.classList.remove('selected');
+            if (checkbox) checkbox.checked = false;
+            if (checkmark) checkmark.classList.remove('checked');
+        }
+    });
+    
+    updateSelectedCount();
+    updateSelectAllState();
+    updateCheckoutButton();
 }
 
 function updateSelectedCount() {
     const selectedCountElement = document.getElementById('selectedCount');
     if (selectedCountElement) {
         selectedCountElement.textContent = `Выбрано: ${selectedCartItems.length}`;
+    }
+}
+
+function updateSelectAllState() {
+    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+    if (selectAllCheckbox) {
+        const allSelected = selectedCartItems.length === cart.length && cart.length > 0;
+        selectAllCheckbox.classList.toggle('checked', allSelected);
     }
 }
 
@@ -1253,7 +1083,7 @@ function updateCheckoutButton() {
         checkoutBtn.disabled = false;
         checkoutBtn.style.opacity = '1';
         checkoutBtn.style.cursor = 'pointer';
-        checkoutBtn.title = 'Оформить заказ';
+        checkoutBtn.title = 'Оформить заказ выбранных товаров';
     }
 }
 
@@ -1278,7 +1108,6 @@ function updateFavoritesPopup() {
             itemElement.className = 'fav-item';
             itemElement.dataset.id = item.id;
             
-            // ИСПРАВЛЕНО: добавлен атрибут title для кнопки удаления
             itemElement.innerHTML = `
                 <div class="fav-item-content">
                     <img src="${item.image}" alt="${item.name}" class="fav-item-img">
@@ -1288,10 +1117,9 @@ function updateFavoritesPopup() {
                         <div class="fav-item-meta">
                             <span class="fav-item-volume">${item.volume} мл</span>
                             <span class="fav-item-category">${getCategoryName(item.category)}</span>
-                            <span class="fav-item-gender">${getGenderName(item.gender)}</span>
                         </div>
                     </div>
-                    <button class="remove-from-fav" onclick="removeFromFavorites(${item.id})" title="Удалить из избранного">
+                    <button class="remove-from-fav" onclick="removeFromFavorites(${item.id})">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
@@ -1348,10 +1176,6 @@ function showProductDetailsModal(product) {
         product.notes.map(note => `<span class="note-tag">${note}</span>`).join('') : 
         '';
     
-    // Получаем название пола
-    const genderName = getGenderName(product.gender);
-    const genderClass = product.gender;
-    
     modal.innerHTML = `
         <div class="modal-content">
             <div class="modal-header">
@@ -1370,10 +1194,6 @@ function showProductDetailsModal(product) {
                     <h2 class="modal-product-title">${product.name}</h2>
                     
                     <div class="product-meta">
-                        <span class="meta-gender ${genderClass}">
-                            <i class="fas fa-${product.gender === 'male' ? 'mars' : product.gender === 'female' ? 'venus' : 'transgender'}"></i> 
-                            ${genderName}
-                        </span>
                         <span class="meta-category">
                             <i class="fas fa-tag"></i> ${getCategoryName(product.category)}
                         </span>
@@ -1437,18 +1257,12 @@ function showProductDetailsModal(product) {
                         </div>
                         <div class="feature">
                             <i class="fas fa-shield-alt"></i>
-                            <span>${product.original ? '100% оригинальная продукция' : 'Качественная реплика'}</span>
+                            <span>100% оригинальная продукция</span>
                         </div>
                         <div class="feature">
                             <i class="fas fa-award"></i>
                             <span>Гарантия качества</span>
                         </div>
-                        ${product.cashback ? `
-                        <div class="feature">
-                            <i class="fas fa-coins"></i>
-                            <span>Кэшбэк 5% на следующий заказ</span>
-                        </div>
-                        ` : ''}
                     </div>
                 </div>
             </div>
@@ -1584,327 +1398,57 @@ function closeProductDetailsModal() {
     document.body.style.overflow = 'auto';
 }
 
-// ===== ФИЛЬТРЫ =====
-function setupFilterPopup() {
-    const filterContent = document.getElementById('filterContent');
-    if (!filterContent) return;
-    
-    // Собираем уникальные значения для фильтров
-    const categories = [...new Set(allProducts.map(p => p.category))];
-    const genders = [...new Set(allProducts.map(p => p.gender))];
-    const brands = [...new Set(allProducts.map(p => p.brand))];
-    const volumes = [...new Set(allProducts.map(p => p.volume))];
-    
-    // Собираем все ноты
-    const allNotes = [];
-    allProducts.forEach(product => {
-        if (product.notes) {
-            product.notes.forEach(note => {
-                if (note && note !== '.' && !allNotes.includes(note)) {
-                    allNotes.push(note);
-                }
-            });
-        }
-    });
-    
-    filterContent.innerHTML = `
-        <div class="filter-group">
-            <div class="filter-group-title" onclick="toggleFilterSubgroup('category')">
-                <h4>Категории</h4>
-                <i class="fas fa-chevron-down"></i>
-            </div>
-            <div class="filter-subgroup" id="filter-category">
-                ${categories.map(cat => `
-                    <label class="filter-checkbox">
-                        <input type="checkbox" 
-                               class="filter-option" 
-                               data-type="category" 
-                               value="${cat}"
-                               ${filterState.categories.includes(cat) ? 'checked' : ''}>
-                        <div class="checkbox-wrapper">
-                            <span class="checkmark">
-                                <i class="fas fa-check"></i>
-                            </span>
-                            <span>${getCategoryName(cat)}</span>
-                        </div>
-                    </label>
-                `).join('')}
-            </div>
-        </div>
-        
-        <div class="filter-group">
-            <div class="filter-group-title" onclick="toggleFilterSubgroup('gender')">
-                <h4>Пол</h4>
-                <i class="fas fa-chevron-down"></i>
-            </div>
-            <div class="filter-subgroup" id="filter-gender">
-                ${genders.map(gender => `
-                    <label class="filter-checkbox">
-                        <input type="checkbox" 
-                               class="filter-option" 
-                               data-type="gender" 
-                               value="${gender}"
-                               ${filterState.genders.includes(gender) ? 'checked' : ''}>
-                        <div class="checkbox-wrapper">
-                            <span class="checkmark">
-                                <i class="fas fa-check"></i>
-                            </span>
-                            <span>${getGenderName(gender)}</span>
-                        </div>
-                    </label>
-                `).join('')}
-            </div>
-        </div>
-        
-        <div class="filter-group">
-            <div class="filter-group-title" onclick="toggleFilterSubgroup('brand')">
-                <h4>Бренд</h4>
-                <i class="fas fa-chevron-down"></i>
-            </div>
-            <div class="filter-subgroup" id="filter-brand">
-                ${brands.map(brand => `
-                    <label class="filter-checkbox">
-                        <input type="checkbox" 
-                               class="filter-option" 
-                               data-type="brand" 
-                               value="${brand}"
-                               ${filterState.brands.includes(brand) ? 'checked' : ''}>
-                        <div class="checkbox-wrapper">
-                            <span class="checkmark">
-                                <i class="fas fa-check"></i>
-                            </span>
-                            <span>${brand}</span>
-                        </div>
-                    </label>
-                `).join('')}
-            </div>
-        </div>
-        
-        <div class="filter-group">
-            <div class="filter-group-title" onclick="toggleFilterSubgroup('composition')">
-                <h4>Состав</h4>
-                <i class="fas fa-chevron-down"></i>
-            </div>
-            <div class="filter-subgroup" id="filter-composition">
-                <h5 style="margin-bottom: 10px; color: var(--color-text-secondary);">Объем, мл:</h5>
-                ${volumes.sort((a, b) => a - b).map(volume => `
-                    <label class="filter-checkbox">
-                        <input type="checkbox" 
-                               class="filter-option" 
-                               data-type="volume" 
-                               value="${volume}"
-                               ${filterState.volumes.includes(volume) ? 'checked' : ''}>
-                        <div class="checkbox-wrapper">
-                            <span class="checkmark">
-                                <i class="fas fa-check"></i>
-                            </span>
-                            <span>${volume} мл</span>
-                        </div>
-                    </label>
-                `).join('')}
-                
-                ${allNotes.length > 0 ? `
-                    <h5 style="margin: 15px 0 10px; color: var(--color-text-secondary);">Ноты аромата:</h5>
-                    ${allNotes.slice(0, 10).map(note => `
-                        <label class="filter-checkbox">
-                            <input type="checkbox" 
-                                   class="filter-option" 
-                                   data-type="note" 
-                                   value="${note}"
-                                   ${filterState.notes.includes(note) ? 'checked' : ''}>
-                            <div class="checkbox-wrapper">
-                                <span class="checkmark">
-                                    <i class="fas fa-check"></i>
-                                </span>
-                                <span>${note}</span>
-                            </div>
-                        </label>
-                    `).join('')}
-                ` : ''}
-            </div>
-        </div>
-        
-        <div class="filter-single">
-            <div class="filter-info">
-                <span class="stars"><i class="fas fa-star"></i></span>
-                <span>С рейтингом от 4.7</span>
-            </div>
-            <input type="checkbox" id="filterRating47" ${filterState.rating47 ? 'checked' : ''}>
-            <label for="filterRating47" class="checkmark">
-                <i class="fas fa-check"></i>
-            </label>
-        </div>
-        
-        <div class="filter-single">
-            <div class="filter-info">
-                <i class="fas fa-shield-alt" style="color: var(--color-primary);"></i>
-                <span>Оригинальный товар</span>
-            </div>
-            <input type="checkbox" id="filterOriginal" ${filterState.original ? 'checked' : ''}>
-            <label for="filterOriginal" class="checkmark">
-                <i class="fas fa-check"></i>
-            </label>
-        </div>
-        
-        <div class="filter-single">
-            <div class="filter-info">
-                <i class="fas fa-tag" style="color: var(--color-sale);"></i>
-                <span>Распродажа</span>
-            </div>
-            <input type="checkbox" id="filterSale" ${filterState.sale ? 'checked' : ''}>
-            <label for="filterSale" class="checkmark">
-                <i class="fas fa-check"></i>
-            </label>
-        </div>
-        
-        <div class="filter-single">
-            <div class="filter-info">
-                <i class="fas fa-coins" style="color: var(--color-warning);"></i>
-                <span>Кэшбэк</span>
-            </div>
-            <input type="checkbox" id="filterCashback" ${filterState.cashback ? 'checked' : ''}>
-            <label for="filterCashback" class="checkmark">
-                <i class="fas fa-check"></i>
-            </label>
-        </div>
-    `;
-    
-    // Добавляем обработчики для фильтров
-    document.querySelectorAll('.filter-option').forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            const type = this.dataset.type;
-            const value = this.value;
-            
-            if (type === 'category') {
-                if (this.checked) {
-                    filterState.categories.push(value);
-                } else {
-                    filterState.categories = filterState.categories.filter(cat => cat !== value);
-                }
-            } else if (type === 'gender') {
-                if (this.checked) {
-                    filterState.genders.push(value);
-                } else {
-                    filterState.genders = filterState.genders.filter(g => g !== value);
-                }
-            } else if (type === 'brand') {
-                if (this.checked) {
-                    filterState.brands.push(value);
-                } else {
-                    filterState.brands = filterState.brands.filter(b => b !== value);
-                }
-            } else if (type === 'volume') {
-                if (this.checked) {
-                    filterState.volumes.push(parseInt(value));
-                } else {
-                    filterState.volumes = filterState.volumes.filter(v => v !== parseInt(value));
-                }
-            } else if (type === 'note') {
-                if (this.checked) {
-                    filterState.notes.push(value);
-                } else {
-                    filterState.notes = filterState.notes.filter(n => n !== value);
-                }
-            }
-            
-            saveFilterState();
-            filterProducts();
-        });
-    });
-    
-    // Обработчики для одиночных фильтров
-    document.getElementById('filterRating47')?.addEventListener('change', function() {
-        filterState.rating47 = this.checked;
-        saveFilterState();
-        filterProducts();
-    });
-    
-    document.getElementById('filterOriginal')?.addEventListener('change', function() {
-        filterState.original = this.checked;
-        saveFilterState();
-        filterProducts();
-    });
-    
-    document.getElementById('filterSale')?.addEventListener('change', function() {
-        filterState.sale = this.checked;
-        saveFilterState();
-        filterProducts();
-    });
-    
-    document.getElementById('filterCashback')?.addEventListener('change', function() {
-        filterState.cashback = this.checked;
-        saveFilterState();
-        filterProducts();
-    });
-}
-
-function toggleFilterSubgroup(type) {
-    const subgroup = document.getElementById(`filter-${type}`);
-    const title = document.querySelector(`[onclick="toggleFilterSubgroup('${type}')"]`);
-    
-    if (subgroup && title) {
-        subgroup.classList.toggle('show');
-        title.classList.toggle('active');
-    }
-}
-
+// ===== ФИЛЬТРЫ И ПОИСК =====
 function filterProducts() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const priceMin = parseInt(document.getElementById('filterPriceMin').value) || 350;
+    const priceMax = parseInt(document.getElementById('filterPriceMax').value) || 50000;
     const sortBy = document.getElementById('sortBy').value;
     
+    const selectedCategories = Array.from(document.querySelectorAll('.filter-category:checked'))
+        .map(cb => cb.value);
+    
+    const selectedVolumes = Array.from(document.querySelectorAll('.filter-volume:checked'))
+        .map(cb => parseInt(cb.value));
+    
+    const rating47Checked = document.getElementById('filterRating47')?.checked || false;
+    const originalChecked = document.getElementById('filterOriginal')?.checked || false;
+    const saleChecked = document.getElementById('filterSale')?.checked || false;
+    const cashbackChecked = document.getElementById('filterCashback')?.checked || false;
+
     filteredProducts = allProducts.filter(product => {
-        // Поиск
-        if (searchTerm && 
-            !product.name.toLowerCase().includes(searchTerm) && 
+        if (searchTerm && !product.name.toLowerCase().includes(searchTerm) && 
             !product.description.toLowerCase().includes(searchTerm)) {
             return false;
         }
         
-        // Фильтр по категориям
-        if (filterState.categories.length > 0 && !filterState.categories.includes(product.category)) {
+        if (selectedCategories.length > 0 && !selectedCategories.includes(product.category)) {
             return false;
         }
         
-        // Фильтр по полу
-        if (filterState.genders.length > 0 && !filterState.genders.includes(product.gender)) {
+        if (product.price < priceMin || product.price > priceMax) {
             return false;
         }
         
-        // Фильтр по бренду
-        if (filterState.brands.length > 0 && !filterState.brands.includes(product.brand)) {
+        if (selectedVolumes.length > 0 && !selectedVolumes.includes(product.volume)) {
             return false;
         }
         
-        // Фильтр по объему
-        if (filterState.volumes.length > 0 && !filterState.volumes.includes(product.volume)) {
+        // Фильтр по рейтингу 4.7
+        if (rating47Checked && product.rating < 4.7) {
             return false;
         }
         
-        // Фильтр по нотам
-        if (filterState.notes.length > 0) {
-            const hasNote = filterState.notes.some(note => 
-                product.notes && product.notes.includes(note)
-            );
-            if (!hasNote) return false;
-        }
+        // Фильтр "Оригинальный товар" (пока пропускаем все)
+        // if (originalChecked && !product.isOriginal) { ... }
         
-        // Фильтр по рейтингу
-        if (filterState.rating47 && product.rating < 4.7) {
+        // Фильтр "Распродажа" - скрываем все товары
+        if (saleChecked) {
             return false;
         }
         
-        // Фильтр по оригинальности
-        if (filterState.original && !product.original) {
-            return false;
-        }
-        
-        // Фильтр по распродаже
-        if (filterState.sale && !product.sale) {
-            return false;
-        }
-        
-        // Фильтр по кэшбэку
-        if (filterState.cashback && !product.cashback) {
+        // Фильтр "Кэшбэк" - скрываем все товары
+        if (cashbackChecked) {
             return false;
         }
         
@@ -1912,28 +1456,26 @@ function filterProducts() {
     });
     
     // Сортировка
-    switch(sortBy) {
-        case 'new':
-            filteredProducts.sort((a, b) => b.id - a.id);
-            break;
-        case 'price-low':
-            filteredProducts.sort((a, b) => a.price - b.price);
-            break;
-        case 'price-high':
-            filteredProducts.sort((a, b) => b.price - a.price);
-            break;
-        case 'rating':
-            filteredProducts.sort((a, b) => b.rating - a.rating);
-            break;
-        case 'popular':
-        default:
-            filteredProducts.sort((a, b) => {
-                if (b.rating !== a.rating) {
-                    return b.rating - a.rating;
-                }
-                return b.reviews - a.reviews;
-            });
-            break;
+    if (sortBy === 'popular') {
+        filteredProducts.sort((a, b) => b.id - a.id); // Новые первыми
+    } else {
+        switch(sortBy) {
+            case 'new':
+                filteredProducts.sort((a, b) => b.id - a.id);
+                break;
+            case 'price-low':
+                filteredProducts.sort((a, b) => a.price - b.price);
+                break;
+            case 'price-high':
+                filteredProducts.sort((a, b) => b.price - a.price);
+                break;
+            case 'rating':
+                filteredProducts.sort((a, b) => b.rating - a.rating);
+                break;
+            default:
+                filteredProducts.sort((a, b) => b.id - a.id);
+                break;
+        }
     }
     
     currentPage = 1;
@@ -1941,33 +1483,23 @@ function filterProducts() {
 }
 
 function resetFilters() {
-    filterState = {
-        categories: [],
-        genders: [],
-        brands: [],
-        volumes: [],
-        notes: [],
-        rating47: false,
-        original: false,
-        sale: false,
-        cashback: false
-    };
+    document.getElementById('searchInput').value = '';
+    document.getElementById('filterPriceMin').value = '350';
+    document.getElementById('filterPriceMax').value = '';
+    document.getElementById('sortBy').value = 'popular';
     
-    saveFilterState();
+    document.querySelectorAll('.filter-category').forEach(cb => {
+        cb.checked = true;
+    });
     
-    // Сбрасываем UI
-    document.querySelectorAll('.filter-option').forEach(checkbox => {
-        checkbox.checked = false;
+    document.querySelectorAll('.filter-volume').forEach(cb => {
+        cb.checked = false;
     });
     
     document.getElementById('filterRating47').checked = false;
     document.getElementById('filterOriginal').checked = false;
     document.getElementById('filterSale').checked = false;
     document.getElementById('filterCashback').checked = false;
-    
-    // Сбрасываем поиск
-    document.getElementById('searchInput').value = '';
-    document.getElementById('sortBy').value = 'popular';
     
     closeFilterPopup();
     
@@ -1976,13 +1508,127 @@ function resetFilters() {
     showNotification('Фильтры сброшены', 'info');
 }
 
+function setupFilterPopup() {
+    const filterContent = document.querySelector('.filter-content');
+    if (!filterContent) return;
+    
+    filterContent.innerHTML = `
+        <div class="filter-group">
+            <h4>Категории</h4>
+            <div class="checkbox-group">
+                <label class="checkbox">
+                    <input type="checkbox" class="filter-category" value="arabian" checked>
+                    <span class="checkmark"></span>
+                    Арабские духи
+                </label>
+                <label class="checkbox">
+                    <input type="checkbox" class="filter-category" value="premium" checked>
+                    <span class="checkmark"></span>
+                    Премиум
+                </label>
+                <label class="checkbox">
+                    <input type="checkbox" class="filter-category" value="affordable" checked>
+                    <span class="checkmark"></span>
+                    Доступные
+                </label>
+            </div>
+        </div>
+        
+        <div class="filter-group">
+            <h4>Цена</h4>
+            <div class="price-range">
+                <div class="range-inputs">
+                    <input type="number" id="filterPriceMin" placeholder="350" min="350" value="350">
+                    <span class="range-divider">-</span>
+                    <input type="number" id="filterPriceMax" placeholder="50000" min="350">
+                </div>
+            </div>
+        </div>
+        
+        <div class="filter-group">
+            <h4>Объем, мл</h4>
+            <div class="checkbox-group">
+                <label class="checkbox">
+                    <input type="checkbox" class="filter-volume" value="6">
+                    <span class="checkmark"></span>
+                    6 мл
+                </label>
+                <label class="checkbox">
+                    <input type="checkbox" class="filter-volume" value="10">
+                    <span class="checkmark"></span>
+                    10 мл
+                </label>
+                <label class="checkbox">
+                    <input type="checkbox" class="filter-volume" value="25">
+                    <span class="checkmark"></span>
+                    25 мл
+                </label>
+            </div>
+        </div>
+        
+        <div class="filter-group">
+            <h4>Дополнительные фильтры</h4>
+            <div class="checkbox-group">
+                <label class="checkbox checkbox-with-icon">
+                    <input type="checkbox" id="filterRating47" class="filter-rating47">
+                    <span class="checkmark"></span>
+                    <i class="fas fa-star" style="color: #FFAA00;"></i> С рейтингом от 4.7
+                </label>
+                <label class="checkbox checkbox-with-icon">
+                    <input type="checkbox" id="filterOriginal" class="filter-original">
+                    <span class="checkmark"></span>
+                    <i class="fas fa-shield-alt"></i> Оригинальный товар
+                </label>
+                <label class="checkbox checkbox-with-icon">
+                    <input type="checkbox" id="filterSale" class="filter-sale">
+                    <span class="checkmark"></span>
+                    <i class="fas fa-fire"></i> Распродажа
+                </label>
+                <label class="checkbox checkbox-with-icon">
+                    <input type="checkbox" id="filterCashback" class="filter-cashback">
+                    <span class="checkmark"></span>
+                    <i class="fas fa-money-bill-wave"></i> Кэшбэк
+                </label>
+            </div>
+        </div>
+        
+        <div class="filter-buttons">
+            <button class="btn-filter-apply" id="applyFilterBtn">
+                <i class="fas fa-check"></i> Применить
+            </button>
+            <button class="btn-filter-reset" id="resetFilterBtn">
+                <i class="fas fa-redo"></i> Сбросить
+            </button>
+        </div>
+    `;
+    
+    const priceMinInput = document.getElementById('filterPriceMin');
+    const priceMaxInput = document.getElementById('filterPriceMax');
+    
+    if (priceMinInput && priceMaxInput) {
+        priceMinInput.addEventListener('change', function() {
+            const min = parseInt(this.value) || 350;
+            if (min < 350) {
+                this.value = 350;
+            }
+        });
+    }
+    
+    document.getElementById('applyFilterBtn')?.addEventListener('click', function() {
+        filterProducts();
+        closeFilterPopup();
+        showNotification('Фильтры применены', 'success');
+    });
+    
+    document.getElementById('resetFilterBtn')?.addEventListener('click', resetFilters);
+}
+
 // ===== УПРАВЛЕНИЕ ПОПАПАМИ =====
 function openCartPopup() {
     document.getElementById('cartPopup').classList.add('show');
     document.getElementById('overlay').classList.add('show');
     document.body.style.overflow = 'hidden';
     updateCartPopup();
-    updateSelectAllCheckbox();
 }
 
 function closeCartPopup() {
@@ -2007,16 +1653,12 @@ function closeFavoritesPopup() {
 function openFilterPopup() {
     document.getElementById('filterPopup').classList.add('show');
     document.getElementById('overlay').classList.add('show');
-    // ПОКАЗАТЬ кнопку сброса только при открытии фильтров
-    document.getElementById('filterResetBtn').style.display = 'flex';
     document.body.style.overflow = 'hidden';
 }
 
 function closeFilterPopup() {
     document.getElementById('filterPopup').classList.remove('show');
     document.getElementById('overlay').classList.remove('show');
-    // Скрыть кнопку сброса при закрытии фильтров
-    document.getElementById('filterResetBtn').style.display = 'none';
     document.body.style.overflow = 'auto';
 }
 
@@ -2030,15 +1672,6 @@ function getCategoryName(category) {
         sale: 'Акции'
     };
     return categories[category] || category;
-}
-
-function getGenderName(gender) {
-    const genders = {
-        male: 'Мужские',
-        female: 'Женские',
-        unisex: 'Унисекс'
-    };
-    return genders[gender] || gender;
 }
 
 function showNotification(message, type = 'info') {
@@ -2085,9 +1718,12 @@ function initEventListeners() {
             clearTimeout(this._timer);
             this._timer = setTimeout(() => {
                 if (this.value.trim() === '') {
-                    filterProducts();
+                    filteredProducts = [...allProducts];
+                    filteredProducts.sort((a, b) => b.id - a.id);
+                    currentPage = 1;
+                    renderProducts();
                 }
-            }, 500);
+            }, 300);
         });
     }
     
@@ -2108,9 +1744,6 @@ function initEventListeners() {
     
     document.getElementById('navCart')?.addEventListener('click', openCartPopup);
     document.getElementById('navFilter')?.addEventListener('click', openFilterPopup);
-    
-    // Кнопка "Выбрать все" в корзине
-    document.getElementById('selectAllContainer')?.addEventListener('click', toggleSelectAll);
     
     // Сохранение адреса
     document.getElementById('saveAddressBtn')?.addEventListener('click', function() {
@@ -2148,9 +1781,6 @@ function initEventListeners() {
         resetFilters();
     });
     
-    // Кнопка сброса фильтров
-    document.getElementById('filterResetBtn')?.addEventListener('click', resetFilters);
-    
     // Закрытие попапов
     document.getElementById('closeCart')?.addEventListener('click', closeCartPopup);
     document.getElementById('closeFav')?.addEventListener('click', closeFavoritesPopup);
@@ -2171,14 +1801,6 @@ function initEventListeners() {
             return;
         }
         
-        if (selectedCartItems.length === 0) {
-            showNotification('Выберите товары для заказа', 'warning');
-            
-            this.classList.add('shake');
-            setTimeout(() => this.classList.remove('shake'), 500);
-            return;
-        }
-        
         if (!isAddressSaved || !deliveryAddress) {
             showNotification('Сначала укажите адрес доставки', 'warning');
             
@@ -2192,10 +1814,18 @@ function initEventListeners() {
             return;
         }
         
-        // Получаем только выбранные товары
+        // Проверяем, что выбраны товары
+        if (selectedCartItems.length === 0) {
+            showNotification('Выберите товары для заказа', 'warning');
+            
+            this.classList.add('shake');
+            setTimeout(() => this.classList.remove('shake'), 500);
+            return;
+        }
+        
+        // Фильтруем только выбранные товары
         const selectedItems = cart.filter(item => selectedCartItems.includes(item.id));
         const total = selectedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        
         const orderItems = selectedItems.map(item => 
             `${item.name} - ${item.quantity} × ${item.price.toLocaleString()}₽ = ${(item.price * item.quantity).toLocaleString()}₽`
         ).join('\n');
@@ -2203,7 +1833,7 @@ function initEventListeners() {
         const orderText = `
 📨 **Новый заказ в Aura Atelier**
 
-📦 **Товары:**
+📦 **Товары (${selectedItems.length}):**
 ${orderItems}
 
 🧾 **Итого:** ${total.toLocaleString()}₽
@@ -2231,10 +1861,9 @@ ${orderItems}
             showNotification(`Заказ на ${total.toLocaleString()}₽ отправлен менеджеру`, 'success');
         }
         
-        // Удаляем выбранные товары из корзины
+        // Удаляем только выбранные товары из корзины
         cart = cart.filter(item => !selectedCartItems.includes(item.id));
         selectedCartItems = [];
-        
         saveToStorage(STORAGE_KEYS.CART, cart);
         updateCartCount();
         updateCartPopup();
@@ -2317,12 +1946,6 @@ ${orderItems}
             closeProductDetailsModal();
         }
     });
-    
-    // Прячем кнопку сброса фильтров при загрузке
-    setTimeout(() => {
-        const resetBtn = document.getElementById('filterResetBtn');
-        if (resetBtn) resetBtn.style.display = 'none';
-    }, 100);
 }
 
 // ===== ГЛОБАЛЬНЫЙ ЭКСПОРТ =====
@@ -2341,11 +1964,8 @@ window.app = {
     openFavoritesPopup,
     openFilterPopup,
     saveAddress,
-    toggleFilterSubgroup,
-    saveProductsToCache,
-    clearProductsCache
+    bannerConfig,
+    setupBanners
 };
 
 console.log('Aura Atelier приложение инициализировано');
-console.log('Версия данных:', DATA_VERSION);
-console.log('Товаров в кэше:', allProducts.length);
