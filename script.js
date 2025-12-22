@@ -10,6 +10,9 @@ const productsPerPage = 8;
 let deliveryAddress = '';
 let isAddressSaved = false;
 let selectedCartItems = [];
+let isLoggedIn = false;
+let userProfile = null;
+let transactions = [];
 
 // Конфигурация баннеров (легко редактировать)
 let bannerConfig = {
@@ -54,7 +57,9 @@ const STORAGE_KEYS = {
     CART: 'aura_atelier_cart',
     FAVORITES: 'aura_atelier_favorites',
     USER: 'aura_atelier_user',
-    ADDRESS: 'aura_atelier_address'
+    ADDRESS: 'aura_atelier_address',
+    PROFILE: 'aura_atelier_profile',
+    TRANSACTIONS: 'aura_atelier_transactions'
 };
 
 // КАРТОЧКИ ТОВАРОВ
@@ -66,6 +71,8 @@ const PRODUCTS_DATA = [
         price: 350,
         oldPrice: 0,
         category: "premium",
+        gender: "unisex",
+        auto: false,
         volume: 6,
         rating: 4.8,
         reviews: 124,
@@ -82,6 +89,8 @@ const PRODUCTS_DATA = [
         price: 350,
         oldPrice: 0,
         category: "premium",
+        gender: "female",
+        auto: false,
         volume: 6,
         rating: 4.9,
         reviews: 100,
@@ -94,10 +103,12 @@ const PRODUCTS_DATA = [
     {
         id: 3,
         name: "Black Opium",
-        description: "Это - женские духи из группы восточные гурманские. Композиция глубокая, насыщенная, сладкая и притягательная. Верхние ноты: груша, розовый перец и цветок апельсина. Средние ноты: кофе, жасмин, горький миндаль и лакричник. Базовые ноты: ваниль, пачули, кедр и кашемировое дерево.",
+        description: "Это - женские духи из группы восточные гурманские. Композиция глубокая, насыщенная, сладкая и притягательная. Верхние ноты: груша, розовый перец и цветок апельсина. Средние ноты: кофе, жасмин, горький миндаль и лакричник. Базовые ноты: ваниль, пачули, кедр и кашемировое дерево.",
         price: 350,
         oldPrice: 0,
         category: "affordable",
+        gender: "female",
+        auto: false,
         volume: 6,
         rating: 4.6,
         reviews: 100,
@@ -114,6 +125,8 @@ const PRODUCTS_DATA = [
         price: 350,
         oldPrice: 0,
         category: "premium",
+        gender: "female",
+        auto: false,
         volume: 6,
         rating: 4.9,
         reviews: 167,
@@ -130,6 +143,8 @@ const PRODUCTS_DATA = [
         price: 350,
         oldPrice: 0,
         category: "premium",
+        gender: "unisex",
+        auto: false,
         volume: 6,
         rating: 4.7,
         reviews: 187,
@@ -146,6 +161,8 @@ const PRODUCTS_DATA = [
         price: 350,
         oldPrice: 0,
         category: "affordable",
+        gender: "female",
+        auto: false,
         volume: 6,
         rating: 4.5,
         reviews: 92,
@@ -162,6 +179,8 @@ const PRODUCTS_DATA = [
         price: 350,
         oldPrice: 0,
         category: "premium",
+        gender: "unisex",
+        auto: false,
         volume: 6,
         rating: 4.8,
         reviews: 143,
@@ -178,6 +197,8 @@ const PRODUCTS_DATA = [
         price: 350,
         oldPrice: 0,
         category: "affordable",
+        gender: "female",
+        auto: false,
         volume: 6,
         rating: 4.6,
         reviews: 56,
@@ -194,6 +215,8 @@ const PRODUCTS_DATA = [
         price: 350,
         oldPrice: 0,
         category: "affordable",
+        gender: "unisex",
+        auto: false,
         volume: 6,
         rating: 4.4,
         reviews: 234,
@@ -210,6 +233,8 @@ const PRODUCTS_DATA = [
         price: 350,
         oldPrice: 0,
         category: "premium",
+        gender: "male",
+        auto: false,
         volume: 6,
         rating: 4.9,
         reviews: 189,
@@ -226,6 +251,8 @@ const PRODUCTS_DATA = [
         price: 350,
         oldPrice: 0,
         category: "affordable",
+        gender: "unisex",
+        auto: false,
         volume: 6,
         rating: 4.5,
         reviews: 78,
@@ -242,6 +269,8 @@ const PRODUCTS_DATA = [
         price: 350,
         oldPrice: 0,
         category: "premium",
+        gender: "unisex",
+        auto: false,
         volume: 6,
         rating: 4.8,
         reviews: 312,
@@ -258,6 +287,8 @@ const PRODUCTS_DATA = [
         price: 350,
         oldPrice: 0,
         category: "affordable",
+        gender: "male",
+        auto: false,
         volume: 6,
         rating: 4.5,
         reviews: 137,
@@ -274,6 +305,8 @@ const PRODUCTS_DATA = [
         price: 350,
         oldPrice: 0,
         category: "affordable",
+        gender: "male",
+        auto: false,
         volume: 6,
         rating: 4.4,
         reviews: 146,
@@ -290,6 +323,8 @@ const PRODUCTS_DATA = [
         price: 350,
         oldPrice: 0,
         category: "affordable",
+        gender: "male",
+        auto: false,
         volume: 6,
         rating: 4.7,
         reviews: 155,
@@ -306,6 +341,8 @@ const PRODUCTS_DATA = [
         price: 350,
         oldPrice: 0,
         category: "affordable",
+        gender: "unisex",
+        auto: false,
         volume: 6,
         rating: 4.6,
         reviews: 212,
@@ -322,6 +359,8 @@ const PRODUCTS_DATA = [
         price: 600,
         oldPrice: 0,
         category: "premium",
+        gender: "unisex",
+        auto: false,
         volume: 10,
         rating: 4.9,
         reviews: 812,
@@ -338,6 +377,8 @@ const PRODUCTS_DATA = [
         price: 800,
         oldPrice: 0,
         category: "premium",
+        gender: "female",
+        auto: false,
         volume: 25,
         rating: 4.9,
         reviews: 832,
@@ -353,7 +394,9 @@ const PRODUCTS_DATA = [
         description: "Авто духи Narcotiq Aksa Esans — это идеальное решение для тех, кто хочет добавить уникальный аромат в свой автомобиль Особенности Narcotiq Aksa Esans: Уникальный аромат: Сочетание свежести и теплоты, которое создаст атмосферу уюта и комфорта в вашем автомобиле. Почему стоит выбрать Narcotiq Aksa Esans? Эти авто духи идеально подходят для любых автомобилей и станут отличным подарком для друзей и близких. Создайте уникальную атмосферу в своем автомобиле с Narcotiq Aksa Esans! Не упустите возможность сделать ваши поездки более приятными! Заказывайте уже сегодня! Эти духи созданы с использованием высококачественных ингредиентов, что обеспечивает стойкость и насыщенность аромата.",
         price: 350,
         oldPrice: 0,
-        category: "new",
+        category: "auto",
+        gender: "unisex",
+        auto: true,
         volume: 6,
         rating: 4.9,
         reviews: 152,
@@ -361,6 +404,7 @@ const PRODUCTS_DATA = [
         badge: "new",
         inStock: true,
         popular: true,
+        notes: ["автомобиль", "свежесть", "комфорт"]
     },
     {
         id: 20,
@@ -368,7 +412,9 @@ const PRODUCTS_DATA = [
         description: "Авто духи Savage Aksa Esans. Описание продукта: Авто духи Savage Aksa Esans — это уникальный аромат для вашего автомобиля, который наполняет пространство свежестью и создает атмосферу комфорта. Характеристики: Форма: Масляные духи без спиртовой основы. Производитель: Турецкая компания Aksa Esans. Стойкость: Длительное время, благодаря концентрированной формуле. Аромат: Savage Aksa Esans сочетает в себе насыщенные восточные и древесные ноты, создавая гармоничное и притягательное звучание. Способ применения: Нанесите несколько капель на вату или специальный ароматизатор и разместите в салоне автомобиля. Также можно использовать в качестве ароматизатора для помещений.",
         price: 350,
         oldPrice: 0,
-        category: "new",
+        category: "auto",
+        gender: "unisex",
+        auto: true,
         volume: 6,
         rating: 4.9,
         reviews: 104,
@@ -376,6 +422,7 @@ const PRODUCTS_DATA = [
         badge: "new",
         inStock: true,
         popular: true,
+        notes: ["восточные ноты", "древесные ноты", "автомобиль"]
     },
     {
         id: 21,
@@ -384,6 +431,8 @@ const PRODUCTS_DATA = [
         price: 350,
         oldPrice: 0,
         category: "new",
+        gender: "unisex",
+        auto: false,
         volume: 6,
         rating: 5.0,
         reviews: 244,
@@ -391,6 +440,7 @@ const PRODUCTS_DATA = [
         badge: "new",
         inStock: true,
         popular: true,
+        notes: ["цитрусы", "зеленые акценты", "древесные ноты"]
     },
     {
         id: 22,
@@ -399,6 +449,8 @@ const PRODUCTS_DATA = [
         price: 350,
         oldPrice: 0,
         category: "new",
+        gender: "female",
+        auto: false,
         volume: 6,
         rating: 4.7,
         reviews: 201,
@@ -406,6 +458,7 @@ const PRODUCTS_DATA = [
         badge: "new",
         inStock: true,
         popular: true,
+        notes: ["роза", "восточные ноты", "сладкие акценты"]
     },
     {
         id: 23,
@@ -414,6 +467,8 @@ const PRODUCTS_DATA = [
         price: 350,
         oldPrice: 0,
         category: "new",
+        gender: "male",
+        auto: false,
         volume: 6,
         rating: 4.8,
         reviews: 167,
@@ -421,6 +476,7 @@ const PRODUCTS_DATA = [
         badge: "new",
         inStock: true,
         popular: true,
+        notes: ["пряные ноты", "древесно-амбровый", "мужской"]
     },
 ];
 
@@ -434,6 +490,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setupFilterPopup();
     initEventListeners();
     loadAddress();
+    initProfile();
 });
 
 function initApp() {
@@ -509,6 +566,149 @@ function loadAddress() {
         updateAddressStatus();
         updateCheckoutButton();
     }
+}
+
+// ===== ФУНКЦИИ ПРОФИЛЯ =====
+function initProfile() {
+    // Загружаем данные профиля
+    userProfile = loadFromStorage(STORAGE_KEYS.PROFILE, null);
+    transactions = loadFromStorage(STORAGE_KEYS.TRANSACTIONS, []);
+    
+    if (userProfile) {
+        isLoggedIn = true;
+        updateProfileUI();
+    }
+}
+
+function updateProfileUI() {
+    const userInfo = document.getElementById('userInfo');
+    const loginBtn = document.getElementById('profileLoginBtn');
+    const loginBtnText = document.getElementById('loginBtnText');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const userName = document.getElementById('userName');
+    const userId = document.getElementById('userId');
+    
+    if (isLoggedIn && userProfile) {
+        // Показываем информацию пользователя
+        if (userInfo) userInfo.style.display = 'flex';
+        if (userName) userName.textContent = userProfile.username || 'Пользователь';
+        if (userId) userId.textContent = `ID: ${userProfile.id}`;
+        
+        // Обновляем кнопку входа
+        if (loginBtn) {
+            loginBtn.innerHTML = `<i class="fab fa-telegram"></i><span>${userProfile.username || 'Профиль'}</span>`;
+            loginBtn.classList.add('logged-in');
+        }
+        if (loginBtnText) loginBtnText.textContent = userProfile.username || 'Профиль';
+        
+        // Показываем кнопку выхода
+        if (logoutBtn) logoutBtn.style.display = 'flex';
+    } else {
+        // Скрываем информацию пользователя
+        if (userInfo) userInfo.style.display = 'none';
+        
+        // Обновляем кнопку входа
+        if (loginBtn) {
+            loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i><span>Войти</span>';
+            loginBtn.classList.remove('logged-in');
+        }
+        if (loginBtnText) loginBtnText.textContent = 'Войти';
+        
+        // Скрываем кнопку выхода
+        if (logoutBtn) logoutBtn.style.display = 'none';
+    }
+}
+
+function loginWithTelegram() {
+    if (tg.initDataUnsafe?.user) {
+        // Используем данные из Telegram WebApp
+        userProfile = {
+            id: tg.initDataUnsafe.user.id,
+            username: tg.initDataUnsafe.user.username || `user_${tg.initDataUnsafe.user.id}`,
+            firstName: tg.initDataUnsafe.user.first_name,
+            lastName: tg.initDataUnsafe.user.last_name,
+            photoUrl: tg.initDataUnsafe.user.photo_url,
+            authDate: tg.initDataUnsafe.auth_date
+        };
+        
+        isLoggedIn = true;
+        saveToStorage(STORAGE_KEYS.PROFILE, userProfile);
+        updateProfileUI();
+        showNotification('Вы успешно вошли в аккаунт', 'success');
+    } else {
+        // Если не в Telegram, имитируем вход для демо
+        userProfile = {
+            id: Date.now(),
+            username: 'demo_user',
+            firstName: 'Демо',
+            lastName: 'Пользователь'
+        };
+        
+        isLoggedIn = true;
+        saveToStorage(STORAGE_KEYS.PROFILE, userProfile);
+        updateProfileUI();
+        showNotification('Демо-режим: вы вошли как демо-пользователь', 'info');
+    }
+}
+
+function logout() {
+    isLoggedIn = false;
+    userProfile = null;
+    saveToStorage(STORAGE_KEYS.PROFILE, null);
+    updateProfileUI();
+    showNotification('Вы вышли из аккаунта', 'info');
+    closeProfilePopup();
+}
+
+function addTransaction(orderData) {
+    const transaction = {
+        id: Date.now(),
+        date: new Date().toLocaleString('ru-RU'),
+        items: orderData.items,
+        total: orderData.total,
+        address: orderData.deliveryAddress,
+        status: 'completed'
+    };
+    
+    transactions.unshift(transaction); // Добавляем в начало
+    saveToStorage(STORAGE_KEYS.TRANSACTIONS, transactions);
+    updateTransactionsUI();
+}
+
+function updateTransactionsUI() {
+    const transactionsList = document.getElementById('transactionsList');
+    if (!transactionsList) return;
+    
+    if (transactions.length === 0) {
+        transactionsList.innerHTML = `
+            <div class="empty-transactions">
+                <i class="fas fa-receipt"></i>
+                <p>У вас пока нет транзакций</p>
+            </div>
+        `;
+        return;
+    }
+    
+    transactionsList.innerHTML = '';
+    
+    transactions.forEach(transaction => {
+        const itemsText = transaction.items.map(item => 
+            `${item.name} × ${item.quantity}`
+        ).join(', ');
+        
+        const transactionElement = document.createElement('div');
+        transactionElement.className = 'transaction-item';
+        transactionElement.innerHTML = `
+            <div class="transaction-header">
+                <div class="transaction-date">${transaction.date}</div>
+                <div class="transaction-amount">${transaction.total.toLocaleString()} ₽</div>
+            </div>
+            <div class="transaction-items">${itemsText}</div>
+            <div class="transaction-status completed">Завершено</div>
+        `;
+        
+        transactionsList.appendChild(transactionElement);
+    });
 }
 
 function saveAddress() {
@@ -875,7 +1075,6 @@ function updateCartPopup() {
         
         itemElement.innerHTML = `
             <div class="cart-item-checkbox">
-                <input type="checkbox" class="cart-item-select" ${isSelected ? 'checked' : ''} data-id="${item.id}">
                 <div class="checkmark ${isSelected ? 'checked' : ''}">
                     <i class="fas fa-check"></i>
                 </div>
@@ -903,15 +1102,15 @@ function updateCartPopup() {
             </div>
         `;
         cartItems.appendChild(itemElement);
-    });
-    
-    // Добавляем обработчики для чекбоксов товаров
-    document.querySelectorAll('.cart-item-checkbox').forEach(checkbox => {
-        checkbox.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const productId = parseInt(this.querySelector('input').dataset.id);
-            toggleCartItemSelection(productId);
-        });
+        
+        // Добавляем обработчик для чекбокса
+        const checkbox = itemElement.querySelector('.cart-item-checkbox');
+        if (checkbox) {
+            checkbox.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleCartItemSelection(item.id);
+            });
+        }
     });
     
     updateCartSummary();
@@ -931,17 +1130,13 @@ function toggleCartItemSelection(productId) {
     
     // Обновляем UI
     const itemElement = document.querySelector(`.cart-item[data-id="${productId}"]`);
-    const checkbox = document.querySelector(`.cart-item-checkbox input[data-id="${productId}"]`);
-    const checkmark = document.querySelector(`.cart-item-checkbox .checkmark`);
-    
     if (itemElement) {
+        const checkmark = itemElement.querySelector('.checkmark');
         if (selectedCartItems.includes(productId)) {
             itemElement.classList.add('selected');
-            if (checkbox) checkbox.checked = true;
             if (checkmark) checkmark.classList.add('checked');
         } else {
             itemElement.classList.remove('selected');
-            if (checkbox) checkbox.checked = false;
             if (checkmark) checkmark.classList.remove('checked');
         }
     }
@@ -950,6 +1145,7 @@ function toggleCartItemSelection(productId) {
     updateSelectedCount();
     updateSelectAllState();
     updateCheckoutButton();
+    updateCartSummary();
 }
 
 function toggleSelectAll() {
@@ -966,16 +1162,13 @@ function toggleSelectAll() {
     // Обновляем UI
     document.querySelectorAll('.cart-item').forEach(item => {
         const productId = parseInt(item.dataset.id);
-        const checkbox = item.querySelector('.cart-item-checkbox input');
-        const checkmark = item.querySelector('.cart-item-checkbox .checkmark');
+        const checkmark = item.querySelector('.checkmark');
         
         if (selectedCartItems.includes(productId)) {
             item.classList.add('selected');
-            if (checkbox) checkbox.checked = true;
             if (checkmark) checkmark.classList.add('checked');
         } else {
             item.classList.remove('selected');
-            if (checkbox) checkbox.checked = false;
             if (checkmark) checkmark.classList.remove('checked');
         }
     });
@@ -983,6 +1176,7 @@ function toggleSelectAll() {
     updateSelectedCount();
     updateSelectAllState();
     updateCheckoutButton();
+    updateCartSummary();
 }
 
 function updateSelectedCount() {
@@ -1200,6 +1394,9 @@ function showProductDetailsModal(product) {
                         <span class="meta-volume">
                             <i class="fas fa-weight"></i> ${product.volume} мл
                         </span>
+                        <span class="meta-gender">
+                            <i class="fas fa-${getGenderIcon(product.gender)}"></i> ${getGenderName(product.gender)}
+                        </span>
                         <span class="meta-stock ${product.inStock ? 'in-stock' : 'out-of-stock'}">
                             <i class="fas ${product.inStock ? 'fa-check-circle' : 'fa-times-circle'}"></i> 
                             ${product.inStock ? 'В наличии' : 'Нет в наличии'}
@@ -1408,6 +1605,9 @@ function filterProducts() {
     const selectedCategories = Array.from(document.querySelectorAll('.filter-category:checked'))
         .map(cb => cb.value);
     
+    const selectedGenders = Array.from(document.querySelectorAll('.filter-gender:checked'))
+        .map(cb => cb.value);
+    
     const selectedVolumes = Array.from(document.querySelectorAll('.filter-volume:checked'))
         .map(cb => parseInt(cb.value));
     
@@ -1423,6 +1623,10 @@ function filterProducts() {
         }
         
         if (selectedCategories.length > 0 && !selectedCategories.includes(product.category)) {
+            return false;
+        }
+        
+        if (selectedGenders.length > 0 && !selectedGenders.includes(product.gender)) {
             return false;
         }
         
@@ -1492,6 +1696,10 @@ function resetFilters() {
         cb.checked = true;
     });
     
+    document.querySelectorAll('.filter-gender').forEach(cb => {
+        cb.checked = true;
+    });
+    
     document.querySelectorAll('.filter-volume').forEach(cb => {
         cb.checked = false;
     });
@@ -1517,11 +1725,6 @@ function setupFilterPopup() {
             <h4>Категории</h4>
             <div class="checkbox-group">
                 <label class="checkbox">
-                    <input type="checkbox" class="filter-category" value="arabian" checked>
-                    <span class="checkmark"></span>
-                    Арабские духи
-                </label>
-                <label class="checkbox">
                     <input type="checkbox" class="filter-category" value="premium" checked>
                     <span class="checkmark"></span>
                     Премиум
@@ -1530,6 +1733,37 @@ function setupFilterPopup() {
                     <input type="checkbox" class="filter-category" value="affordable" checked>
                     <span class="checkmark"></span>
                     Доступные
+                </label>
+                <label class="checkbox">
+                    <input type="checkbox" class="filter-category" value="new" checked>
+                    <span class="checkmark"></span>
+                    Новинки
+                </label>
+                <label class="checkbox">
+                    <input type="checkbox" class="filter-category" value="auto" checked>
+                    <span class="checkmark"></span>
+                    Авто-духи
+                </label>
+            </div>
+        </div>
+        
+        <div class="filter-group">
+            <h4>Пол</h4>
+            <div class="checkbox-group">
+                <label class="checkbox">
+                    <input type="checkbox" class="filter-gender" value="male" checked>
+                    <span class="checkmark"></span>
+                    Мужские
+                </label>
+                <label class="checkbox">
+                    <input type="checkbox" class="filter-gender" value="female" checked>
+                    <span class="checkmark"></span>
+                    Женские
+                </label>
+                <label class="checkbox">
+                    <input type="checkbox" class="filter-gender" value="unisex" checked>
+                    <span class="checkmark"></span>
+                    Унисекс
                 </label>
             </div>
         </div>
@@ -1662,16 +1896,59 @@ function closeFilterPopup() {
     document.body.style.overflow = 'auto';
 }
 
+function openProfilePopup() {
+    document.getElementById('profilePopup').classList.add('show');
+    document.getElementById('overlay').classList.add('show');
+    document.body.style.overflow = 'hidden';
+    updateProfileUI();
+}
+
+function closeProfilePopup() {
+    document.getElementById('profilePopup').classList.remove('show');
+    document.getElementById('overlay').classList.remove('show');
+    document.body.style.overflow = 'auto';
+}
+
+function openTransactionsPopup() {
+    document.getElementById('transactionsPopup').classList.add('show');
+    document.getElementById('overlay').classList.add('show');
+    document.body.style.overflow = 'hidden';
+    updateTransactionsUI();
+}
+
+function closeTransactionsPopup() {
+    document.getElementById('transactionsPopup').classList.remove('show');
+    document.getElementById('overlay').classList.remove('show');
+    document.body.style.overflow = 'auto';
+}
+
 // ===== УТИЛИТЫ =====
 function getCategoryName(category) {
     const categories = {
-        arabian: 'Арабские духи',
         premium: 'Премиум коллекция',
         affordable: 'Доступные духи',
         new: 'Новинки',
-        sale: 'Акции'
+        auto: 'Авто-духи'
     };
     return categories[category] || category;
+}
+
+function getGenderName(gender) {
+    const genders = {
+        male: 'Мужские',
+        female: 'Женские',
+        unisex: 'Унисекс'
+    };
+    return genders[gender] || gender;
+}
+
+function getGenderIcon(gender) {
+    const icons = {
+        male: 'mars',
+        female: 'venus',
+        unisex: 'transgender'
+    };
+    return icons[gender] || 'question';
 }
 
 function showNotification(message, type = 'info') {
@@ -1744,6 +2021,7 @@ function initEventListeners() {
     
     document.getElementById('navCart')?.addEventListener('click', openCartPopup);
     document.getElementById('navFilter')?.addEventListener('click', openFilterPopup);
+    document.getElementById('navProfile')?.addEventListener('click', openProfilePopup);
     
     // Сохранение адреса
     document.getElementById('saveAddressBtn')?.addEventListener('click', function() {
@@ -1785,6 +2063,8 @@ function initEventListeners() {
     document.getElementById('closeCart')?.addEventListener('click', closeCartPopup);
     document.getElementById('closeFav')?.addEventListener('click', closeFavoritesPopup);
     document.getElementById('closeFilter')?.addEventListener('click', closeFilterPopup);
+    document.getElementById('profileCloseBtn')?.addEventListener('click', closeProfilePopup);
+    document.getElementById('closeTransactions')?.addEventListener('click', closeTransactionsPopup);
     
     // Оверлей для закрытия попапов
     document.getElementById('overlay')?.addEventListener('click', function() {
@@ -1792,6 +2072,32 @@ function initEventListeners() {
         closeFavoritesPopup();
         closeFilterPopup();
         closeProductDetailsModal();
+        closeProfilePopup();
+        closeTransactionsPopup();
+    });
+    
+    // Обработчики для профиля
+    document.getElementById('profileLoginBtn')?.addEventListener('click', function() {
+        if (!isLoggedIn) {
+            loginWithTelegram();
+        }
+    });
+    
+    document.getElementById('logoutBtn')?.addEventListener('click', logout);
+    
+    document.getElementById('transactionsBtn')?.addEventListener('click', function() {
+        if (isLoggedIn) {
+            closeProfilePopup();
+            setTimeout(() => {
+                openTransactionsPopup();
+            }, 300);
+        } else {
+            showNotification('Сначала войдите в аккаунт', 'warning');
+        }
+    });
+    
+    document.getElementById('referralBtn')?.addEventListener('click', function() {
+        showNotification('Реферальная программа временно недоступна', 'info');
     });
     
     // Оформление заказа
@@ -1840,7 +2146,7 @@ ${orderItems}
 📍 **Адрес доставки:** ${deliveryAddress}
 📅 **Дата:** ${new Date().toLocaleString('ru-RU')}
 
-💬 **Связь:** @Ayder505,
+💬 **Связь:** @Ayder505
         `.trim();
         
         if (tg.sendData) {
@@ -1860,6 +2166,18 @@ ${orderItems}
             window.open(telegramUrl, '_blank');
             showNotification(`Заказ на ${total.toLocaleString()}₽ отправлен менеджеру`, 'success');
         }
+        
+        // Сохраняем транзакцию
+        const orderData = {
+            userId: user.id,
+            username: user.username,
+            items: selectedItems,
+            total: total,
+            deliveryAddress: deliveryAddress,
+            timestamp: new Date().toISOString()
+        };
+        
+        addTransaction(orderData);
         
         // Удаляем только выбранные товары из корзины
         cart = cart.filter(item => !selectedCartItems.includes(item.id));
@@ -1944,6 +2262,8 @@ ${orderItems}
             closeFavoritesPopup();
             closeFilterPopup();
             closeProductDetailsModal();
+            closeProfilePopup();
+            closeTransactionsPopup();
         }
     });
 }
@@ -1963,9 +2283,15 @@ window.app = {
     openCartPopup,
     openFavoritesPopup,
     openFilterPopup,
+    openProfilePopup,
+    closeProfilePopup,
     saveAddress,
     bannerConfig,
-    setupBanners
+    setupBanners,
+    loginWithTelegram,
+    logout,
+    isLoggedIn,
+    userProfile
 };
 
 console.log('Aura Atelier приложение инициализировано');

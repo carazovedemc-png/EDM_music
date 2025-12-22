@@ -105,9 +105,9 @@
             </button>
             <div class="nav-divider"></div>
             
-            <a href="https://t.me/Ayder505" target="_blank" class="nav-btn" id="navContact">
-                <i class="fab fa-telegram"></i>
-            </a>
+            <button class="nav-btn" id="navProfile">
+                <i class="fas fa-user"></i>
+            </button>
         </div>
     </nav>
 
@@ -188,92 +188,83 @@
         </div>
         <div class="popup-body">
             <div class="filter-content">
-                <div class="filter-group">
-                    <h4>Категории</h4>
-                    <div class="checkbox-group">
-                        <label class="checkbox">
-                            <input type="checkbox" class="filter-category" value="arabian" checked>
-                            <span class="checkmark"></span>
-                            Арабские духи
-                        </label>
-                        <label class="checkbox">
-                            <input type="checkbox" class="filter-category" value="premium" checked>
-                            <span class="checkmark"></span>
-                            Премиум
-                        </label>
-                        <label class="checkbox">
-                            <input type="checkbox" class="filter-category" value="affordable" checked>
-                            <span class="checkmark"></span>
-                            Доступные
-                        </label>
-                    </div>
+                <!-- Фильтры загружаются через JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Попап профиля -->
+    <div class="profile-popup glass-popup" id="profilePopup">
+        <div class="popup-header">
+            <button class="profile-close-btn" id="profileCloseBtn">
+                <i class="fas fa-times"></i>
+            </button>
+            <h3>Профиль</h3>
+            <div class="profile-login-btn-container" id="loginBtnContainer">
+                <button class="profile-login-btn" id="profileLoginBtn">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span id="loginBtnText">Войти</span>
+                </button>
+            </div>
+        </div>
+        <div class="popup-body profile-body">
+            <div class="profile-user-info" id="userInfo" style="display: none;">
+                <div class="user-avatar">
+                    <i class="fas fa-user-circle"></i>
                 </div>
-                
-                <div class="filter-group">
-                    <h4>Цена</h4>
-                    <div class="price-range">
-                        <div class="range-inputs">
-                            <input type="number" id="filterPriceMin" placeholder="350" min="350" value="350">
-                            <span class="range-divider">-</span>
-                            <input type="number" id="filterPriceMax" placeholder="50000" min="350">
-                        </div>
-                    </div>
+                <div class="user-details">
+                    <h4 id="userName">Пользователь</h4>
+                    <span id="userId">ID: 0</span>
                 </div>
+            </div>
+            
+            <div class="profile-menu">
+                <button class="profile-menu-item" id="transactionsBtn">
+                    <i class="fas fa-receipt"></i>
+                    <span>Мои транзакции</span>
+                    <i class="fas fa-chevron-right"></i>
+                </button>
                 
-                <div class="filter-group">
-                    <h4>Объем, мл</h4>
-                    <div class="checkbox-group">
-                        <label class="checkbox">
-                            <input type="checkbox" class="filter-volume" value="6">
-                            <span class="checkmark"></span>
-                            6 мл
-                        </label>
-                        <label class="checkbox">
-                            <input type="checkbox" class="filter-volume" value="10">
-                            <span class="checkmark"></span>
-                            10 мл
-                        </label>
-                        <label class="checkbox">
-                            <input type="checkbox" class="filter-volume" value="25">
-                            <span class="checkmark"></span>
-                            25 мл
-                        </label>
-                    </div>
-                </div>
+                <button class="profile-menu-item" id="referralBtn">
+                    <i class="fas fa-users"></i>
+                    <span>Реферальная программа</span>
+                    <i class="fas fa-chevron-right"></i>
+                </button>
                 
-                <div class="filter-group">
-                    <h4>Дополнительные фильтры</h4>
-                    <div class="checkbox-group">
-                        <label class="checkbox checkbox-with-icon">
-                            <input type="checkbox" id="filterRating47" class="filter-rating47">
-                            <span class="checkmark"></span>
-                            <i class="fas fa-star" style="color: #FFAA00;"></i> С рейтингом от 4.7
-                        </label>
-                        <label class="checkbox checkbox-with-icon">
-                            <input type="checkbox" id="filterOriginal" class="filter-original">
-                            <span class="checkmark"></span>
-                            <i class="fas fa-shield-alt"></i> Оригинальный товар
-                        </label>
-                        <label class="checkbox checkbox-with-icon">
-                            <input type="checkbox" id="filterSale" class="filter-sale">
-                            <span class="checkmark"></span>
-                            <i class="fas fa-fire"></i> Распродажа
-                        </label>
-                        <label class="checkbox checkbox-with-icon">
-                            <input type="checkbox" id="filterCashback" class="filter-cashback">
-                            <span class="checkmark"></span>
-                            <i class="fas fa-money-bill-wave"></i> Кэшбэк
-                        </label>
-                    </div>
-                </div>
+                <a href="https://t.me/EDEM_CR" target="_blank" class="profile-menu-item">
+                    <i class="fas fa-headset"></i>
+                    <span>Служба поддержки</span>
+                    <i class="fas fa-external-link-alt"></i>
+                </a>
                 
-                <div class="filter-buttons">
-                    <button class="btn-filter-apply" id="applyFilterBtn">
-                        <i class="fas fa-check"></i> Применить
-                    </button>
-                    <button class="btn-filter-reset" id="resetFilterBtn">
-                        <i class="fas fa-redo"></i> Сбросить
-                    </button>
+                <a href="https://telegra.ph/POLZOVATELSKOE-SOGLASHENIE-po-ispolzovaniyu-programm-11-06" 
+                   target="_blank" class="profile-menu-item">
+                    <i class="fas fa-file-contract"></i>
+                    <span>Пользовательское соглашение</span>
+                    <i class="fas fa-external-link-alt"></i>
+                </a>
+                
+                <button class="profile-menu-item logout-btn" id="logoutBtn" style="display: none;">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Выйти</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Попап транзакций -->
+    <div class="transactions-popup glass-popup" id="transactionsPopup">
+        <div class="popup-header">
+            <h3>Мои транзакции</h3>
+            <button class="close-popup" id="closeTransactions">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="popup-body">
+            <div class="transactions-list" id="transactionsList">
+                <div class="empty-transactions">
+                    <i class="fas fa-receipt"></i>
+                    <p>У вас пока нет транзакций</p>
                 </div>
             </div>
         </div>
@@ -281,14 +272,15 @@
 
     <!-- Модальное окно товара -->
     <div class="product-details-modal" id="productDetailsModal">
-        <div class="modal-content">
-            <!-- Контент загружается динамически -->
-        </div>
+        <!-- Контент загружается динамически -->
     </div>
     <div class="product-modal-overlay" id="productModalOverlay"></div>
 
     <!-- Оверлей для попапов -->
     <div class="overlay" id="overlay"></div>
+
+    <!-- Telegram Auth Button (скрытый) -->
+    <button id="telegramAuthBtn" style="display: none;"></button>
 
     <script src="script.js"></script>
 </body>
