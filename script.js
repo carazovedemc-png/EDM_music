@@ -1,5 +1,5 @@
 // ===== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ И КОНСТАНТЫ =====
-let tg = window.Telegram?.WebApp || {};
+let tg = null;
 let user = null;
 let allProducts = [];
 let cart = [];
@@ -21,11 +21,11 @@ let bannerConfig = {
             id: 1,
             title: "Эксклюзивные ароматы",
             text: "Только оригинальная парфюмерия с гарантией качества",
-            type: "gradient",
-            gradient: "exclusive",
-            imageUrl: "",
-            link: "",
-            enabled: true
+            type: "gradient", // "gradient" или "image"
+            gradient: "exclusive", // "exclusive" или "contacts"
+            imageUrl: "", // URL изображения, если type="image"
+            link: "", // Ссылка при клике (оставить пустым для отключения)
+            enabled: true // true/false для включения/отключения
         },
         {
             id: 2,
@@ -48,7 +48,7 @@ let bannerConfig = {
             enabled: true
         }
     ],
-    switchInterval: 10000
+    switchInterval: 10000 // Интервал переключения в миллисекундах
 };
 
 // Ключи для localStorage
@@ -61,375 +61,17 @@ const STORAGE_KEYS = {
     TRANSACTIONS: 'aura_atelier_transactions'
 };
 
+// ===== КАРТОЧКИ ТОВАРОВ =====
+// ВСТАВЬТЕ СВОЙ МАССИВ PRODUCTS_DATA ЗДЕСЬ
 const PRODUCTS_DATA = [
-    {
-        id: 1,
-        name: "Aris 222 VIP Bleck",
-        description: "Представленный на изображении товар — это Aris 222 VIP Black, концентрированное парфюмерное масло духи без спирта. Верхние ноты: Абсент, анис и фенхель. Средняя нота: Лаванда. Базовые ноты: Черная ваниль и мускус.",
-        price: 350,
-        oldPrice: 0,
-        category: "premium",
-        volume: 6,
-        rating: 4.8,
-        reviews: 124,
-        image: "https://sun9-80.userapi.com/s/v1/ig2/POV_jt4v0MEj7d-4gdkRYIFYTBL-hvXmDLOjJKlY-RqeOgcO1NxWHXAss7UBTzkvI8rdLMEdpqZwJeARBqh7iyc3.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=tt6otIk9Wzym_IH9u6oWb4gDXhDWpPwiNQ5muEOgTHo&cs=240x0",
-        badge: "hit",
-        inStock: true,
-        popular: true,
-        notes: ["лаванда", "чёрная ваниль", "мускус"]
-    },
-    {
-        id: 2,
-        name: "Dalal",
-        description: "Dalal — масляные духи бренда Al Rehab из ОАЭ. Относятся к семейству сладких, древесных и гурманских ароматов. Благодаря масляной консистенции духи имеют хорошую стойкость и экономичны в расходе. Запах держится до 12 часов! Аромат:  Верхние ноты: апельсин. Ноты сердца: карамель, ваниль. Базовые ноты: сандаловое дерево.Композиция напоминает о карамельном чизкейке и ванильном мороженом с апельсиновым джемом",
-        price: 350,
-        oldPrice: 0,
-        category: "premium",
-        volume: 6,
-        rating: 4.9,
-        reviews: 100,
-        image: "https://sun9-41.userapi.com/s/v1/ig2/vkEyo2KDCGJhawzJ2PSYbdY9h4EOrh30HrjwefVSCbYOSqJPoXruX0WobRyxKbRBw8BvdlL8sejPGZ4p-RrVjUOO.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=m0AEgal8BacMT-TAXZva7xEf1ZAAdIa_7ZvmQJYgIsY&cs=360x0",
-        badge: "hit",
-        inStock: true,
-        popular: true,
-        notes: ["апельсин", "карамель", "ваниль", "сандаловое дерево"]
-    },
-    {
-        id: 3,
-        name: "Black Opium",
-        description: "Это - женские духи из группы восточные гурманские. Композиция глубокая, насыщенная, сладкая и притягательная. Верхние ноты: груша, розовый перец и цветок апельсина. Средние ноты: кофе, жасмин, горький миндаль и лакричник. Базовые ноты: ваниль, пачули, кедр и кашемировое дерево.",
-        price: 350,
-        oldPrice: 0,
-        category: "affordable",
-        volume: 6,
-        rating: 4.6,
-        reviews: 100,
-        image: "https://sun9-43.userapi.com/s/v1/ig2/7OuPKSCxdwp7oHCuEccqLkHkK_-ovx6ks842VjcS4nIExZ1VGhdLfUhSz-ueglS4PgI_fh29HEvPqFLzNlKj3tej.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=DTS3NJnjcShlWzwIHzZ9tgVLIOKUx8JWVEEhGsoYZH0&cs=640x0",
-        badge: "null",
-        inStock: true,
-        popular: false,
-        notes: ["кофе", "жасмин", "ваниль", "кедр", "горький миндаль"]
-    },
-    {
-        id: 4,
-        name: "Creed Aventus For Her",
-        description: "Limited Edition Creed Aventus For Her - женский аромат. Это фруктово шипровая парфюмерная вода с нотами зеленого яблока, лимона, бергамота, розы, сандала и мускуса",
-        price: 350,
-        oldPrice: 0,
-        category: "premium",
-        volume: 6,
-        rating: 4.9,
-        reviews: 167,
-        image: "https://sun9-79.userapi.com/s/v1/ig2/XOkgSK57rv_tI2P2NE_TQ_5nKYuTRM_AUJfT2YQ53g0-5lW9ETR7FbZ4yRYeNTHIuBcNPhP4lKiON3Nwe1sMTy0S.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=L5LPBfopJzZuCDe9YN9SywE0Br_mxxQTJfwhp4lDlAI&cs=360x0",
-        badge: "hit",
-        inStock: true,
-        popular: true,
-        notes: ["бергамот", "мускус", "роза", "лимон", "сандал", "зелёное яблоко"]
-    },
-    {
-        id: 5,
-        name: "Kirki Aksa",
-        description: "Концентрированное эфирное масло Kirki Aksa - это унисекс парфюм с фруктово шипровым ароматом. Верхние ноты - Маракуйя персик, малина, лист черной смородины, груша, песок. Средние ноты - Ландыш. Базовые ноты - Гелиотроп, сандал, ваниль, пачули, мускус.",
-        price: 350,
-        oldPrice: 0,
-        category: "premium",
-        volume: 6,
-        rating: 4.7,
-        reviews: 187,
-        image: "https://sun9-84.userapi.com/s/v1/ig2/LDMpV1ihJnWYPte5wGmG-BxwBsBptbz7QSARpRMRdZt-fpO0wy_4ZPiEPS0oWkLxjFPzRm1wdDYeA2n88xh7Fegn.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=QhV-dEoaJC83x6egk46Ej6FZETeNOMWtoQnFpIMrEII&cs=360x0",
-        badge: "null",
-        inStock: true,
-        popular: true,
-        notes: ["маракуйя", "персик", "ваниль"]
-    },
-    {
-        id: 6,
-        name: "Black Opium",
-        description: "Это масляные духи с феромонами Black Opium — это женская парфюмерная вода",
-        price: 350,
-        oldPrice: 0,
-        category: "affordable",
-        volume: 6,
-        rating: 4.5,
-        reviews: 92,
-        image: "https://sun9-37.userapi.com/s/v1/ig2/sE51AVESqed4uV7s0G1BwL6YiNvoyG81xw3TEiygep-FuH_44Vl82QuVDfVZteIIdCAa1NAXQ2A-fQDnoOtisjq4.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=RXKCzPLanm6VtxbnzBnP-I3Ki7th8SeNxFq2aFmrLDE&cs=360x0",
-        badge: null,
-        inStock: true,
-        popular: false,
-        notes: ["жасмин", "груша", "кофе"]
-    },
-    {
-        id: 7,
-        name: "YARAN Voux",
-        description: "YARAN Voux от Aris Perfumes — это концентрированное парфюмерное масло (CPO). Это унисекс-аромат, который относится к восточным или гурманским коллекциям, схожим с другими ароматами от брендов, таких как Paris Corner.",
-        price: 350,
-        oldPrice: 0,
-        category: "premium",
-        volume: 6,
-        rating: 4.8,
-        reviews: 143,
-        image: "https://sun9-18.userapi.com/s/v1/ig2/JPe8xzc_vL633B2Y0VenFoeipK_joP7GR9FZZ565Z7XEuh8CeoYJxM7GmBFilsfBbropmaZze7L5RJ5ISim-VNa8.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=DwhSt-8w64gm4QVZgK4wKRnie5o2V4HtkWzexyWhaos&cs=360x0",
-        badge: "null",
-        inStock: true,
-        popular: true,
-        notes: ["ваниль", "сандал", "мускус"]
-    },
-    {
-        id: 8,
-        name: "Al Rayan G&D Limperatrice",
-        description: "Al Rayan G&D Limperatrice — это концентрированное масляное парфюмерное масло аттар. Композиция аромата включает следующие ноты: Верхние ноты: Розовый перец, ревень, киви. Средние ноты сердце: Арбуз, цикламен, жасмин. Базовые ноты: Мускус, сандал, лимонное китайское дерево. Описание Аромат описывается как яркий, игривый и энергичный, с доминирующими аккордами сочных тропических фруктов и свежестью. Он подходит для дневного ношения, особенно в весенне-летний период.",
-        price: 350,
-        oldPrice: 0,
-        category: "affordable",
-        volume: 6,
-        rating: 4.6,
-        reviews: 56,
-        image: "https://sun9-32.userapi.com/s/v1/ig2/u7kV68pjiyC_Ep97GMc8IEBXIH5cX50pFb6q5MNe7wnyULSvSD4-xUH6qRePG96lG1aWbOChxMLH_QshKz3HP9Uj.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=lf3dVx7r5RsUdRttLycIgRe0gYshLVfBPnVAmBYt9_0&cs=360x0",
-        badge: "new",
-        inStock: true,
-        popular: true,
-        notes: ["ревень", "киви", "арбуз", "мускус"]
-    },
-    {
-        id: 9,
-        name: "Al-Rayan Kilian By In The City",
-        description: "Представленный на изображении товар - это масляные духи Al-Rayan Kilian By In The City Верхние ноты - Бергамот, гватемальский кардамон и розовый перец. Ноты сердца - Абрикос, карамелизованная слива, турецкая роза и ладан. Базовые ноты: Кедр, индонезийский пачули.",
-        price: 350,
-        oldPrice: 0,
-        category: "affordable",
-        volume: 6,
-        rating: 4.4,
-        reviews: 234,
-        image: "https://sun9-6.userapi.com/s/v1/ig2/j3IQyd0QOc9sOzrhRtrqAih-tEG7x5xPiZMfCVxsQyVlb3HjvwSl6OAQK_7QVoRurh9X7w1zX0dEDG12-77JCtQs.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=ytxGprY0FWbTGBoY3EXaC9oX0EfZcJY43B7M6hNMe5g&cs=360x0",
-        badge: "null",
-        inStock: true,
-        popular: true,
-        notes: ["кедр", "абрикос", "розовый перец"]
-    },
-    {
-        id: 10,
-        name: "Lacoste green",
-        description: "Это — фужерный, цитрусовый аромат для мужчин. стойкое звучание аромата благодаря натуральным маслам и отсутствию спирта; шлейф благодаря тяжёлым молекулам, который раскрывается неторопливо под воздействием тепла кожи и перемены окружающей среды; изменчивость аромата: в тёплом помещении или на жаркой летней улице духи звучат сильнее, раскрываясь под воздействием температуры. Верхние ноты: грейпфрут, дыня, ноты бергамота. Ноты сердца: лимонная вербена, лаванда, тмин. Базовые ноты: берёза, инжир.",
-        price: 350,
-        oldPrice: 0,
-        category: "premium",
-        volume: 6,
-        rating: 4.9,
-        reviews: 189,
-        image: "https://sun9-78.userapi.com/s/v1/ig2/NjbkM41fqN_ElkBHjJWyzjAoGorjvfDBd881IiagMDgy853FarvwWKOFlIK8N_cXQH2xd0lgrKkQb3tIMWLVpBHo.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=VPX8vTYi-reFtDkiHwd1GmDpWymqCFgG4vqjSKpfa4Y&cs=640x0",
-        badge: "hit",
-        inStock: true,
-        popular: true,
-        notes: ["дыня", "береза", "инжир"]
-    },
-    {
-        id: 11,
-        name: "Black Afgano",
-        description: "Изображенный на фото товар — это масляные духи с феромонами объемом  6 мл под названием Black Afgano, выпущенные под маркой Pheromon Limited Edition. Описание продукта: Масляные духи с феромонами унисекс. Аромат: Это парфюмерное масло вдохновлено известным оригинальным ароматом Nasomatto Black Afgano, который отличается густым, дымным, древесным и плотным звучанием с нотами  смолы, кофе, табака и ладана",
-        price: 350,
-        oldPrice: 0,
-        category: "affordable",
-        volume: 6,
-        rating: 4.5,
-        reviews: 78,
-        image: "https://sun9-4.userapi.com/s/v1/ig2/XtGtcV14S3upSGqy5SMaZwgHF1oUkavESD9-FDqy08tU3pzNmPw9VN9tMjRx0nVdPIpeM-FfdeutQbG-9o5R8qHR.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=4GI8IGXu6hM54RSYQlvBZjdBhjxuFYbLoDgmtTTHXZM&cs=240x0",
-        badge: null,
-        inStock: true,
-        popular: false,
-        notes: ["табак", "смола", "кофе"]
-    },
-    {
-        id: 12,
-        name: "Lost cherry Tom ford",
-        description: "Детали продукта Оригинальный аромат: Lost Cherry от Tom Ford - это люксовая восточно-цветочная парфюмерная вода Eau de Parfum для мужчин и женщин, выпущенная в 2018 году. Продукт на изображении, является масляными духами, вдохновленными оригинальным ароматом, часто с добавлением синтетических феромонов.",
-        price: 350,
-        oldPrice: 0,
-        category: "premium",
-        volume: 6,
-        rating: 4.8,
-        reviews: 312,
-        image: "https://sun9-38.userapi.com/s/v1/ig2/uPgqjLUFPMlBHeNEe9CCZYzn1wappYDHmT_cDn8aldq8HidoeXPwyOAX5OHL1YJ1s94WORcWvEZY9hZPwfHFJSZV.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=o2THPZ5FizJ22_R1Sr3J0c12VSXfXGC4rYgfpYfpR1c&cs=240x0",
-        badge: "hit",
-        inStock: true,
-        popular: true,
-        notes: [".", ".", "."]
-    },
-    {
-        id: 13,
-        name: "LACOSTE ESSENTIAL",
-        description: "Lacoste essential pheromon Limited Edition — это масляные духи с феромонами. Тип аромата: Древесный, фужерный",
-        price: 350,
-        oldPrice: 0,
-        category: "affordable",
-        volume: 6,
-        rating: 4.5,
-        reviews: 137,
-        image: "https://sun9-22.userapi.com/s/v1/ig2/q2Pv9a9helePHmcz5NOLAfWetXLXxiksBtqbkvLyhqcIH3WDHiF0WcdYKakuhqtM_5FKe7_qO_DXn2BSWh07-CtR.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=vWg79uv0PR6vMntoQuUoyKEJJtWacOOeOXpjH-juSrw&cs=240x0",
-        badge: null,
-        inStock: true,
-        popular: false,
-        notes: ["фужерный", "древестный"]
-    },
-    {
-        id: 14,
-        name: "Allur Home Sport",
-        description: "Парфюм на изображении — это Pheromon Limited Edition Allur Home Sport, который представляет собой версию с феромонами, вдохновленную известным ароматом Chanel Allure Homme Sport. Аромат: Мужской, относится к группе древесных пряных ароматов. Композиция сочетает цитрусовые, морские и древесные ноты.",
-        price: 350,
-        oldPrice: 0,
-        category: "affordable",
-        volume: 6,
-        rating: 4.4,
-        reviews: 146,
-        image: "https://sun9-3.userapi.com/s/v1/ig2/SPsgBvzNMm9FCG0YhncWZd7GwB075inz1ZySBRggHyw8GU51Yw96PUJq27KzHFV7DRUHMixSIG6qzfHo_jOOZeKk.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=g54CooC5RUFBToh3mgEDVpcyjM5ZOBuPHTAxQSTK4_g&cs=240x0",
-        badge: null,
-        inStock: true,
-        popular: false,
-        notes: ["нота1", "нота", "нота3"]
-    },
-    {
-        id: 15,
-        name: "Acqua Di Gio Giorgio Armani",
-        description: "Pheromon Limited Edition Acqua Di Gio Giorgio Armani — это версия туалетной воды Acqua Di Gio, представленная в формате масляных духов с феромонами. Ноты: Композиция включает морские ноты, розмарин, жасмин, кедр и пачули.",
-        price: 350,
-        oldPrice: 0,
-        category: "affordable",
-        volume: 6,
-        rating: 4.7,
-        reviews: 155,
-        image: "https://sun9-66.userapi.com/s/v1/ig2/sUV2Bm7T9gnxiIqW9DeH4hUXCVNMM4X9xK5wGFKb3ULdjzYum2NsCq7MnCwZi_M76c_dZOsIml1i8tKRn0m9siRM.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=FOrDOsjR7X_6WNiekSjoAHlQU__DAfnKBnvSaCF4bzw&cs=240x0",
-        badge: null,
-        inStock: true,
-        popular: false,
-        notes: ["кедр", "жасмин", "пачули"]
-    },
-    {
-        id: 16,
-        name: "Sospiro Erba Pura",
-        description: "Представленный товар — это масляные духи с феромонами Sospiro Erba Pura Limited Edition. Аромат: Композиция описывается как свежая, с нотами апельсина, лимона и бергамота в верхних нотах, фруктовым сердцем и базой из амбры, белого мускуса и мадагаскарской ванили.",
-        price: 350,
-        oldPrice: 0,
-        category: "affordable",
-        volume: 6,
-        rating: 4.6,
-        reviews: 212,
-        image: "https://sun9-49.userapi.com/s/v1/ig2/HlvVp54Fl1yUYEQrIdMsqsbhrFZjmkzV7Kc3WHJiFUW8SLzG8ptT3CHHRYgCyPp1t3SsCtIjqmnFt1DohZTPoqzf.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=iSxrvU5lePOWtaEQ2vUPQra_jXzu-0msPIKa2wzHVRw&cs=360x0",
-        badge: null,
-        inStock: true,
-        popular: false,
-        notes: ["лимон", "белый мускус", "бергамот"]
-    },
-    {
-        id: 17,
-        name: "Aamal Perfume Kirkèy",
-        description: "Aamal Perfume Kirkèy — выразительный и устойчивый аромат в стильном серебристом  флаконе объёмом 10 мл. Композиция раскрывается яркими верхними акцентами, продолжает с насыщенным сердцем, а в базе остаётся тёплая, благородная древесно-амбровая подложка.",
-        price: 600,
-        oldPrice: 0,
-        category: "premium",
-        volume: 10,
-        rating: 4.9,
-        reviews: 812,
-        image: "https://sun9-88.userapi.com/s/v1/ig2/rTw-cKmVkkw3lCPa5uzf-XhDLQXVxkC97Wp14jqjC--1nMdE5qDAK82u9q-yoYe3j7e_0Wshx9EGY-JSE1FVBkzV.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=cB1Hj3xqPdYrsJuEGjMwZ8cjtK3h4jxlBiJBYwKJwmE&cs=360x0",
-        badge: "new",
-        inStock: true,
-        popular: true,
-        notes: ["дерево", "амбра", "сердце"]
-    },   
-    {
-        id: 18,
-        name: "DolceGabbana L'IMPÉRATRICE 3",
-        description: "DolceGabbana L'IMPÉRATRICE 3 - изящный и игривый фруктово-цветочный парфюм в концентрации Eau de Parfum. Аромат раскрывается сочными акцентами цитрусовых и зелёных фруктов, плавно переходит в сердце из нежных цветочных нот и завершает композицию лёгкой мускусно-древесной базой. Подчёркивает женственность и хорошее настроение, отлично подойдёт для дневных выходов, свиданий и в качестве подарка. Рекомендации по использованию и уходу: Наносите на чистую кожу на запястья и шею. Храните в прохладном, сухом месте вдали от прямых солнечных лучей.",
-        price: 800,
-        oldPrice: 0,
-        category: "premium",
-        volume: 25,
-        rating: 4.9,
-        reviews: 832,
-        image: "https://sun9-69.userapi.com/s/v1/ig2/gA5hz2p9kPwvAerpx6g5Eg19OK0Gqu9Tcc92rXgZ1eJP7LT4CgdYwojrELgx8tFUq1mexghkxK9GCZVT_ZPwfvn4.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=qhXA7Smf8X5x0aDKtq2k_QGxp0csE1vR3Qo8nQu3HKo&cs=360x0",
-        badge: "new",
-        inStock: true,
-        popular: true,
-        notes: ["цитрусы", "зелёные фрукты", "древесно-мускусный"]
-    },
-    {
-        id: 19,
-        name: "Narcotiq Aksa Esans",
-        description: "Авто духи Narcotiq Aksa Esans — это идеальное решение для тех, кто хочет добавить уникальный аромат в свой автомобиль Особенности Narcotiq Aksa Esans: Уникальный аромат: Сочетание свежести и теплоты, которое создаст атмосферу уюта и комфорта в вашем автомобиле. Почему стоит выбрать Narcotiq Aksa Esans? Эти авто духи идеально подходят для любых автомобилей и станут отличным подарком для друзей и близких. Создайте уникальную атмосферу в своем автомобиле с Narcotiq Aksa Esans! Не упустите возможность сделать ваши поездки более приятными! Заказывайте уже сегодня! Эти духи созданы с использованием высококачественных ингредиентов, что обеспечивает стойкость и насыщенность аромата.",
-        price: 350,
-        oldPrice: 0,
-        category: "new",
-        volume: 6,
-        rating: 4.9,
-        reviews: 152,
-        image: "https://sun9-21.userapi.com/s/v1/ig2/3APuudW8_9XaoVk5ejtsGuhqnMUEvnAwTe_2PPc2d2JqW5p0kFY-JiA39U11ooLnSje7xtPr0es-r2KjmLkPwI8E.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=XI58JvJb2axcWb8x7spZ00qQmoorfkkdf53Oosgg6t4&cs=360x0",
-        badge: "new",
-        inStock: true,
-        popular: true,
-    },
-    {
-        id: 20,
-        name: "Savage Aksa Esans",
-        description: "Авто духи Savage Aksa Esans. Описание продукта: Авто духи Savage Aksa Esans — это уникальный аромат для вашего автомобиля, который наполняет пространство свежестью и создает атмосферу комфорта. Характеристики: Форма: Масляные духи без спиртовой основы. Производитель: Турецкая компания Aksa Esans. Стойкость: Длительное время, благодаря концентрированной формуле. Аромат: Savage Aksa Esans сочетает в себе насыщенные восточные и древесные ноты, создавая гармоничное и притягательное звучание. Способ применения: Нанесите несколько капель на вату или специальный ароматизатор и разместите в салоне автомобиля. Также можно использовать в качестве ароматизатора для помещений.",
-        price: 350,
-        oldPrice: 0,
-        category: "new",
-        volume: 6,
-        rating: 4.9,
-        reviews: 104,
-        image: "https://sun9-16.userapi.com/s/v1/ig2/R1rTPUArQ0ZySKG16cmdEx6t-FsPqsE2_dmTvKjA8J890RnY9EXEEBvFW77WBGAXqPVcWcaBGEkc2_F1IPnUrN2x.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=9ZwHw-HBGKjeL1YyOjr20WYtv-XhFDMjw7bWMU3Rlg4&cs=360x0",
-        badge: "new",
-        inStock: true,
-        popular: true,
-    },
-    {
-        id: 21,
-        name: "White Horse (Al-Rehab)",
-        description: "White Horse (Al-Rehab) Характер аромата: свежее начало с лёгкими цитрусово-зелёными акцентами, цветочно-пряное сердце и тёплая база с древесно-амбровыми и мускусными оттенкам — элегантно и универсально. Подходит: унисекс, для дневного и вечернего ношения, особенно приятен в прохладную погоду.",
-        price: 350,
-        oldPrice: 0,
-        category: "new",
-        volume: 6,
-        rating: 5.0,
-        reviews: 244,
-        image: "https://sun9-39.userapi.com/s/v1/ig2/LTjwjGG__SCRXVQfIgd2cx-2OV8nng3r-Gvo18Hpqxete9VKjGgrsb8K7-E5XSrKjMwRhrG2JlV7bzn5hTxObl06.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=LOordP3a_j18NgabckULWlTMPxtGLtYD2yXIB7jA6G8&cs=360x0",
-        badge: "new",
-        inStock: true,
-        popular: true,
-    },
-    {
-        id: 22,
-        name: "AKSA Esans — ECLAD",
-        description: "AKSA Esans — ECLAD Изысканный цветочно‑восточный аромат Нежная роза в сердце композиции гармонично сочетается со сладкими и пряными акцентами, раскрываясь теплым, мягким базисом.",
-        price: 350,
-        oldPrice: 0,
-        category: "new",
-        volume: 6,
-        rating: 4.7,
-        reviews: 201,
-        image: "https://sun9-61.userapi.com/s/v1/ig2/RL0hQOXGOQqhq3G6OdtOkwsVcWy72U03b3PQ8ebmkcFwKHEZ-gRf5VVkOxZ1Hv6iqYqa_WfPV-OEGt_4SDIYiTvi.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=19GFWqJdGo4RLXtt5RJW4_zWH2nu4HrbJ_mxBNSAFWk&cs=360x0",
-        badge: "new",
-        inStock: true,
-        popular: true,
-    },
-    {
-        id: 23,
-        name: "Crown Perfumes (Al‑Rehab)",
-        description: "Crown Perfumes (Al‑Rehab) - Аромат создает образ уверенного, стильного мужчины: начинается насыщенными верхними нотами, раскрывается мягкими пряными сердечными акцентами и ложится теплым древесно‑амбровым шлейфом.",
-        price: 350,
-        oldPrice: 0,
-        category: "new",
-        volume: 6,
-        rating: 4.8,
-        reviews: 167,
-        image: "https://sun9-74.userapi.com/s/v1/ig2/oOCV-RGTvzmgaKkjeS5dUale0YWiGwO7k69b6wZ2sZFuI8De9wyFnR6wSA96G-Pa-MZVXqGcoKJAtRsAdn0GRq0I.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=PdfutB6y1btkbh8q2oenNOx87J7D50up_n0P7Z3qXbk&cs=360x0",
-        badge: "new",
-        inStock: true,
-        popular: true,
-    },
+    // ВАШ МАССИВ ТОВАРОВ БУДЕТ ЗДЕСЬ
 ];
 
 // ===== ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ =====
 document.addEventListener('DOMContentLoaded', function() {
-    initApp();
+    // Сначала инициализируем Telegram WebApp
+    initTelegramWebApp();
+    // Затем остальные компоненты
     loadData();
     setupBanners();
     renderProducts();
@@ -440,52 +82,124 @@ document.addEventListener('DOMContentLoaded', function() {
     initProfile();
 });
 
-function initApp() {
-    // Инициализация Telegram WebApp
-    if (window.Telegram && window.Telegram.WebApp) {
+// Функция для инициализации Telegram WebApp
+function initTelegramWebApp() {
+    // Проверяем наличие Telegram WebApp
+    if (typeof window.Telegram !== 'undefined' && window.Telegram.WebApp) {
         tg = window.Telegram.WebApp;
         
-        // Расширяем на весь экран
+        console.log('Telegram WebApp обнаружен');
+        console.log('initDataUnsafe:', tg.initDataUnsafe);
+        console.log('User:', tg.initDataUnsafe?.user);
+        
+        // Инициализация WebApp
+        tg.ready();
         tg.expand();
         
-        // Устанавливаем цвета
+        // Настраиваем цвета
         tg.setHeaderColor('#0F0F1E');
         tg.setBackgroundColor('#0F0F1E');
         
-        // Проверяем, авторизован ли пользователь
-        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+        // Включаем кнопку закрытия, если доступна
+        if (tg.CloseButton) {
+            tg.CloseButton.show();
+        }
+        
+        // Если пользователь уже авторизован в Telegram
+        if (tg.initDataUnsafe?.user) {
+            const telegramUser = tg.initDataUnsafe.user;
+            
+            // Сохраняем пользователя
             user = {
-                id: tg.initDataUnsafe.user.id,
-                username: tg.initDataUnsafe.user.username || `user_${tg.initDataUnsafe.user.id}`,
-                firstName: tg.initDataUnsafe.user.first_name || 'Пользователь',
-                lastName: tg.initDataUnsafe.user.last_name || '',
-                photoUrl: tg.initDataUnsafe.user.photo_url
+                id: telegramUser.id,
+                username: telegramUser.username || `user_${telegramUser.id}`,
+                firstName: telegramUser.first_name || 'Пользователь',
+                lastName: telegramUser.last_name || '',
+                photoUrl: telegramUser.photo_url
             };
             
-            // Автоматически входим в аккаунт
-            userProfile = { ...user };
-            isLoggedIn = true;
-            saveToStorage(STORAGE_KEYS.PROFILE, userProfile);
-            
-            console.log('Пользователь Telegram авторизован:', user);
+            // Автоматический вход
+            loginWithTelegramData(telegramUser);
         } else {
-            // Пользователь не авторизован в Telegram
-            user = null;
-            userProfile = null;
-            isLoggedIn = false;
-            console.log('Пользователь Telegram не авторизован');
+            console.log('Пользователь Telegram не авторизован через initData');
         }
-    } else {
-        // Режим вне Telegram
-        console.log('Приложение запущено вне Telegram');
-        user = null;
-        userProfile = null;
-        isLoggedIn = false;
         
-        // Показываем уведомление
+        // Настраиваем основную кнопку
+        setupMainButton();
+        
+    } else {
+        console.log('Telegram WebApp не обнаружен, работаем в браузерном режиме');
+        // Можно показать уведомление для пользователя
         setTimeout(() => {
-            showNotification('Для полноценной работы войдите через Telegram', 'info');
-        }, 1000);
+            showNotification('Для лучшего опыта откройте в Telegram', 'info');
+        }, 2000);
+    }
+}
+
+// Функция для входа с данными Telegram
+function loginWithTelegramData(telegramUser) {
+    userProfile = {
+        id: telegramUser.id,
+        username: telegramUser.username || `user_${telegramUser.id}`,
+        firstName: telegramUser.first_name || 'Пользователь Telegram',
+        lastName: telegramUser.last_name || '',
+        photoUrl: telegramUser.photo_url,
+        authDate: Date.now()
+    };
+    
+    isLoggedIn = true;
+    saveToStorage(STORAGE_KEYS.PROFILE, userProfile);
+    updateProfileUI();
+    console.log('Вход выполнен с данными Telegram:', userProfile);
+}
+
+// Настройка основной кнопки Telegram
+function setupMainButton() {
+    if (!tg || !tg.MainButton) return;
+    
+    // Настраиваем основную кнопку для оформления заказа
+    tg.MainButton.setText('ОФОРМИТЬ ЗАКАЗ');
+    tg.MainButton.setParams({
+        color: '#8A2BE2',
+        text_color: '#FFFFFF'
+    });
+    
+    // Обработчик клика по основной кнопке
+    tg.MainButton.onClick(function() {
+        if (cart.length === 0) {
+            showNotification('Добавьте товары в корзину', 'info');
+            return;
+        }
+        
+        if (!isAddressSaved || !deliveryAddress) {
+            showNotification('Укажите адрес доставки', 'warning');
+            return;
+        }
+        
+        if (selectedCartItems.length === 0) {
+            showNotification('Выберите товары для заказа', 'warning');
+            return;
+        }
+        
+        processOrder();
+    });
+    
+    // Показываем кнопку только когда есть товары
+    tg.MainButton.hide();
+}
+
+// Обновление видимости основной кнопки
+function updateTelegramMainButton() {
+    if (!tg || !tg.MainButton) return;
+    
+    const hasItems = cart.length > 0;
+    const hasSelectedItems = selectedCartItems.length > 0;
+    const hasAddress = isAddressSaved && deliveryAddress;
+    
+    if (hasItems && hasSelectedItems && hasAddress) {
+        tg.MainButton.show();
+    } else {
+        tg.MainButton.hide();
     }
 }
 
@@ -534,6 +248,7 @@ function loadAddress() {
         }
         updateAddressStatus();
         updateCheckoutButton();
+        updateTelegramMainButton();
     }
 }
 
@@ -593,52 +308,36 @@ function updateProfileUI() {
     }
 }
 
+// Обновленная функция входа через Telegram
 function loginWithTelegram() {
-    if (window.Telegram && window.Telegram.WebApp) {
-        // Используем встроенную авторизацию Telegram WebApp
-        const tg = window.Telegram.WebApp;
-        
-        if (tg.initDataUnsafe?.user) {
-            // Данные пользователя уже доступны
-            userProfile = {
-                id: tg.initDataUnsafe.user.id,
-                username: tg.initDataUnsafe.user.username || `user_${tg.initDataUnsafe.user.id}`,
-                firstName: tg.initDataUnsafe.user.first_name || 'Пользователь',
-                lastName: tg.initDataUnsafe.user.last_name || '',
-                photoUrl: tg.initDataUnsafe.user.photo_url,
-                authDate: tg.initDataUnsafe.auth_date
-            };
-            
-            isLoggedIn = true;
-            saveToStorage(STORAGE_KEYS.PROFILE, userProfile);
-            updateProfileUI();
-            showNotification('Вы успешно вошли в аккаунт', 'success');
-        } else {
-            // Запрашиваем авторизацию
-            tg.requestAuthorization?.(() => {
-                if (tg.initDataUnsafe?.user) {
-                    userProfile = {
-                        id: tg.initDataUnsafe.user.id,
-                        username: tg.initDataUnsafe.user.username || `user_${tg.initDataUnsafe.user.id}`,
-                        firstName: tg.initDataUnsafe.user.first_name || 'Пользователь',
-                        lastName: tg.initDataUnsafe.user.last_name || '',
-                        photoUrl: tg.initDataUnsafe.user.photo_url,
-                        authDate: tg.initDataUnsafe.auth_date
-                    };
-                    
-                    isLoggedIn = true;
-                    saveToStorage(STORAGE_KEYS.PROFILE, userProfile);
-                    updateProfileUI();
-                    showNotification('Вы успешно вошли в аккаунт', 'success');
+    // Если Telegram WebApp доступен и пользователь уже авторизован
+    if (tg && tg.initDataUnsafe?.user) {
+        const telegramUser = tg.initDataUnsafe.user;
+        loginWithTelegramData(telegramUser);
+        showNotification('Вы успешно вошли через Telegram', 'success');
+        return;
+    }
+    
+    // Если в режиме Telegram WebApp, но пользователь не авторизован
+    if (tg) {
+        // Запрашиваем авторизацию через Telegram
+        if (tg.requestAuthorization) {
+            tg.requestAuthorization('https://t.me/Aa_Atelier', function(authorized) {
+                if (authorized && tg.initDataUnsafe?.user) {
+                    const telegramUser = tg.initDataUnsafe.user;
+                    loginWithTelegramData(telegramUser);
+                    showNotification('Вы успешно авторизовались', 'success');
+                } else {
+                    showNotification('Авторизация не удалась', 'warning');
                 }
             });
+        } else {
+            showNotification('Функция авторизации недоступна', 'warning');
         }
     } else {
-        // Вне Telegram - показываем инструкцию
-        showNotification('Для входа откройте приложение в Telegram', 'warning');
-        setTimeout(() => {
-            window.open('https://t.me/Aa_Atelier', '_blank');
-        }, 1500);
+        // Если не в Telegram, открываем ссылку на бота
+        window.open('https://t.me/Aa_Atelier', '_blank');
+        showNotification('Откройте ссылку в Telegram для входа', 'info');
     }
 }
 
@@ -711,6 +410,7 @@ function saveAddress() {
             saveToStorage(STORAGE_KEYS.ADDRESS, deliveryAddress);
             updateAddressStatus();
             updateCheckoutButton();
+            updateTelegramMainButton();
             showNotification('Адрес сохранен', 'success');
             return true;
         } else {
@@ -1026,6 +726,7 @@ function toggleCart(productId, event) {
     updateCartCount();
     updateCartPopup();
     renderProducts();
+    updateTelegramMainButton();
 }
 
 function updateCartCount() {
@@ -1124,6 +825,7 @@ function updateCartPopup() {
     
     updateCartSummary();
     updateCheckoutButton();
+    updateTelegramMainButton();
 }
 
 function toggleCartItemSelection(productId) {
@@ -1154,6 +856,7 @@ function toggleCartItemSelection(productId) {
     updateSelectedCount();
     updateSelectAllState();
     updateCheckoutButton();
+    updateTelegramMainButton();
     updateCartSummary();
 }
 
@@ -1185,6 +888,7 @@ function toggleSelectAll() {
     updateSelectedCount();
     updateSelectAllState();
     updateCheckoutButton();
+    updateTelegramMainButton();
     updateCartSummary();
 }
 
@@ -1240,6 +944,7 @@ function updateQuantity(productId, delta, newValue = null) {
     updateCartCount();
     updateCartPopup();
     renderProducts();
+    updateTelegramMainButton();
 }
 
 function removeFromCart(productId) {
@@ -1256,6 +961,7 @@ function removeFromCart(productId) {
     updateCartCount();
     updateCartPopup();
     renderProducts();
+    updateTelegramMainButton();
     
     showNotification('Товар удален из корзины', 'info');
 }
@@ -1602,6 +1308,100 @@ function closeProductDetailsModal() {
     }
     
     document.body.style.overflow = 'auto';
+}
+
+// ===== ОБРАБОТКА ЗАКАЗОВ =====
+function processOrder() {
+    if (cart.length === 0) {
+        showNotification('Добавьте товары в корзину', 'info');
+        return;
+    }
+    
+    if (!isAddressSaved || !deliveryAddress) {
+        showNotification('Сначала укажите адрес доставки', 'warning');
+        
+        const addressInput = document.getElementById('deliveryAddress');
+        if (addressInput) {
+            addressInput.focus();
+        }
+        return;
+    }
+    
+    // Проверяем, что выбраны товары
+    if (selectedCartItems.length === 0) {
+        showNotification('Выберите товары для заказа', 'warning');
+        return;
+    }
+    
+    // Фильтруем только выбранные товары
+    const selectedItems = cart.filter(item => selectedCartItems.includes(item.id));
+    const total = selectedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    
+    // Формируем текст заказа
+    const orderItems = selectedItems.map(item => 
+        `${item.name} - ${item.quantity} × ${item.price.toLocaleString()}₽ = ${(item.price * item.quantity).toLocaleString()}₽`
+    ).join('\n');
+    
+    const orderText = `
+📨 **Новый заказ в Aura Atelier**
+
+📦 **Товары (${selectedItems.length}):**
+${orderItems}
+
+🧾 **Итого:** ${total.toLocaleString()}₽
+📍 **Адрес доставки:** ${deliveryAddress}
+📅 **Дата:** ${new Date().toLocaleString('ru-RU')}
+👤 **Покупатель:** ${userProfile ? userProfile.firstName || userProfile.username : 'Неавторизованный пользователь'}
+
+💬 **Связь:** @Ayder505
+    `.trim();
+    
+    // Если в Telegram WebApp
+    if (tg && tg.sendData) {
+        const orderData = {
+            userId: userProfile ? userProfile.id : 'anonymous',
+            username: userProfile ? userProfile.username : 'anonymous',
+            items: selectedItems.map(item => ({
+                name: item.name,
+                price: item.price,
+                quantity: item.quantity,
+                total: item.price * item.quantity
+            })),
+            total: total,
+            deliveryAddress: deliveryAddress,
+            timestamp: new Date().toISOString()
+        };
+        
+        tg.sendData(JSON.stringify(orderData));
+        
+        // Показываем уведомление в Telegram
+        if (tg.showAlert) {
+            tg.showAlert(`Заказ оформлен!\n\nСумма: ${total.toLocaleString()}₽\nТоваров: ${selectedItems.length}\nАдрес: ${deliveryAddress}\n\nС вами свяжется менеджер для подтверждения.`);
+        }
+    } else {
+        // Вне Telegram - отправляем в Telegram через ссылку
+        const telegramUrl = `https://t.me/Ayder505?text=${encodeURIComponent(orderText)}`;
+        window.open(telegramUrl, '_blank');
+        showNotification(`Заказ на ${total.toLocaleString()}₽ отправлен менеджеру`, 'success');
+    }
+    
+    // Сохраняем транзакцию
+    addTransaction({
+        items: selectedItems,
+        total: total,
+        deliveryAddress: deliveryAddress
+    });
+    
+    // Удаляем только выбранные товары из корзины
+    cart = cart.filter(item => !selectedCartItems.includes(item.id));
+    selectedCartItems = [];
+    saveToStorage(STORAGE_KEYS.CART, cart);
+    updateCartCount();
+    updateCartPopup();
+    renderProducts();
+    updateTelegramMainButton();
+    
+    closeCartPopup();
 }
 
 // ===== ФИЛЬТРЫ И ПОИСК =====
@@ -2058,6 +1858,7 @@ function initEventListeners() {
                 saveToStorage(STORAGE_KEYS.ADDRESS, deliveryAddress);
                 updateAddressStatus();
                 updateCheckoutButton();
+                updateTelegramMainButton();
             }
         }, 1000);
     });
@@ -2110,94 +1911,7 @@ function initEventListeners() {
     });
     
     // Оформление заказа
-    document.getElementById('checkoutBtn')?.addEventListener('click', function() {
-        if (cart.length === 0) {
-            showNotification('Добавьте товары в корзину', 'info');
-            return;
-        }
-        
-        if (!isAddressSaved || !deliveryAddress) {
-            showNotification('Сначала укажите адрес доставки', 'warning');
-            
-            this.classList.add('shake');
-            setTimeout(() => this.classList.remove('shake'), 500);
-            
-            const addressInput = document.getElementById('deliveryAddress');
-            if (addressInput) {
-                addressInput.focus();
-            }
-            return;
-        }
-        
-        // Проверяем, что выбраны товары
-        if (selectedCartItems.length === 0) {
-            showNotification('Выберите товары для заказа', 'warning');
-            
-            this.classList.add('shake');
-            setTimeout(() => this.classList.remove('shake'), 500);
-            return;
-        }
-        
-        // Фильтруем только выбранные товары
-        const selectedItems = cart.filter(item => selectedCartItems.includes(item.id));
-        const total = selectedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        const orderItems = selectedItems.map(item => 
-            `${item.name} - ${item.quantity} × ${item.price.toLocaleString()}₽ = ${(item.price * item.quantity).toLocaleString()}₽`
-        ).join('\n');
-        
-        const orderText = `
-📨 **Новый заказ в Aura Atelier**
-
-📦 **Товары (${selectedItems.length}):**
-${orderItems}
-
-🧾 **Итого:** ${total.toLocaleString()}₽
-📍 **Адрес доставки:** ${deliveryAddress}
-📅 **Дата:** ${new Date().toLocaleString('ru-RU')}
-
-💬 **Связь:** @Ayder505
-        `.trim();
-        
-        if (tg.sendData) {
-            const orderData = {
-                userId: user.id,
-                username: user.username,
-                items: selectedItems,
-                total: total,
-                deliveryAddress: deliveryAddress,
-                timestamp: new Date().toISOString()
-            };
-            
-            tg.sendData(JSON.stringify(orderData));
-            tg.showAlert(`Заказ оформлен!\n\nСумма: ${total.toLocaleString()}₽\nТоваров: ${selectedItems.length}\nАдрес: ${deliveryAddress}\n\nС вами свяжется менеджер для подтверждения.`);
-        } else {
-            const telegramUrl = `https://t.me/Ayder505?text=${encodeURIComponent(orderText)}`;
-            window.open(telegramUrl, '_blank');
-            showNotification(`Заказ на ${total.toLocaleString()}₽ отправлен менеджеру`, 'success');
-        }
-        
-        // Сохраняем транзакцию
-        const orderData = {
-            userId: user.id,
-            username: user.username,
-            items: selectedItems,
-            total: total,
-            deliveryAddress: deliveryAddress,
-            timestamp: new Date().toISOString()
-        };
-        
-        addTransaction(orderData);
-        
-        // Удаляем только выбранные товары из корзины
-        cart = cart.filter(item => !selectedCartItems.includes(item.id));
-        selectedCartItems = [];
-        saveToStorage(STORAGE_KEYS.CART, cart);
-        updateCartCount();
-        updateCartPopup();
-        renderProducts();
-        
-        closeCartPopup();
-    });
+    document.getElementById('checkoutBtn')?.addEventListener('click', processOrder);
     
     // Обработка кликов по кнопкам в карточках товаров
     document.addEventListener('click', function(event) {
