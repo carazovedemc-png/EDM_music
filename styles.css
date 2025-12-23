@@ -223,7 +223,7 @@ body {
     margin: var(--space-lg) 0;
     border-radius: var(--radius-lg);
     overflow: hidden;
-    background: rgba(15, 15, 30, 0.5); /* Фон по умолчанию */
+    background: transparent;
 }
 
 .banner-slide {
@@ -232,14 +232,9 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.8s ease-in-out, visibility 0.8s;
-    padding: 0;
-    text-align: center;
 }
 
 .banner-slide.active {
@@ -247,7 +242,7 @@ body {
     visibility: visible;
 }
 
-/* Градиентные баннеры */
+/* Градиентные баннеры - без фона для текста */
 .banner-slide.exclusive {
     background: linear-gradient(135deg, 
         rgba(138, 43, 226, 0.9), 
@@ -255,6 +250,10 @@ body {
         rgba(255, 107, 139, 0.7));
     background-size: 200% 200%;
     animation: gradientMove 8s ease infinite;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
 }
 
 .banner-slide.contacts {
@@ -264,32 +263,31 @@ body {
         rgba(138, 43, 226, 0.7));
     background-size: 200% 200%;
     animation: gradientMove 8s ease infinite 4s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
 }
 
-/* Баннеры с изображением */
+/* Баннеры с изображением - просто картинка */
 .banner-slide.image-banner {
-    background-color: rgba(15, 15, 30, 0.8); /* Темный фон под изображением */
-    background-size: cover; /* Изображение полностью помещается */
+    background-color: transparent;
+    background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
 }
 
-/* Если изображение очень широкое, используем cover */
-.banner-slide.image-banner.wide-image {
-    background-size: cover;
-    background-position: center 30%; /* Центрируем по вертикали */
-}
-
+/* Текст для градиентных баннеров - без фона */
 .banner-content {
     position: relative;
     z-index: 2;
     padding: var(--space-md);
-    border-radius: var(--radius-md);
-    background: rgba(15, 15, 30, 0.7); /* Полупрозрачный темный фон для текста */
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    max-width: 80%;
-    margin: 0 auto;
+    max-width: 90%;
+    text-align: center;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border-radius: 0 !important;
 }
 
 .banner-content h1 {
@@ -309,6 +307,18 @@ body {
     margin-bottom: 0;
 }
 
+/* Ссылки в тексте баннеров должны быть белыми */
+.banner-content a {
+    color: white !important;
+    text-decoration: underline !important;
+    font-weight: 600;
+}
+
+.banner-content a:hover {
+    color: var(--color-secondary-light) !important;
+}
+
+/* Ссылка на весь баннер - абсолютно невидимая */
 .banner-link {
     position: absolute;
     top: 0;
@@ -317,7 +327,17 @@ body {
     height: 100%;
     z-index: 3;
     cursor: pointer;
-    display: block;
+    opacity: 0 !important;
+    display: block !important;
+    text-decoration: none !important;
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+}
+
+/* Для баннера с картинкой - убедимся, что нет текста */
+.banner-slide.image-banner .banner-content {
+    display: none !important;
 }
 
 /* ===== ОСНОВНОЙ КОНТЕНТ ===== */
@@ -1472,71 +1492,58 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: var(--space-lg);
-    min-height: 70px;
+    padding: var(--space-md) var(--space-lg);
+    min-height: 60px;
     flex-shrink: 0;
     background: rgba(30, 30, 46, 0.95);
     border-bottom: 1px solid var(--color-border);
 }
 
-.profile-popup-title {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: var(--color-text);
-    margin: 0;
-    white-space: nowrap;
-}
-
 .profile-close-btn {
-    order: 3;
-    width: 36px;
-    height: 36px;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: var(--radius-circle);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: var(--color-text-secondary);
-    transition: all 0.3s ease;
-    font-size: 1.2rem;
-    margin-left: auto;
+    width: 32px;
+    height: 32px;
+    font-size: 1.1rem;
+    margin-left: 0;
 }
 
 .profile-login-btn-container {
-    order: 1;
     margin-right: auto;
 }
 
 .profile-login-btn {
-    padding: 10px 18px;
+    padding: 8px 16px;
     background: var(--color-primary);
     color: white;
     border: none;
-    border-radius: 24px;
-    font-weight: 600;
+    border-radius: 20px;
+    font-weight: 500;
     cursor: pointer;
     transition: all 0.3s ease;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     font-size: 0.9rem;
-    white-space: nowrap;
-    min-height: 44px;
+    height: 40px;
+    min-width: 90px;
+    justify-content: center;
 }
 
 .profile-login-btn.logged-in {
     background: var(--color-success);
-    padding: 10px 20px;
+    min-width: 100px;
 }
 
-.profile-login-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(138, 43, 226, 0.3);
+.profile-login-btn i {
+    font-size: 1rem;
+}
+
+#loginBtnText {
+    font-size: 0.85rem;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 70px;
 }
 
 .profile-body {
@@ -1616,12 +1623,28 @@ body {
     font-size: 1rem;
     font-weight: 500;
     min-height: 60px;
+    text-decoration: none !important;
+    border: none;
+    font-family: inherit;
 }
 
 .profile-menu-item:hover {
+    text-decoration: none !important;
     background: rgba(255, 255, 255, 0.12);
     border-color: var(--color-primary);
     transform: translateX(5px);
+}
+
+.profile-menu-item a {
+    text-decoration: none !important;
+    color: inherit;
+    display: contents;
+}
+
+.profile-popup a,
+.profile-popup a:hover,
+.profile-popup a:visited {
+    text-decoration: none !important;
 }
 
 .profile-menu-item i:first-child {
@@ -1738,6 +1761,74 @@ body {
 
 .empty-transactions p {
     color: var(--color-text-secondary);
+}
+
+/* ===== МОДАЛЬНОЕ ОКНО АВТОРИЗАЦИИ ===== */
+.auth-modal {
+    max-width: 320px;
+}
+
+.auth-form {
+    padding: var(--space-md);
+}
+
+.form-group {
+    margin-bottom: var(--space-lg);
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--color-text);
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: var(--radius-md);
+    color: var(--color-text);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-group input:focus {
+    border-color: var(--color-primary);
+    background: rgba(255, 255, 255, 0.12);
+    outline: none;
+}
+
+.btn-auth-submit {
+    width: 100%;
+    padding: 14px;
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: var(--space-lg);
+}
+
+.btn-auth-submit:hover {
+    background: var(--color-primary-light);
+}
+
+.auth-hint {
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+    margin-top: var(--space-md);
+    text-align: center;
+    line-height: 1.4;
 }
 
 /* ===== МОДАЛЬНОЕ ОКНО ТОВАРА ===== */
