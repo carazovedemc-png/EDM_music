@@ -42,7 +42,7 @@ let bannerConfig = {
             text: "",
             type: "image",
             gradient: "",
-            imageUrl: "https://sun9-63.userapi.com/s/v1/ig2/08QQmfcwGorKcFQPSAocILkdLdmUYKOf8yB_z_WOYANV6PhJns32WPqbEtbp1_H3YRwE8AV6Tx2_IaxcaCxnTe2w.jpg?quality=95&as=32x15,48x22,72x34,108x50,160x75,240x112,360x168,480x224,540x252,640x299,720x336,1080x504,1280x597,1440x672,1732x808&from=bu&u=0t0jjC50h5nlaHCgJuh891ec4TKp5fN3Nf59Wz0IFRU&cs=640x0",
+            imageUrl: "https://sun9-2.userapi.com/s/v1/ig2/-23lLxLyFhE7viOEUD86RzLxMRlwKIdoIZF5PGYY_DsXHQsbXqrw5TwgurrXUBQCNPY5tJurX7CWsqWwPlyHFemD.jpg?quality=95&as=32x16,48x23,72x35,108x53,160x78,240x117,360x176,480x235,540x264,640x313,720x352,964x471&from=bu&u=tgC8ayUUqzwUxJInHliFRTCgWqCaoN5HbE1qrkfkLDc&cs=640x0",
             link: "https://t.me/EDM_TM",
             enabled: true
         }
