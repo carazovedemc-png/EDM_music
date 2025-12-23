@@ -1700,11 +1700,43 @@ body {
     border-color: var(--color-danger);
 }
 
-/* ===== ПОПАП ТРАНЗАКЦИЙ С КНОПКОЙ ОЧИСТКИ ===== */
-.transactions-popup {
-    position: relative;
-    max-width: 450px;
+/* ===== ИСПРАВЛЕНИЯ ДЛЯ ПОПАПА ТРАНЗАКЦИЙ ===== */
+.transactions-popup.glass-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.9);
+    width: 90%;
+    max-width: 420px;
     max-height: 70vh;
+    background: rgba(30, 30, 46, 0.95);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-popup);
+    z-index: 1002;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.transactions-popup.glass-popup.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.transactions-popup .popup-body {
+    padding: var(--space-lg);
+    max-height: calc(70vh - 80px);
+    overflow-y: auto;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 .transactions-list {
@@ -1713,7 +1745,7 @@ body {
     padding-right: 5px;
     position: relative;
     min-height: 200px;
-    padding-bottom: 60px; /* Место для кнопки */
+    flex: 1;
 }
 
 .transaction-item {
@@ -1722,6 +1754,12 @@ body {
     border-radius: var(--radius-md);
     border: 1px solid var(--color-border);
     margin-bottom: var(--space-sm);
+    transition: all 0.3s ease;
+}
+
+.transaction-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-2px);
 }
 
 .transaction-header {
@@ -1734,44 +1772,53 @@ body {
 .transaction-date {
     font-size: 0.85rem;
     color: var(--color-text-secondary);
+    font-weight: 500;
 }
 
 .transaction-amount {
     font-weight: 700;
     color: var(--color-success);
+    font-size: 1.1rem;
 }
 
 .transaction-items {
     font-size: 0.9rem;
     color: var(--color-text-secondary);
     margin-bottom: 8px;
+    line-height: 1.4;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .transaction-status {
     display: inline-block;
-    padding: 4px 8px;
+    padding: 4px 10px;
     border-radius: 12px;
     font-size: 0.75rem;
     font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .transaction-status.completed {
     background: rgba(0, 214, 143, 0.2);
     color: var(--color-success);
-}
-
-.transaction-status.pending {
-    background: rgba(255, 170, 0, 0.2);
-    color: var(--color-warning);
+    border: 1px solid rgba(0, 214, 143, 0.3);
 }
 
 .empty-transactions {
     text-align: center;
-    padding: 40px 20px;
+    padding: 60px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    min-height: 300px;
 }
 
 .empty-transactions i {
-    font-size: 3rem;
+    font-size: 3.5rem;
     color: var(--color-text-muted);
     margin-bottom: 20px;
     opacity: 0.3;
@@ -1779,36 +1826,9 @@ body {
 
 .empty-transactions p {
     color: var(--color-text-secondary);
-}
-
-/* ===== КНОПКА ОЧИСТКИ ТРАНЗАКЦИЙ ===== */
-.clear-transactions-btn {
-    position: absolute;
-    bottom: 20px;
-    right: 20px;
-    width: 44px;
-    height: 44px;
-    background: linear-gradient(135deg, #FF3D71, #FF3860);
-    color: white;
-    border: none;
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 1.2rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 15px rgba(255, 61, 113, 0.3);
-    transition: all 0.3s ease;
-    z-index: 10;
-}
-
-.clear-transactions-btn:hover {
-    transform: scale(1.1);
-    box-shadow: 0 6px 20px rgba(255, 61, 113, 0.4);
-}
-
-.clear-transactions-btn:active {
-    transform: scale(0.95);
+    font-size: 1rem;
+    max-width: 250px;
+    line-height: 1.5;
 }
 
 /* ===== МОДАЛЬНОЕ ОКНО АВТОРИЗАЦИИ ===== */
@@ -2524,14 +2544,6 @@ body {
         padding: 8px 12px;
         font-size: 0.8rem;
         min-height: 36px;
-    }
-    
-    .clear-transactions-btn {
-        width: 40px;
-        height: 40px;
-        font-size: 1rem;
-        bottom: 15px;
-        right: 15px;
     }
 }
 

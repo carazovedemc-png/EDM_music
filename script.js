@@ -65,24 +65,6 @@ const STORAGE_KEYS = {
 // ВСТАВЬТЕ СВОЙ МАССИВ PRODUCTS_DATA ЗДЕСЬ
 const PRODUCTS_DATA = [
     // ВАШ МАССИВ ТОВАРОВ БУДЕТ ЗДЕСЬ
-    // Пример структуры товара:
-    // {
-    //     id: 1,
-    //     name: "Название товара",
-    //     description: "Описание товара",
-    //     price: 1000,
-    //     oldPrice: 1200,
-    //     category: "premium",
-    //     volume: 6,
-    //     gender: "male", // "male", "female" или "unisex"
-    //     rating: 4.8,
-    //     reviews: 124,
-    //     image: "URL изображения",
-    //     badge: "hit", // "new", "sale", "hit" или null
-    //     inStock: true,
-    //     popular: true,
-    //     notes: ["нота1", "нота2", "нота3"]
-    // }
 ];
 
 // ===== ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ =====
@@ -351,6 +333,12 @@ function addTransaction(orderData) {
     };
     
     transactions.unshift(transaction); // Добавляем в начало
+    
+    // Автоматическая очистка: оставляем только последние 5 транзакций
+    if (transactions.length > 5) {
+        transactions = transactions.slice(0, 5);
+    }
+    
     saveToStorage(STORAGE_KEYS.TRANSACTIONS, transactions);
     updateTransactionsUI();
 }
@@ -390,43 +378,6 @@ function updateTransactionsUI() {
         
         transactionsList.appendChild(transactionElement);
     });
-    
-    // Добавляем кнопку очистки
-    addClearTransactionsButton();
-}
-
-function addClearTransactionsButton() {
-    // Удаляем старую кнопку очистки, если она есть
-    const oldClearBtn = document.getElementById('clearTransactionsBtn');
-    if (oldClearBtn) oldClearBtn.remove();
-    
-    if (transactions.length === 0) return;
-    
-    // Создаем кнопку
-    const clearBtn = document.createElement('button');
-    clearBtn.id = 'clearTransactionsBtn';
-    clearBtn.className = 'clear-transactions-btn';
-    clearBtn.innerHTML = '<i class="fas fa-trash"></i>';
-    clearBtn.title = 'Очистить историю транзакций';
-    
-    // Добавляем обработчик
-    clearBtn.addEventListener('click', function(e) {
-        e.stopPropagation();
-        e.preventDefault();
-        
-        if (confirm('Вы уверены, что хотите очистить всю историю транзакций?')) {
-            transactions = [];
-            saveToStorage(STORAGE_KEYS.TRANSACTIONS, transactions);
-            updateTransactionsUI();
-            showNotification('История транзакций очищена', 'info');
-        }
-    });
-    
-    // Добавляем кнопку в контейнер транзакций
-    const transactionsList = document.getElementById('transactionsList');
-    if (transactionsList) {
-        transactionsList.appendChild(clearBtn);
-    }
 }
 
 function saveAddress() {
@@ -486,9 +437,6 @@ function setupBanners() {
             slide.style.backgroundSize = 'cover';
             slide.style.backgroundPosition = 'center center';
             slide.style.backgroundRepeat = 'no-repeat';
-            
-            // Для баннера с картинкой НЕ добавляем banner-content вообще
-            // Только картинка и ссылка
         } else {
             // Для градиентных баннеров добавляем текст
             if (banner.title || banner.text) {
@@ -511,7 +459,7 @@ function setupBanners() {
             }
         }
         
-        // Добавляем ссылку если указана - КАЖДЫЙ БАННЕР СО СВОЕЙ ССЫЛКОЙ
+        // Добавляем ссылку если указана
         if (banner.link && banner.link.trim() !== '') {
             const link = document.createElement('a');
             link.className = 'banner-link';
@@ -1757,20 +1705,28 @@ function closeProfilePopup() {
 }
 
 function openTransactionsPopup() {
-    document.getElementById('transactionsPopup').classList.add('show');
-    document.getElementById('overlay').classList.add('show');
-    document.body.style.overflow = 'hidden';
-    updateTransactionsUI();
+    const popup = document.getElementById('transactionsPopup');
+    const overlay = document.getElementById('overlay');
     
-    // Добавляем кнопку очистки
-    setTimeout(() => {
-        addClearTransactionsButton();
-    }, 100);
+    if (popup && overlay) {
+        popup.classList.add('show');
+        overlay.classList.add('show');
+        document.body.style.overflow = 'hidden';
+        updateTransactionsUI();
+        
+        // Фокус на попапе для доступности
+        setTimeout(() => {
+            popup.focus();
+        }, 100);
+    }
 }
 
 function closeTransactionsPopup() {
-    document.getElementById('transactionsPopup').classList.remove('show');
-    document.getElementById('overlay').classList.remove('show');
+    const popup = document.getElementById('transactionsPopup');
+    const overlay = document.getElementById('overlay');
+    
+    if (popup) popup.classList.remove('show');
+    if (overlay) overlay.classList.remove('show');
     document.body.style.overflow = 'auto';
 }
 
