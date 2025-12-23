@@ -388,6 +388,73 @@ const PRODUCTS_DATA = [
     },
     {
         id: 20,
+        name: "Savage Aksa Esans",
+        description: "Авто духи Savage Aksa Esans — это уникальный аромат для вашего автомобиля, который наполняет пространство свежестью и создает атмосферу комфорта. Характеристики: Форма: Масляные духи без спиртовой основы. Производитель: Турецкая компания Aksa Esans. Стойкость: Длительное время, благодаря концентрированной формуле. Аромат: Savage Aksa Esans сочетает в себе насыщенные восточные и древесные ноты, создавая гармоничное и притягательное звучание. Способ применения: Нанесите несколько капель на вату или специальный ароматизатор и разместите в салоне автомобиля. Также можно использовать в качестве ароматизатора для помещений.",
+        price: 350,
+        oldPrice: 0,
+        category: "auto",
+        volume: 6,
+        gender: "unisex", // Добавлено
+        rating: 4.9,
+        reviews: 104,
+        image: "https://sun9-16.userapi.com/s/v1/ig2/R1rTPUArQ0ZySKG16cmdEx6t-FsPqsE2_dmTvKjA8J890RnY9EXEEBvFW77WBGAXqPVcWcaBGEkc2_F1IPnUrN2x.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=9ZwHw-HBGKjeL1YyOjr20WYtv-XhFDMjw7bWMU3Rlg4&cs=360x0",
+        badge: "new",
+        inStock: true,
+        popular: true,
+        notes: ["восточные ноты", "древесные ноты", "мускус"] // Добавлено
+    },
+    {
+        id: 21,
+        name: "White Horse (Al-Rehab)",
+        description: "White Horse (Al-Rehab) Характер аромата: свежее начало с лёгкими цитрусово-зелёными акцентами, цветочно-пряное сердце и тёплая база с древесно-амбровыми и мускусными оттенкам — элегантно и универсально. Подходит: унисекс, для дневного и вечернего ношения, особенно приятен в прохладную погоду.",
+        price: 350,
+        oldPrice: 0,
+        category: "new",
+        volume: 6,
+        gender: "unisex", // Добавлено
+        rating: 5.0,
+        reviews: 244,
+        image: "https://sun9-39.userapi.com/s/v1/ig2/LTjwjGG__SCRXVQfIgd2cx-2OV8nng3r-Gvo18Hpqxete9VKjGgrsb8K7-E5XSrKjMwRhrG2JlV7bzn5hTxObl06.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=LOordP3a_j18NgabckULWlTMPxtGLtYD2yXIB7jA6G8&cs=360x0",
+        badge: "new",
+        inStock: true,
+        popular: true,
+        notes: ["цитрусы", "зелёные ноты", "мускус", "амбра"] // Добавлено
+    },
+    {
+        id: 22,
+        name: "AKSA Esans — ECLAD",
+        description: "AKSA Esans — ECLAD Изысканный цветочно‑восточный аромат Нежная роза в сердце композиции гармонично сочетается со сладкими и пряными акцентами, раскрываясь теплым, мягким базисом.",
+        price: 350,
+        oldPrice: 0,
+        category: "new",
+        volume: 6,
+        gender: "female", // Добавлено
+        rating: 4.7,
+        reviews: 201,
+        image: "https://sun9-61.userapi.com/s/v1/ig2/RL0hQOXGOQqhq3G6OdtOkwsVcWy72U03b3PQ8ebmkcFwKHEZ-gRf5VVkOxZ1Hv6iqYqa_WfPV-OEGt_4SDIYiTvi.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=19GFWqJdGo4RLXtt5RJW4_zWH2nu4HrbJ_mxBNSAFWk&cs=360x0",
+        badge: "new",
+        inStock: true,
+        popular: true,
+        notes: ["роза", "сладкие ноты", "пряности"] // Добавлено
+    },
+    {
+        id: 23,
+        name: "Crown Perfumes (Al‑Rehab)",
+        description: "Crown Perfumes (Al‑Rehab) - Аромат создает образ уверенного, стильного мужчины: начинается насыщенными верхними нотами, раскрывается мягкими пряными сердечными акцентами и ложится теплым древесно‑амбровым шлейфом.",
+        price: 350,
+        oldPrice: 0,
+        category: "new",
+        volume: 6,
+        gender: "male", // Добавлено
+        rating: 4.8,
+        reviews: 167,
+        image: "https://sun9-74.userapi.com/s/v1/ig2/oOCV-RGTvzmgaKkjeS5dUale0YWiGwO7k69b6wZ2sZFuI8De9wyFnR6wSA96G-Pa-MZVXqGcoKJAtRsAdn0GRq0I.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&u=PdfutB6y1btkbh8q2oenNOx87J7D50up_n0P7Z3qXbk&cs=360x0",
+        badge: "new",
+        inStock: true,
+        popular: true,
+        notes: ["пряности", "древесные ноты", "амбра"] // Добавлено
+    },
+];
 
 // ===== ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ =====
 document.addEventListener('DOMContentLoaded', function() {
