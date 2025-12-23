@@ -1327,6 +1327,29 @@ body {
     gap: 10px;
 }
 
+.btn-checkout-glass:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(138, 43, 226, 0.3);
+}
+
+/* Стиль для кнопки "Войти для заказа" */
+.btn-checkout-glass:not(:disabled)[title*="Войдите в аккаунт"] {
+    background: linear-gradient(135deg, #8A2BE2, #00CED1);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(138, 43, 226, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(138, 43, 226, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(138, 43, 226, 0);
+    }
+}
+
 .btn-checkout-glass:disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -1654,14 +1677,6 @@ body {
     font-size: 1rem;
 }
 
-.profile-menu-item i:last-child {
-    color: var(--color-text-secondary);
-    font-size: 0.8rem;
-    flex-shrink: 0;
-    margin-left: auto;
-    padding-left: 8px;
-}
-
 .logout-container {
     margin-top: auto;
     padding-top: var(--space-lg);
@@ -1689,11 +1704,16 @@ body {
 .transactions-popup {
     position: relative;
     max-width: 450px;
+    max-height: 70vh;
 }
 
 .transactions-list {
     max-height: 400px;
     overflow-y: auto;
+    padding-right: 5px;
+    position: relative;
+    min-height: 200px;
+    padding-bottom: 60px; /* Место для кнопки */
 }
 
 .transaction-item {
