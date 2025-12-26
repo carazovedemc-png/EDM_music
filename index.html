@@ -3,314 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Aura Atelier - эксклюзивные духи</title>
+    <title>EDM™ Studio</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/x-icon" href="https://img.icons8.com/color/96/000000/perfume-bottle.png">
 </head>
 <body>
-    <!-- Верхняя панель -->
-    <header class="top-header">
-        <div class="container">
-            <div class="header-top-row">
-                <!-- Логотип -->
-                <div class="logo">
-                    <div class="logo-icon-wrapper">
-                        <img src="https://sun9-82.userapi.com/s/v1/ig2/5F_JvkmONdoYqXz2czQN9q6pwM2zvdUBjebAw_mIMCPmYvieHPy4z4TAR8RfTRrYwBX8xsXsOrtOLOcsR8PPWWkM.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,448x448&from=bu&u=go-YJKFAACv9HaySzsp64EDmHmtNbKSmWlHpMACSshU&cs=448x0" alt="Aura Atelier" class="logo-img">
-                    </div>
-                    <div class="logo-text">
-                        <span class="logo-main">Aura Atelier</span>
-                        <span class="logo-sub">эксклюзивные духи</span>
-                    </div>
-                </div>
-                
-                <!-- Поиск -->
-                <div class="search-container">
-                    <div class="search-box">
-                        <input type="text" id="searchInput" placeholder="Поиск">
-                        <button class="search-btn-glass" id="searchBtn">
-                            <div class="search-glass-circle">
-                                <i class="fas fa-search"></i>
-                            </div>
-                        </button>
-                    </div>
-                </div>
-            </div>
+
+    <header class="glass-header">
+        <nav>
+            <a href="#hero" class="nav-link active"><i class="fas fa-home"></i></a>
+            <a href="#portfolio" class="nav-link"><i class="fas fa-layer-group"></i></a>
+            <a href="#services" class="nav-link"><i class="fas fa-shopping-bag"></i></a>
+        </nav>
+        <div class="profile-icon" id="profileBtn">
+            <i class="fas fa-user-circle"></i>
         </div>
     </header>
 
-    <!-- Баннер с переключением -->
-    <div class="container">
-        <div class="banner-container" id="bannerContainer">
-            <!-- Баннеры загружаются через JS -->
-        </div>
-    </div>
+    <main class="scroll-container">
 
-    <!-- Основной контент -->
-    <main class="container main-container">
-        <section class="main-content">
-            <div class="products-header">
-                <h2 id="categoryTitle">Рекомендации</h2>
-                <div class="sort-select-glass">
-                    <select id="sortBy">
-                        <option value="popular">По популярности</option>
-                        <option value="new">Сначала новинки</option>
-                        <option value="price-low">Цена: по возрастанию</option>
-                        <option value="price-high">Цена: по убыванию</option>
-                        <option value="rating">По рейтингу</option>
-                    </select>
-                    <i class="fas fa-chevron-down"></i>
-                </div>
-            </div>
-
-            <!-- Карточки товаров -->
-            <div class="products-grid" id="productsGrid">
-                <!-- Товары загружаются через JS -->
-            </div>
+        <section id="hero" class="section hero-section">
+            <div class="floating-tech-bg" id="techBg"></div>
             
-            <!-- Пагинация -->
-            <div class="pagination">
-                <button class="page-btn prev" id="prevPage" disabled>
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-                <div class="page-numbers" id="pageNumbers">
-                    <button class="page-btn active" data-page="1">1</button>
-                    <button class="page-btn" data-page="2">2</button>
-                    <button class="page-btn" data-page="3">3</button>
+            <div class="hero-content glass-card">
+                <div class="logo-container">
+                    <img id="heroLogo" src="" alt="Logo" class="main-logo">
+                    <div class="glow-effect"></div>
                 </div>
-                <button class="page-btn next" id="nextPage">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
+                <h1 id="heroTitle"></h1>
+                <p id="heroSubtitle"></p>
+                <button class="glass-btn primary" onclick="document.getElementById('services').scrollIntoView({behavior: 'smooth'})">Заказать проект</button>
             </div>
         </section>
+
+        <section id="portfolio" class="section">
+            <h2 class="section-title glass-text">Наши Проекты</h2>
+            <div class="cards-container" id="portfolioGrid">
+                </div>
+        </section>
+
+        <section id="services" class="section">
+            <h2 class="section-title glass-text">Услуги</h2>
+            <div class="cards-grid" id="servicesGrid">
+                </div>
+        </section>
+
     </main>
 
-    <!-- Нижняя панель -->
-    <nav class="bottom-nav-glass">
-        <div class="nav-inner">
-            <button class="nav-btn" id="navFavorites">
-                <i class="far fa-heart"></i>
-            </button>
-            <div class="nav-divider"></div>
-            
-            <button class="nav-btn" id="navCart">
-                <i class="fas fa-shopping-cart"></i>
-                <span class="nav-badge" id="bottomCartCount">0</span>
-            </button>
-            <div class="nav-divider"></div>
-            
-            <button class="nav-btn" id="navFilter">
-                <i class="fas fa-filter"></i>
-            </button>
-            <div class="nav-divider"></div>
-            
-            <button class="nav-btn" id="navProfile">
-                <i class="fas fa-user"></i>
-            </button>
-        </div>
-    </nav>
-
-    <!-- Попап корзины -->
-    <div class="cart-popup glass-popup" id="cartPopup">
-        <div class="popup-header">
-            <h3>Корзина</h3>
-            <button class="close-popup" id="closeCart">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="popup-body">
-            <div class="cart-items" id="cartItems">
-                <!-- Товары в корзине -->
-            </div>
-            
-            <!-- Адрес доставки -->
-            <div class="delivery-address-section">
-                <h4>Адрес доставки</h4>
-                <div class="address-input-container">
-                    <input type="text" id="deliveryAddress" class="address-input" placeholder="Введите адрес доставки">
-                    <button class="save-address-btn" id="saveAddressBtn">
-                        <i class="fas fa-check"></i>
-                    </button>
-                </div>
-                <div id="addressStatus" style="font-size: 0.8rem; color: var(--color-text-secondary); margin-top: 5px;">
-                    Адрес не указан
-                </div>
-            </div>
-            
-            <div class="cart-summary">
-                <div class="summary-row">
-                    <span>Товары</span>
-                    <span id="cartTotal">0 ₽</span>
-                </div>
-                <div class="summary-row total">
-                    <span>Итого</span>
-                    <span id="cartFinal">0 ₽</span>
-                </div>
-                <button class="btn-checkout-glass" id="checkoutBtn" title="Выберите товары для заказа">
-                    <i class="fas fa-paper-plane"></i>
-                    Оформить заказ
-                </button>
-            </div>
+    <div id="projectModal" class="modal">
+        <div class="modal-content glass-modal">
+            <span class="close-modal">&times;</span>
+            <img id="modalImg" src="" alt="">
+            <h3 id="modalTitle"></h3>
+            <p id="modalDesc"></p>
+            <button class="glass-btn" onclick="closeModal()">Закрыть</button>
         </div>
     </div>
 
-    <!-- Попап избранного -->
-    <div class="favorites-popup glass-popup" id="favoritesPopup">
-        <div class="popup-header">
-            <h3>Избранное</h3>
-            <button class="close-popup" id="closeFav">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="popup-body">
-            <div class="fav-items" id="favoritesItems">
-                <!-- Товары в избранном -->
-            </div>
-            <div class="fav-empty" id="favEmpty">
-                <i class="far fa-heart"></i>
-                <p>В избранном пока ничего нет</p>
-                <button class="btn-browse-glass" id="browseBtn">
-                    <i class="fas fa-store"></i>
-                    Перейти в каталог
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Попап фильтров -->
-    <div class="filter-popup glass-popup" id="filterPopup">
-        <div class="popup-header">
-            <h3>Фильтры</h3>
-            <button class="close-popup" id="closeFilter">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="popup-body">
-            <div class="filter-content">
-                <!-- Фильтры загружаются через JS -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Попап профиля -->
-    <div class="profile-popup glass-popup" id="profilePopup">
-        <div class="popup-header profile-popup-header">
-            <!-- Кнопка входа слева -->
-            <div class="profile-login-btn-container" id="loginBtnContainer">
-                <button class="profile-login-btn" id="profileLoginBtn">
-                    <i class="fas fa-user"></i>
-                    <span id="loginBtnText">Войти</span>
-                </button>
-            </div>
-            
-            <!-- Крестик закрытия справа -->
-            <button class="close-popup profile-close-btn" id="profileCloseBtn">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        
-        <div class="popup-body profile-body">
-            <div class="profile-user-info" id="userInfo" style="display: none;">
-                <div class="user-avatar">
-                    <i class="fas fa-user-circle"></i>
-                </div>
-                <div class="user-details">
-                    <h4 id="userName">Пользователь</h4>
-                    <span id="userId">ID: 0</span>
-                </div>
-            </div>
-            
-            <div class="profile-menu">
-                <button class="profile-menu-item" id="transactionsBtn">
-                    <i class="fas fa-receipt"></i>
-                    <span>Мои транзакции</span>
-                </button>
-                
-                <button class="profile-menu-item" id="referralBtn">
-                    <i class="fas fa-users"></i>
-                    <span>Реферальная программа</span>
-                </button>
-                
-                <a href="https://t.me/EDEM_CR" target="_blank" class="profile-menu-item">
-                    <i class="fas fa-headset"></i>
-                    <span>Служба поддержки</span>
-                </a>
-                
-                <a href="https://telegra.ph/POLZOVATELSKOE-SOGLASHENIE-po-ispolzovaniyu-programm-11-06" 
-                   target="_blank" class="profile-menu-item">
-                    <i class="fas fa-file-contract"></i>
-                    <span>Пользовательское соглашение</span>
-                </a>
-            </div>
-            
-            <!-- Контейнер для кнопки выхода -->
-            <div class="logout-container" id="logoutContainer" style="display: none;">
-                <button class="profile-menu-item logout-btn" id="logoutBtn">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Выйти</span>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Попап транзакций -->
-    <div class="transactions-popup glass-popup" id="transactionsPopup">
-        <div class="popup-header">
-            <h3>Мои транзакции</h3>
-            <button class="close-popup" id="closeTransactions">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="popup-body">
-            <div class="transactions-list" id="transactionsList">
-                <div class="empty-transactions">
-                    <i class="fas fa-receipt"></i>
-                    <p>У вас пока нет транзакций</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Модальное окно авторизации -->
-    <div class="auth-modal glass-popup" id="authModal">
-        <div class="popup-header">
+    <div id="loginModal" class="modal">
+        <div class="modal-content glass-modal small-modal">
+            <span class="close-modal-login">&times;</span>
             <h3>Вход в аккаунт</h3>
-            <button class="close-popup" onclick="closeAuthModal()">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="popup-body">
-            <div class="auth-form">
-                <div class="form-group">
-                    <label for="authUsername">Логин</label>
-                    <input type="text" id="authUsername" placeholder="Введите логин" autocomplete="username">
-                </div>
-                <div class="form-group">
-                    <label for="authPassword">Пароль</label>
-                    <input type="password" id="authPassword" placeholder="Введите пароль" autocomplete="current-password">
-                </div>
-                <button class="btn-auth-submit" onclick="handleLogin()">
-                    <i class="fas fa-sign-in-alt"></i>
-                    Войти
-                </button>
-                <p class="auth-hint">
-                    При первом входе будет создан новый аккаунт с указанными данными.
-                    ID пользователя будет сгенерирован автоматически.
-                </p>
-            </div>
+            <form class="login-form" onsubmit="event.preventDefault(); alert('Вход выполнен (локально)'); toggleLogin();">
+                <input type="text" placeholder="Логин" class="glass-input" required>
+                <input type="password" placeholder="Пароль" class="glass-input" required>
+                <button type="submit" class="glass-btn primary">Войти</button>
+            </form>
         </div>
     </div>
 
-    <!-- Модальное окно товара -->
-    <div class="product-details-modal" id="productDetailsModal">
-        <!-- Контент загружается динамически -->
-    </div>
-    <div class="product-modal-overlay" id="productModalOverlay"></div>
-
-    <!-- Оверлей для попапов -->
-    <div class="overlay" id="overlay"></div>
-
+    <script src="data.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
