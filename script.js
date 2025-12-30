@@ -4,11 +4,23 @@ class EDMAIApp {
         this.currentChatId = 'default';
         this.chats = {};
         this.userProfile = null;
-        this.settings = {
-            darkTheme: true,
-            animations: true
-        };
         this.isMenuOpen = false;
+        
+        // Свойства для голосового ввода
+        this.isRecording = false;
+        this.recognition = null;
+        this.finalTranscript = '';
+        
+        // Свойства для остановки генерации
+        this.isGenerating = false;
+        this.generationController = null;
+        this.lastPrompt = '';
+        this.partialResponse = '';
+        this.stoppedGenerationId = null;
+        
+        // Свойства для режима рассуждения
+        this.reasoningMode = false;
+        
         this.init();
     }
 
@@ -36,6 +48,9 @@ class EDMAIApp {
         
         // Инициализация горячих клавиш
         this.initHotkeys();
+        
+        // Инициализация распознавания речи
+        this.initSpeechRecognition();
     }
 
     initUI() {
@@ -49,32 +64,36 @@ class EDMAIApp {
             // Кнопки навигации
             menuToggle: document.getElementById('menu-toggle'),
             closeMenuBtn: document.getElementById('close-menu-btn'),
-            settingsBtn: document.getElementById('settings-btn'),
+            settingsBtnInMenu: document.getElementById('settings-btn-in-menu'),
             closeSettings: document.getElementById('close-settings'),
+            newChatBtnTop: document.getElementById('new-chat-btn-top'),
+            newChatMenuBtn: document.getElementById('new-chat-menu-btn'),
             
             // Элементы чата
             messageInput: document.getElementById('message-input'),
             sendBtn: document.getElementById('send-btn'),
-            attachBtn: document.getElementById('attach-btn'),
-            voiceBtn: document.getElementById('voice-btn'),
+            sendIcon: document.getElementById('send-icon'),
+            stopIcon: document.getElementById('stop-icon'),
+            voiceControlBtn: document.getElementById('voice-control-btn'),
+            stopRecordBtn: document.getElementById('stop-record-btn'),
+            
+            // Кнопки действий
+            searchBtn: document.getElementById('search-btn'),
+            reasoningBtn: document.getElementById('reasoning-btn'),
             
             // Список чатов
             chatsList: document.getElementById('chats-list'),
-            newChatBtn: document.getElementById('new-chat-btn'),
             
             // Модальные окна
             settingsModal: document.getElementById('settings-modal'),
             authModal: document.getElementById('auth-modal'),
+            profileModal: document.getElementById('profile-modal'),
             
             // Настройки API
             apiKeyInput: document.getElementById('api-key-input'),
             toggleKeyVisibility: document.getElementById('toggle-key-visibility'),
             saveApiBtn: document.getElementById('save-api-btn'),
             apiStatus: document.getElementById('api-status'),
-            
-            // Настройки интерфейса
-            darkThemeToggle: document.getElementById('dark-theme-toggle'),
-            animationsToggle: document.getElementById('animations-toggle'),
             
             // Аутентификация
             profilePlaceholder: document.getElementById('profile-placeholder'),
@@ -84,10 +103,18 @@ class EDMAIApp {
             registerBtn: document.getElementById('register-btn'),
             cancelAuth: document.getElementById('cancel-auth'),
             
-            // Дополнительные кнопки
-            searchBtn: document.getElementById('search-btn'),
-            reasoningBtn: document.getElementById('reasoning-btn'),
-            welcomeMessage: document.getElementById('welcome-message')
+            // Профиль
+            closeProfile: document.getElementById('close-profile'),
+            logoutBtn: document.getElementById('logout-btn'),
+            profileDisplay: document.getElementById('profile-display'),
+            
+            // Приветственное сообщение
+            welcomeMessage: document.getElementById('welcome-message'),
+            
+            // Панель продолжения генерации
+            continueGenerationPanel: document.getElementById('continue-generation-panel'),
+            continueGenerationBtn: document.getElementById('continue-generation-btn'),
+            generationStoppedText: document.querySelector('.generation-stopped-text')
         };
         
         // Назначаем обработчики событий
@@ -102,12 +129,23 @@ class EDMAIApp {
         this.elements.menuToggle.addEventListener('click', () => this.toggleMenu());
         this.elements.closeMenuBtn.addEventListener('click', () => this.closeMenu());
         
-        // Отправка сообщений
-        this.elements.sendBtn.addEventListener('click', () => this.sendMessage());
+        // Отправка сообщений и остановка генерации
+        this.elements.sendBtn.addEventListener('click', () => {
+            if (this.isGenerating) {
+                this.stopGeneration();
+            } else {
+                this.sendMessage();
+            }
+        });
+        
         this.elements.messageInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
-                this.sendMessage();
+                if (this.isGenerating) {
+                    this.stopGeneration();
+                } else {
+                    this.sendMessage();
+                }
             }
         });
         
@@ -117,45 +155,50 @@ class EDMAIApp {
         });
         
         // Настройки
-        this.elements.settingsBtn.addEventListener('click', () => this.showSettings());
+        this.elements.settingsBtnInMenu.addEventListener('click', () => this.showSettings());
         this.elements.closeSettings.addEventListener('click', () => this.hideSettings());
         
         // API настройки
         this.elements.saveApiBtn.addEventListener('click', () => this.saveApiKey());
         this.elements.toggleKeyVisibility.addEventListener('click', () => this.toggleKeyVisibility());
         
-        // Настройки интерфейса
-        this.elements.darkThemeToggle.addEventListener('change', (e) => this.toggleDarkTheme(e.target.checked));
-        this.elements.animationsToggle.addEventListener('change', (e) => this.toggleAnimations(e.target.checked));
+        // Новые чаты
+        this.elements.newChatBtnTop.addEventListener('click', () => this.createNewChat());
+        this.elements.newChatMenuBtn.addEventListener('click', () => {
+            this.createNewChat();
+            this.closeMenu();
+        });
         
         // Аутентификация
-        this.elements.profilePlaceholder.addEventListener('click', () => this.showAuthModal());
+        this.elements.profilePlaceholder.addEventListener('click', () => this.showProfileModal());
         this.elements.closeAuth.addEventListener('click', () => this.hideAuthModal());
         this.elements.registerBtn.addEventListener('click', () => this.registerUser());
         this.elements.cancelAuth.addEventListener('click', () => this.hideAuthModal());
         
-        // Закрытие модальных окон при клике вне их
-        [this.elements.settingsModal, this.elements.authModal].forEach(modal => {
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    this.hideModal(modal.id);
-                }
-            });
-        });
+        // Профиль
+        this.elements.closeProfile.addEventListener('click', () => this.hideProfileModal());
+        this.elements.logoutBtn.addEventListener('click', () => this.logout());
         
-        // Новый чат
-        this.elements.newChatBtn.addEventListener('click', () => this.createNewChat());
+        // Голосовой ввод
+        this.elements.voiceControlBtn.addEventListener('click', () => this.startVoiceRecognition());
+        this.elements.stopRecordBtn.addEventListener('click', () => this.stopVoiceRecognition());
         
         // Дополнительные кнопки
         this.elements.searchBtn.addEventListener('click', () => this.showSearch());
         this.elements.reasoningBtn.addEventListener('click', () => this.toggleReasoningMode());
         
-        // Анимация кнопки отправки
-        this.elements.sendBtn.addEventListener('mousedown', () => {
-            this.elements.sendBtn.classList.add('sending');
-            setTimeout(() => {
-                this.elements.sendBtn.classList.remove('sending');
-            }, 300);
+        // Продолжение генерации
+        this.elements.continueGenerationBtn.addEventListener('click', () => this.continueGeneration());
+        
+        // Закрытие модальных окон при клике вне их
+        [this.elements.settingsModal, this.elements.authModal, this.elements.profileModal].forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    if (modal.id === 'settings-modal') this.hideSettings();
+                    if (modal.id === 'auth-modal') this.hideAuthModal();
+                    if (modal.id === 'profile-modal') this.hideProfileModal();
+                }
+            });
         });
     }
 
@@ -178,6 +221,12 @@ class EDMAIApp {
                 if (this.elements.authModal.style.display === 'flex') {
                     this.hideAuthModal();
                 }
+                if (this.elements.profileModal.style.display === 'flex') {
+                    this.hideProfileModal();
+                }
+                if (this.isGenerating) {
+                    this.stopGeneration();
+                }
             }
             
             // Ctrl+K или Cmd+K - фокус на поле ввода
@@ -186,6 +235,57 @@ class EDMAIApp {
                 this.elements.messageInput.focus();
             }
         });
+    }
+
+    initSpeechRecognition() {
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            this.recognition = new SpeechRecognition();
+            this.recognition.continuous = false;
+            this.recognition.interimResults = true;
+            this.recognition.lang = 'ru-RU';
+            
+            this.recognition.onstart = () => {
+                this.isRecording = true;
+                this.elements.voiceControlBtn.style.display = 'none';
+                this.elements.stopRecordBtn.style.display = 'flex';
+                this.elements.stopRecordBtn.classList.add('recording');
+            };
+            
+            this.recognition.onresult = (event) => {
+                let interimTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        this.finalTranscript += event.results[i][0].transcript;
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
+                    }
+                }
+                
+                if (interimTranscript) {
+                    this.elements.messageInput.value = this.finalTranscript + interimTranscript;
+                    this.adjustTextareaHeight();
+                }
+            };
+            
+            this.recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                this.stopVoiceRecognition();
+                this.showNotification('Ошибка распознавания речи', 'error');
+            };
+            
+            this.recognition.onend = () => {
+                this.stopVoiceRecognition();
+                if (this.finalTranscript) {
+                    this.elements.messageInput.value = this.finalTranscript;
+                    this.adjustTextareaHeight();
+                    this.elements.messageInput.focus();
+                }
+            };
+        } else {
+            console.warn('Speech recognition not supported');
+            this.elements.voiceControlBtn.style.display = 'none';
+        }
     }
 
     loadData() {
@@ -209,12 +309,6 @@ class EDMAIApp {
         if (savedProfile) {
             this.userProfile = JSON.parse(savedProfile);
         }
-        
-        // Загрузка настроек
-        const savedSettings = localStorage.getItem('edm_ai_settings');
-        if (savedSettings) {
-            this.settings = JSON.parse(savedSettings);
-        }
     }
 
     saveData() {
@@ -223,7 +317,6 @@ class EDMAIApp {
         }
         localStorage.setItem('edm_ai_chats', JSON.stringify(this.chats));
         localStorage.setItem('edm_ai_current_chat', this.currentChatId);
-        localStorage.setItem('edm_ai_settings', JSON.stringify(this.settings));
         if (this.userProfile) {
             localStorage.setItem('edm_ai_profile', JSON.stringify(this.userProfile));
         }
@@ -248,6 +341,9 @@ class EDMAIApp {
         if (this.elements.welcomeMessage) {
             this.elements.welcomeMessage.style.display = 'none';
         }
+        
+        // Скрываем панель продолжения генерации
+        this.hideContinuePanel();
         
         // Загружаем сообщения из текущего чата
         const chat = this.chats[this.currentChatId];
@@ -274,6 +370,10 @@ class EDMAIApp {
         const message = this.elements.messageInput.value.trim();
         if (!message) return;
         
+        // Сохраняем промпт для возможного продолжения
+        this.lastPrompt = message;
+        this.partialResponse = '';
+        
         // Очищаем поле ввода
         this.elements.messageInput.value = '';
         this.adjustTextareaHeight();
@@ -292,12 +392,23 @@ class EDMAIApp {
         const loadingId = 'loading_' + Date.now();
         this.showTypingIndicator(loadingId);
         
+        // Устанавливаем флаг генерации
+        this.isGenerating = true;
+        this.updateSendButtonState();
+        
+        // Создаем контроллер для возможности прерывания
+        this.generationController = new AbortController();
+        
         try {
-            // Отправляем запрос к AI
-            const response = await this.callGeminiAPI(message);
+            // Отправляем запрос к API
+            const response = await this.callGeminiAPI(message, this.generationController.signal);
             
             // Убираем индикатор загрузки
             this.hideTypingIndicator(loadingId);
+            
+            // Сбрасываем флаг генерации
+            this.isGenerating = false;
+            this.updateSendButtonState();
             
             // Показываем ответ AI
             this.addMessageToUI(response, 'ai');
@@ -306,26 +417,136 @@ class EDMAIApp {
             // Убираем индикатор загрузки
             this.hideTypingIndicator(loadingId);
             
-            // Показываем ошибку
-            console.error('Ошибка при отправке сообщения:', error);
-            this.addMessageToUI(`Ошибка: ${error.message}`, 'ai');
+            // Сбрасываем флаг генерации
+            this.isGenerating = false;
+            this.updateSendButtonState();
+            
+            // Проверяем, была ли остановка генерации
+            if (error.name === 'AbortError') {
+                // Генерация была остановлена пользователем
+                this.stoppedGenerationId = loadingId;
+                this.showContinuePanel();
+            } else {
+                // Другая ошибка
+                console.error('Ошибка при отправке сообщения:', error);
+                this.addMessageToUI(`Ошибка: ${error.message}`, 'ai');
+            }
         }
     }
 
-    async callGeminiAPI(prompt) {
+    stopGeneration() {
+        if (this.isGenerating && this.generationController) {
+            // Прерываем запрос
+            this.generationController.abort();
+            
+            // Сбрасываем флаг генерации
+            this.isGenerating = false;
+            this.updateSendButtonState();
+            
+            // Показываем уведомление
+            this.showNotification('Генерация остановлена', 'info');
+        }
+    }
+
+    continueGeneration() {
+        if (!this.lastPrompt || !this.stoppedGenerationId) return;
+        
+        // Скрываем панель продолжения
+        this.hideContinuePanel();
+        
+        // Удаляем предыдущее незавершенное сообщение
+        this.hideTypingIndicator(this.stoppedGenerationId);
+        
+        // Показываем новый индикатор загрузки
+        const newLoadingId = 'loading_' + Date.now();
+        this.showTypingIndicator(newLoadingId);
+        
+        // Устанавливаем флаг генерации
+        this.isGenerating = true;
+        this.updateSendButtonState();
+        
+        // Создаем новый контроллер
+        this.generationController = new AbortController();
+        
+        // Отправляем запрос с тем же промптом
+        this.callGeminiAPI(this.lastPrompt, this.generationController.signal)
+            .then(response => {
+                // Убираем индикатор загрузки
+                this.hideTypingIndicator(newLoadingId);
+                
+                // Сбрасываем флаг генерации
+                this.isGenerating = false;
+                this.updateSendButtonState();
+                
+                // Показываем ответ AI
+                this.addMessageToUI(response, 'ai');
+                
+                // Сбрасываем ID остановленной генерации
+                this.stoppedGenerationId = null;
+            })
+            .catch(error => {
+                // Убираем индикатор загрузки
+                this.hideTypingIndicator(newLoadingId);
+                
+                // Сбрасываем флаг генерации
+                this.isGenerating = false;
+                this.updateSendButtonState();
+                
+                if (error.name === 'AbortError') {
+                    // Генерация снова была остановлена
+                    this.stoppedGenerationId = newLoadingId;
+                    this.showContinuePanel();
+                } else {
+                    console.error('Ошибка при продолжении генерации:', error);
+                    this.addMessageToUI(`Ошибка: ${error.message}`, 'ai');
+                }
+            });
+    }
+
+    updateSendButtonState() {
+        if (this.isGenerating) {
+            // Показываем иконку остановки
+            this.elements.sendIcon.style.display = 'none';
+            this.elements.stopIcon.style.display = 'block';
+            this.elements.sendBtn.classList.add('generating');
+            this.elements.sendBtn.title = 'Остановить генерацию';
+        } else {
+            // Показываем иконку отправки
+            this.elements.sendIcon.style.display = 'block';
+            this.elements.stopIcon.style.display = 'none';
+            this.elements.sendBtn.classList.remove('generating');
+            this.elements.sendBtn.title = 'Отправить';
+        }
+    }
+
+    showContinuePanel() {
+        if (this.elements.continueGenerationPanel) {
+            this.elements.continueGenerationPanel.style.display = 'flex';
+            this.scrollToBottom();
+        }
+    }
+
+    hideContinuePanel() {
+        if (this.elements.continueGenerationPanel) {
+            this.elements.continueGenerationPanel.style.display = 'none';
+        }
+    }
+
+    async callGeminiAPI(prompt, signal) {
         const apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
         
-        const systemPrompt = `Ты - EDM_AI, полезный и дружелюбный AI-ассистент. Отвечай на русском языке.
+        let systemPrompt = `Ты - EDM AI, полезный и дружелюбный AI-ассистент. Отвечай на русском языке.
         
 Твои характеристики:
 1. На простые вопросы (привет, как дела) отвечай кратко и вежливо (1-2 предложения)
 2. На сложные/технические вопросы отвечай подробно и информативно
 3. Будь полезным, но избегай излишней формальности
 4. Если просят код, предоставляй полные, рабочие примеры
-5. Сохраняй дружелюбный, но профессиональный тон
+5. Сохраняй дружелюбный, но профессиональный тон`;
 
-Текущее время: ${new Date().toLocaleString('ru-RU')}
-Пользователь: ${this.userProfile?.username || 'Гость'}`;
+        if (this.reasoningMode) {
+            systemPrompt += "\n6. Для этого запроса покажи свой мыслительный процесс перед финальным ответом";
+        }
 
         const requestBody = {
             contents: [{
@@ -349,7 +570,8 @@ class EDMAIApp {
                     'Content-Type': 'application/json',
                     'x-goog-api-key': this.apiKey
                 },
-                body: JSON.stringify(requestBody)
+                body: JSON.stringify(requestBody),
+                signal: signal // Передаем сигнал для возможности прерывания
             });
 
             if (!response.ok) {
@@ -372,7 +594,9 @@ class EDMAIApp {
                 throw new Error('Неожиданный формат ответа от AI');
             }
         } catch (error) {
-            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            if (error.name === 'AbortError') {
+                throw error; // Пробрасываем ошибку прерывания
+            } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
                 throw new Error('Сетевая ошибка. Проверьте подключение к интернету');
             }
             throw error;
@@ -399,27 +623,21 @@ class EDMAIApp {
         
         // Генерируем HTML в зависимости от типа сообщения
         if (type === 'ai') {
-            const avatarColor = this.generateAvatarColor('EDM_AI');
+            const avatarColor = this.generateAvatarColor('EDM AI');
             messageEl.innerHTML = `
                 <div class="message-avatar">
-                    <div class="ai-avatar" style="background: ${avatarColor}">
-                        <i class="fas fa-robot"></i>
+                    <div class="ai-avatar">
+                        <img src="https://sun9-63.userapi.com/s/v1/ig2/xFXQy8Z-tBdqm3_0VIyRQC-Rqn4SD5p21syKAfSfgzERB0LJZ_4Ca43TxJKtnKDqr4hR1GtDuW2FsGgsgXBs6DqA.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080&from=bu&u=z9seQ0Q9GKcv-_BeLg7iZPuwEks6UMnZ7DyVf39C2OM&cs=640x0" alt="EDM AI" class="company-logo">
                     </div>
                 </div>
                 <div class="message-content">
                     <div class="message-bubble">
                         <div class="message-text">${this.escapeHtml(text)}</div>
                         <div class="message-actions">
-                            <button class="msg-action-btn copy-btn" title="Скопировать" onclick="app.copyMessage('${messageId || ''}')">
+                            <button class="msg-action-btn copy-btn" title="Скопировать" onclick="app.copyMessage('${messageId || Date.now()}')">
                                 <i class="fas fa-copy"></i>
                             </button>
-                            <button class="msg-action-btn like-btn" title="Нравится" onclick="app.rateMessage('${messageId || ''}', 'like')">
-                                <i class="fas fa-thumbs-up"></i>
-                            </button>
-                            <button class="msg-action-btn dislike-btn" title="Не нравится" onclick="app.rateMessage('${messageId || ''}', 'dislike')">
-                                <i class="fas fa-thumbs-down"></i>
-                            </button>
-                            <button class="msg-action-btn regenerate-btn" title="Сгенерировать заново" onclick="app.regenerateMessage('${messageId || ''}')">
+                            <button class="msg-action-btn regenerate-btn" title="Сгенерировать заново" onclick="app.regenerateMessage('${messageId || Date.now()}')">
                                 <i class="fas fa-redo"></i>
                             </button>
                         </div>
@@ -495,8 +713,8 @@ class EDMAIApp {
         typingEl.dataset.id = id;
         typingEl.innerHTML = `
             <div class="message-avatar">
-                <div class="ai-avatar" style="background: linear-gradient(135deg, #8a2be2, #6d28d9)">
-                    <i class="fas fa-robot"></i>
+                <div class="ai-avatar">
+                    <img src="https://sun9-63.userapi.com/s/v1/ig2/xFXQy8Z-tBdqm3_0VIyRQC-Rqn4SD5p21syKAfSfgzERB0LJZ_4Ca43TxJKtnKDqr4hR1GtDuW2FsGgsgXBs6DqA.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080&from=bu&u=z9seQ0Q9GKcv-_BeLg7iZPuwEks6UMnZ7DyVf39C2OM&cs=640x0" alt="EDM AI" class="company-logo">
                 </div>
             </div>
             <div class="message-content">
@@ -535,19 +753,11 @@ class EDMAIApp {
     openMenu() {
         this.elements.sideMenu.classList.add('active');
         this.isMenuOpen = true;
-        
-        // Блюрим основной контент
-        if (this.settings.animations) {
-            this.elements.mainContent.style.filter = 'blur(2px)';
-        }
     }
 
     closeMenu() {
         this.elements.sideMenu.classList.remove('active');
         this.isMenuOpen = false;
-        
-        // Убираем блюр
-        this.elements.mainContent.style.filter = 'none';
     }
 
     updateChatsList() {
@@ -631,6 +841,8 @@ class EDMAIApp {
         this.saveData();
         this.loadCurrentChat();
         this.closeMenu();
+        
+        this.showNotification('Новый чат создан', 'success');
     }
 
     showSettings() {
@@ -641,11 +853,8 @@ class EDMAIApp {
             this.elements.apiKeyInput.value = '';
         }
         
-        // Устанавливаем переключатели
-        this.elements.darkThemeToggle.checked = this.settings.darkTheme;
-        this.elements.animationsToggle.checked = this.settings.animations;
-        
         this.elements.settingsModal.style.display = 'flex';
+        this.closeMenu();
     }
 
     hideSettings() {
@@ -704,33 +913,10 @@ class EDMAIApp {
     }
 
     applySettings() {
-        // Применяем тему
-        if (this.settings.darkTheme) {
-            document.documentElement.style.setProperty('--primary-bg', '#0a0a0a');
-            document.documentElement.style.setProperty('--secondary-bg', '#141414');
-            document.documentElement.style.setProperty('--primary-text', '#ffffff');
-        } else {
-            document.documentElement.style.setProperty('--primary-bg', '#f8f9fa');
-            document.documentElement.style.setProperty('--secondary-bg', '#ffffff');
-            document.documentElement.style.setProperty('--primary-text', '#1a1a1a');
-        }
-        
-        // Применяем настройки анимаций
-        if (!this.settings.animations) {
-            document.documentElement.style.setProperty('--transition', 'none');
-        }
-    }
-
-    toggleDarkTheme(enabled) {
-        this.settings.darkTheme = enabled;
-        this.saveData();
-        this.applySettings();
-    }
-
-    toggleAnimations(enabled) {
-        this.settings.animations = enabled;
-        this.saveData();
-        this.applySettings();
+        // Применяем тему (всегда темная)
+        document.documentElement.style.setProperty('--primary-bg', '#0a0a0a');
+        document.documentElement.style.setProperty('--secondary-bg', '#141414');
+        document.documentElement.style.setProperty('--primary-text', '#ffffff');
     }
 
     checkAuth() {
@@ -764,12 +950,12 @@ class EDMAIApp {
         const password = this.elements.passwordInput.value.trim();
         
         if (!username || username.length < 3) {
-            alert('Имя пользователя должно содержать минимум 3 символа');
+            this.showNotification('Имя пользователя должно содержать минимум 3 символа', 'error');
             return;
         }
         
         if (!password || password.length < 6) {
-            alert('Пароль должен содержать минимум 6 символов');
+            this.showNotification('Пароль должен содержать минимум 6 символов', 'error');
             return;
         }
         
@@ -785,39 +971,58 @@ class EDMAIApp {
         this.hideAuthModal();
         
         // Приветствуем пользователя
-        this.addMessageToUI(`Привет, ${username}! Рад видеть вас в EDM_AI!`, 'ai');
+        this.addMessageToUI(`Привет, ${username}! Рад видеть вас в EDM AI!`, 'ai');
+        
+        this.showNotification('Профиль успешно создан', 'success');
+    }
+
+    showProfileModal() {
+        if (!this.userProfile) {
+            this.showAuthModal();
+            return;
+        }
+        
+        // Заполняем информацию о профиле
+        this.elements.profileDisplay.innerHTML = `
+            <div class="profile-avatar-large" style="background: ${this.userProfile.avatarColor}">
+                ${this.userProfile.username.charAt(0).toUpperCase()}
+            </div>
+            <div class="profile-username-large">${this.userProfile.username}</div>
+            <div class="profile-email">Зарегистрирован: ${new Date(this.userProfile.registeredAt).toLocaleDateString('ru-RU')}</div>
+        `;
+        
+        this.elements.profileModal.style.display = 'flex';
+        this.closeMenu();
+    }
+
+    hideProfileModal() {
+        this.elements.profileModal.style.display = 'none';
     }
 
     updateProfileUI() {
-        if (!this.userProfile || !this.elements.profilePlaceholder) return;
-        
-        const profileHtml = `
-            <div class="profile-info">
-                <div class="profile-avatar" style="background: ${this.userProfile.avatarColor}">
+        if (!this.userProfile) {
+            this.elements.profilePlaceholder.innerHTML = `
+                <i class="fas fa-user-circle"></i>
+                <span>Профиль</span>
+            `;
+        } else {
+            this.elements.profilePlaceholder.innerHTML = `
+                <div class="profile-avatar-small" style="background: ${this.userProfile.avatarColor}">
                     ${this.userProfile.username.charAt(0).toUpperCase()}
                 </div>
-                <div class="profile-details">
-                    <div class="profile-username">${this.userProfile.username}</div>
-                    <div class="profile-status">Пользователь</div>
-                </div>
-            </div>
-        `;
-        
-        this.elements.profilePlaceholder.innerHTML = profileHtml;
-        
-        // Обновляем обработчик клика для выхода
-        this.elements.profilePlaceholder.addEventListener('click', () => {
-            if (confirm('Выйти из аккаунта?')) {
-                this.logout();
-            }
-        });
+                <span>${this.userProfile.username}</span>
+            `;
+        }
     }
 
     logout() {
-        this.userProfile = null;
-        localStorage.removeItem('edm_ai_profile');
-        this.checkAuth();
-        location.reload();
+        if (confirm('Вы уверены, что хотите выйти из аккаунта?')) {
+            this.userProfile = null;
+            localStorage.removeItem('edm_ai_profile');
+            this.updateProfileUI();
+            this.hideProfileModal();
+            this.showNotification('Вы вышли из аккаунта', 'info');
+        }
     }
 
     copyMessage(messageId) {
@@ -842,38 +1047,12 @@ class EDMAIApp {
                     copyBtn.classList.remove('active');
                 }, 2000);
             }
+            
+            this.showNotification('Текст скопирован в буфер обмена', 'success');
         }).catch(err => {
             console.error('Ошибка копирования:', err);
+            this.showNotification('Не удалось скопировать текст', 'error');
         });
-    }
-
-    rateMessage(messageId, rating) {
-        // Находим сообщение в текущем чате
-        const chat = this.chats[this.currentChatId];
-        if (!chat) return;
-        
-        const message = chat.messages.find(msg => msg.id === messageId);
-        if (message) {
-            message.rating = rating;
-            this.saveData();
-            
-            // Обновляем кнопку
-            const messageElement = document.querySelector(`[data-id="${messageId}"]`);
-            if (messageElement) {
-                const btn = rating === 'like' ? 
-                    messageElement.querySelector('.like-btn') : 
-                    messageElement.querySelector('.dislike-btn');
-                
-                if (btn) {
-                    btn.classList.add('active');
-                    
-                    // Через 2 секунды убираем подсветку
-                    setTimeout(() => {
-                        btn.classList.remove('active');
-                    }, 2000);
-                }
-            }
-        }
     }
 
     regenerateMessage(messageId) {
@@ -909,20 +1088,72 @@ class EDMAIApp {
         this.sendMessage();
     }
 
+    startVoiceRecognition() {
+        if (!this.recognition) {
+            this.showNotification('Голосовой ввод не поддерживается в вашем браузере', 'error');
+            return;
+        }
+        
+        // Запрос разрешения
+        if (typeof navigator.permissions !== 'undefined') {
+            navigator.permissions.query({ name: 'microphone' }).then(permissionStatus => {
+                if (permissionStatus.state === 'granted') {
+                    this.startRecording();
+                } else if (permissionStatus.state === 'prompt') {
+                    this.startRecording();
+                } else {
+                    this.showNotification('Разрешите доступ к микрофону в настройках браузера', 'error');
+                }
+            });
+        } else {
+            // Для браузеров без Permissions API
+            this.startRecording();
+        }
+    }
+
+    startRecording() {
+        try {
+            this.finalTranscript = '';
+            this.recognition.start();
+        } catch (error) {
+            console.error('Error starting speech recognition:', error);
+            this.showNotification('Не удалось начать запись', 'error');
+        }
+    }
+
+    stopVoiceRecognition() {
+        if (this.recognition && this.isRecording) {
+            this.recognition.stop();
+            this.isRecording = false;
+            this.elements.voiceControlBtn.style.display = 'flex';
+            this.elements.stopRecordBtn.style.display = 'none';
+            this.elements.stopRecordBtn.classList.remove('recording');
+        }
+    }
+
     showSearch() {
         // TODO: Реализовать поиск по сообщениям
-        alert('Функция поиска будет добавлена в следующем обновлении');
+        this.showNotification('Функция поиска будет добавлена в следующем обновлении', 'info');
     }
 
     toggleReasoningMode() {
-        // TODO: Реализовать режим рассуждения
-        alert('Режим рассуждения будет добавлен в следующем обновлении');
+        this.reasoningMode = !this.reasoningMode;
+        this.elements.reasoningBtn.classList.toggle('active', this.reasoningMode);
+        
+        if (this.reasoningMode) {
+            this.showNotification('Режим рассуждения включен', 'success');
+        } else {
+            this.showNotification('Режим рассуждения выключен', 'info');
+        }
     }
 
     adjustTextareaHeight() {
         const textarea = this.elements.messageInput;
         textarea.style.height = 'auto';
-        textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+        const maxHeight = 120;
+        const newHeight = Math.min(textarea.scrollHeight, maxHeight);
+        textarea.style.height = newHeight + 'px';
+        textarea.style.overflowY = newHeight >= maxHeight ? 'auto' : 'hidden';
     }
 
     scrollToBottom() {
@@ -968,6 +1199,75 @@ class EDMAIApp {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    }
+
+    showNotification(message, type = 'info') {
+        // Создаем элемент уведомления
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.textContent = message;
+        
+        // Добавляем стили
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 20px;
+            background: ${type === 'success' ? 'var(--success-color)' : 
+                         type === 'error' ? 'var(--error-color)' : 
+                         type === 'warning' ? 'var(--warning-color)' : 'var(--surface-bg)'};
+            color: white;
+            border-radius: var(--border-radius-sm);
+            z-index: 3000;
+            animation: slideInDown 0.3s ease-out;
+            max-width: 90%;
+            word-wrap: break-word;
+            text-align: center;
+            box-shadow: var(--shadow-md);
+        `;
+        
+        // Стили для анимации
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideInDown {
+                from {
+                    opacity: 0;
+                    transform: translateX(-50%) translateY(-20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateX(-50%) translateY(0);
+                }
+            }
+            
+            @keyframes slideOutUp {
+                from {
+                    opacity: 1;
+                    transform: translateX(-50%) translateY(0);
+                }
+                to {
+                    opacity: 0;
+                    transform: translateX(-50%) translateY(-20px);
+                }
+            }
+        `;
+        
+        document.head.appendChild(style);
+        document.body.appendChild(notification);
+        
+        // Удаляем через 3 секунды
+        setTimeout(() => {
+            notification.style.animation = 'slideOutUp 0.3s ease-out';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+                if (style.parentNode) {
+                    style.parentNode.removeChild(style);
+                }
+            }, 300);
+        }, 3000);
     }
 }
 
