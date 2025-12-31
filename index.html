@@ -24,25 +24,8 @@
             </div>
             
             <div class="chats-section">
-                <div class="section-title">История чатов</div>
+                <div class="section-title">Чаты</div>
                 <div class="chats-list" id="chats-list"></div>
-            </div>
-            
-            <div class="menu-footer">
-                <div class="profile-settings-container">
-                    <div class="user-profile" id="user-profile">
-                        <div class="profile-placeholder" id="profile-placeholder">
-                            <i class="fas fa-user-circle"></i>
-                            <span>Профиль</span>
-                        </div>
-                    </div>
-                    <button class="settings-btn-in-menu" id="settings-btn-in-menu" title="Настройки">
-                        <i class="fas fa-cog"></i>
-                    </button>
-                </div>
-                <button class="menu-action-btn" id="new-chat-menu-btn">
-                    <i class="fas fa-plus"></i> Новый чат
-                </button>
             </div>
         </div>
         
@@ -76,16 +59,6 @@
             <div class="input-section">
                 <div class="input-container">
                     <div class="input-wrapper">
-                        <!-- Кнопка голосового ввода -->
-                        <button class="voice-control-btn" id="voice-control-btn" title="Голосовой ввод">
-                            <i class="fas fa-microphone"></i>
-                        </button>
-                        
-                        <!-- Кнопка остановки записи (скрыта по умолчанию) -->
-                        <button class="stop-record-btn" id="stop-record-btn" title="Остановить запись">
-                            <i class="fas fa-stop"></i>
-                        </button>
-                        
                         <textarea 
                             id="message-input" 
                             class="message-input" 
@@ -93,139 +66,186 @@
                             rows="1"
                         ></textarea>
                         
+                        <!-- Кнопка голосового ввода -->
+                        <button class="voice-control-btn" id="voice-control-btn" title="Голосовой ввод">
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                        
                         <!-- Кнопка отправки/остановки генерации -->
                         <button class="send-btn" id="send-btn" title="Отправить">
                             <i class="fas fa-arrow-up" id="send-icon"></i>
                             <i class="fas fa-stop" id="stop-icon" style="display: none;"></i>
                         </button>
                     </div>
-                    
-                    <div class="input-footer">
-                        <div class="model-info">
-                            <i class="fas fa-microchip"></i>
-                            <span>Gemini 2.5 Flash</span>
-                        </div>
-                        
-                        <!-- Кнопки поиска и рассуждения -->
-                        <div class="action-buttons-container">
-                            <button class="action-btn search-btn" id="search-btn" title="Поиск">
-                                <i class="fas fa-search"></i>
-                            </button>
-                            <button class="action-btn reasoning-btn" id="reasoning-btn" title="Режим рассуждения">
-                                <i class="fas fa-brain"></i>
-                            </button>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
         
-        <!-- Модальное окно настроек -->
-        <div class="modal-overlay" id="settings-modal">
-            <div class="modal-container">
+        <!-- Модальное окно профиля и настроек -->
+        <div class="modal-overlay" id="profile-settings-modal">
+            <div class="modal-container profile-settings-modal">
                 <div class="modal-header">
-                    <h2><i class="fas fa-cog"></i> Настройки</h2>
-                    <button class="modal-close" id="close-settings">
+                    <button class="modal-close" id="close-profile-settings">
                         <i class="fas fa-times"></i>
                     </button>
+                    <h2>Настройки</h2>
                 </div>
                 <div class="modal-body">
-                    <div class="setting-group">
-                        <h3>API настройки</h3>
-                        <div class="setting-item">
-                            <label for="api-key-input">
-                                <i class="fas fa-key"></i> Google Gemini API Key
-                            </label>
-                            <div class="input-with-action">
-                                <input 
-                                    type="password" 
-                                    id="api-key-input" 
-                                    class="api-key-input"
-                                    placeholder="Введите ваш API ключ"
-                                >
-                                <button class="action-icon" id="toggle-key-visibility" title="Показать/скрыть ключ">
-                                    <i class="fas fa-eye"></i>
-                                </button>
+                    <div class="settings-section">
+                        <div class="profile-info">
+                            <div class="profile-avatar-large" id="profile-settings-avatar">
+                                В
                             </div>
-                            <div class="setting-hint">
-                                Получите ключ на <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a>
+                            <div class="profile-details">
+                                <div class="profile-username-large" id="profile-settings-username">Гость</div>
+                                <div class="profile-api-key" id="profile-api-key">API ключ: не установлен</div>
                             </div>
                         </div>
                         
-                        <button class="save-btn" id="save-api-btn">
-                            <i class="fas fa-save"></i> Сохранить ключ
+                        <button class="settings-btn edit-profile-btn" id="edit-profile-btn">
+                            <i class="fas fa-edit"></i> Редактировать профиль
                         </button>
                         
-                        <div class="status-message" id="api-status"></div>
+                        <button class="settings-btn personalization-btn" id="personalization-btn">
+                            <i class="fas fa-magic"></i> Персонализация
+                        </button>
+                        
+                        <button class="settings-btn reset-mic-btn" id="reset-mic-btn">
+                            <i class="fas fa-microphone-slash"></i> Сбросить разрешение микрофона
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
         
-        <!-- Модальное окно профиля -->
-        <div class="modal-overlay" id="profile-modal">
-            <div class="modal-container profile-modal">
-                <div class="modal-header">
-                    <h2><i class="fas fa-user-circle"></i> Профиль</h2>
-                    <button class="modal-close" id="close-profile">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="profile-display" id="profile-display"></div>
-                    <button class="logout-btn" id="logout-btn">
-                        <i class="fas fa-sign-out-alt"></i> Выйти из аккаунта
-                    </button>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Модальное окно регистрации -->
-        <div class="modal-overlay" id="auth-modal">
+        <!-- Модальное окно редактирования профиля -->
+        <div class="modal-overlay" id="edit-profile-modal">
             <div class="modal-container auth-modal">
                 <div class="modal-header">
-                    <h2><i class="fas fa-user-circle"></i> Создание профиля</h2>
-                    <button class="modal-close" id="close-auth">
+                    <h2><i class="fas fa-user-edit"></i> Редактировать профиль</h2>
+                    <button class="modal-close" id="close-edit-profile">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
                 <div class="modal-body">
                     <div class="auth-form">
                         <div class="form-group">
-                            <label for="username-input">
+                            <label for="edit-username-input">
                                 <i class="fas fa-user"></i> Имя пользователя
                             </label>
                             <input 
                                 type="text" 
-                                id="username-input" 
+                                id="edit-username-input" 
                                 class="auth-input"
-                                placeholder="Придумайте имя"
+                                placeholder="Введите новое имя"
                                 maxlength="20"
                             >
                         </div>
                         
                         <div class="form-group">
-                            <label for="password-input">
-                                <i class="fas fa-lock"></i> Пароль
+                            <label for="edit-api-key-input">
+                                <i class="fas fa-key"></i> API ключ
                             </label>
                             <input 
                                 type="password" 
-                                id="password-input" 
+                                id="edit-api-key-input" 
                                 class="auth-input"
-                                placeholder="Минимум 6 символов"
+                                placeholder="Введите ваш API ключ"
                             >
+                            <div class="setting-hint">
+                                Получите ключ на <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a>
+                            </div>
                         </div>
                         
                         <div class="auth-buttons">
-                            <button class="auth-btn primary" id="register-btn">
-                                <i class="fas fa-user-plus"></i> Зарегистрироваться
+                            <button class="auth-btn primary" id="save-profile-btn">
+                                <i class="fas fa-save"></i> Сохранить
                             </button>
-                            <button class="auth-btn secondary" id="cancel-auth">
-                                Позже
+                            <button class="auth-btn secondary" id="cancel-edit-profile">
+                                Отмена
+                            </button>
+                            <button class="auth-btn logout-btn" id="logout-profile-btn">
+                                <i class="fas fa-sign-out-alt"></i> Выйти из аккаунта
                             </button>
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+        
+        <!-- Модальное окно персонализации -->
+        <div class="modal-overlay" id="personalization-modal">
+            <div class="modal-container personalization-modal">
+                <div class="modal-header">
+                    <button class="modal-close" id="close-personalization">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <h2>Персонализация</h2>
+                </div>
+                <div class="modal-body">
+                    <div class="personalization-section">
+                        <div class="form-group">
+                            <label for="api-key-personalization-input">
+                                <i class="fas fa-key"></i> API ключ
+                            </label>
+                            <input 
+                                type="password" 
+                                id="api-key-personalization-input" 
+                                class="auth-input"
+                                placeholder="Введите ваш API ключ"
+                            >
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="custom-prompt-input">
+                                <i class="fas fa-comment-alt"></i> Кастомный промпт
+                            </label>
+                            <textarea 
+                                id="custom-prompt-input" 
+                                class="prompt-input"
+                                placeholder="Введите ваш промпт. Он будет использоваться для всех ответов ИИ. Сохраняется по нажатию Enter."
+                                rows="6"
+                            ></textarea>
+                            <div class="setting-hint">
+                                Нажмите Enter для сохранения промпта
+                            </div>
+                        </div>
+                        
+                        <div class="prompt-styles-section">
+                            <div class="section-title-small">Стиль общения</div>
+                            <div class="prompt-styles-grid">
+                                <button class="prompt-style-btn active" data-style="normal" title="Обычный">
+                                    <i class="fas fa-comment"></i>
+                                </button>
+                                <button class="prompt-style-btn" data-style="aggressive" title="Агрессивный">
+                                    <i class="fas fa-fire"></i>
+                                </button>
+                                <button class="prompt-style-btn" data-style="funny" title="Весёлый">
+                                    <i class="fas fa-laugh"></i>
+                                </button>
+                                <button class="prompt-style-btn" data-style="reasoning" title="Рассуждение">
+                                    <i class="fas fa-brain"></i>
+                                </button>
+                                <button class="prompt-style-btn" data-style="loving" title="Влюблённый">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Контекстное меню для чатов -->
+        <div class="context-menu" id="chat-context-menu">
+            <div class="context-menu-item" id="pin-chat-btn">
+                <i class="fas fa-thumbtack"></i> Закрепить
+            </div>
+            <div class="context-menu-item" id="rename-chat-btn">
+                <i class="fas fa-edit"></i> Переименовать
+            </div>
+            <div class="context-menu-item delete" id="delete-chat-btn">
+                <i class="fas fa-trash"></i> Удалить
             </div>
         </div>
         
