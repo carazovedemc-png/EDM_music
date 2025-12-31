@@ -10,8 +10,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Markdown и подсветка кода -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/13.0.0/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.8/purify.min.js"></script>
 </head>
-<body>
+<body oncopy="return false" oncut="return false" onpaste="return false">
     <div class="app-container">
         
         <!-- Боковое меню -->
@@ -116,6 +121,14 @@
                         <button class="settings-btn personalization-btn" id="personalization-btn">
                             <i class="fas fa-magic"></i> Персонализация
                         </button>
+                        
+                        <button class="settings-btn" id="terms-btn">
+                            <i class="fas fa-file-contract"></i> Пользовательское соглашение
+                        </button>
+                        
+                        <button class="settings-btn" id="support-btn">
+                            <i class="fas fa-headset"></i> Техподдержка
+                        </button>
                     </div>
                 </div>
             </div>
@@ -164,9 +177,6 @@
                             <button class="auth-btn primary" id="save-profile-btn">
                                 <i class="fas fa-save"></i> Сохранить
                             </button>
-                            <button class="auth-btn secondary" id="cancel-edit-profile">
-                                Отмена
-                            </button>
                             <button class="auth-btn logout-btn" id="logout-profile-btn">
                                 <i class="fas fa-sign-out-alt"></i> Выйти из аккаунта
                             </button>
@@ -188,30 +198,15 @@
                 <div class="modal-body">
                     <div class="personalization-section">
                         <div class="form-group">
-                            <label for="api-key-personalization-input">
-                                <i class="fas fa-key"></i> API ключ
-                            </label>
-                            <input 
-                                type="password" 
-                                id="api-key-personalization-input" 
-                                class="auth-input"
-                                placeholder="Введите ваш API ключ"
-                            >
-                        </div>
-                        
-                        <div class="form-group">
                             <label for="custom-prompt-input">
                                 <i class="fas fa-comment-alt"></i> Кастомный промпт
                             </label>
                             <textarea 
                                 id="custom-prompt-input" 
                                 class="prompt-input"
-                                placeholder="Введите ваш промпт. Он будет использоваться для всех ответов ИИ. Сохраняется по нажатию Enter."
+                                placeholder="Введите ваш промпт. Он будет использоваться для всех ответов ИИ."
                                 rows="6"
                             ></textarea>
-                            <div class="setting-hint">
-                                Нажмите Enter для сохранения промпта
-                            </div>
                         </div>
                         
                         <div class="prompt-styles-section">
@@ -225,9 +220,6 @@
                                 </button>
                                 <button class="prompt-style-btn" data-style="funny" title="Весёлый">
                                     <i class="fas fa-laugh"></i>
-                                </button>
-                                <button class="prompt-style-btn" data-style="reasoning" title="Рассуждение">
-                                    <i class="fas fa-brain"></i>
                                 </button>
                                 <button class="prompt-style-btn" data-style="loving" title="Влюблённый">
                                     <i class="fas fa-heart"></i>
@@ -250,16 +242,6 @@
             <div class="context-menu-item delete" id="delete-chat-btn">
                 <i class="fas fa-trash"></i> Удалить
             </div>
-        </div>
-        
-        <!-- Панель продолжения генерации -->
-        <div class="continue-generation-panel" id="continue-generation-panel">
-            <div class="generation-stopped-text">
-                <i class="fas fa-pause"></i> Генерация остановлена
-            </div>
-            <button class="continue-generation-btn" id="continue-generation-btn">
-                <i class="fas fa-play"></i> Продолжить генерацию
-            </button>
         </div>
     </div>
     

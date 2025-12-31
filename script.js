@@ -18,7 +18,7 @@ class EDMAIApp {
         this.generationController = null;
         this.lastPrompt = '';
         this.partialResponse = '';
-        this.stoppedGenerationId = null;
+        this.interruptedMessageId = null;
         
         // Свойства для промптов
         this.customPrompt = '';
@@ -27,7 +27,6 @@ class EDMAIApp {
             normal: { name: 'Обычный', icon: 'fa-comment' },
             aggressive: { name: 'Агрессивный', icon: 'fa-fire' },
             funny: { name: 'Весёлый', icon: 'fa-laugh' },
-            reasoning: { name: 'Рассуждение', icon: 'fa-brain' },
             loving: { name: 'Влюблённый', icon: 'fa-heart' }
         };
         
@@ -35,10 +34,91 @@ class EDMAIApp {
         this.contextMenuChatId = null;
         this.touchHoldTimer = null;
         
+        // Настройка marked для рендеринга markdown
+        if (typeof marked !== 'undefined') {
+            marked.setOptions({
+                highlight: function(code, lang) {
+                    if (lang && hljs && hljs.getLanguage(lang)) {
+                        try {
+                            return hljs.highlight(code, { language: lang }).value;
+                        } catch (err) {
+                            console.warn('Ошибка подсветки кода:', err);
+                        }
+                    }
+                    return hljs ? hljs.highlightAuto(code).value : code;
+                },
+                breaks: true,
+                gfm: true
+            });
+        }
+        
         this.init();
     }
 
     async init() {
+        // Блокировка контекстного меню
+        document.addEventListener('contextmenu', (e) => {
+            // Разрешаем контекстное меню только в полях ввода
+            if (e.target.tagName === 'TEXTAREA' || 
+                e.target.tagName === 'INPUT' ||
+                e.target.classList.contains('message-text') ||
+                e.target.closest('.message-text')) {
+                return true;
+            }
+            e.preventDefault();
+            return false;
+        });
+        
+        // Блокировка выделения текста (кроме разрешенных элементов)
+        document.addEventListener('selectstart', (e) => {
+            if (e.target.tagName === 'TEXTAREA' || 
+                e.target.tagName === 'INPUT' ||
+                e.target.classList.contains('message-text') ||
+                e.target.closest('.message-text') ||
+                e.target.classList.contains('copy-btn') ||
+                e.target.closest('.copy-btn')) {
+                return true;
+            }
+            e.preventDefault();
+            return false;
+        });
+        
+        // Блокировка перетаскивания
+        document.addEventListener('dragstart', (e) => {
+            if (e.target.tagName === 'TEXTAREA' || 
+                e.target.tagName === 'INPUT') {
+                return true;
+            }
+            e.preventDefault();
+            return false;
+        });
+        
+        // Блокировка стандартных горячих клавиш копирования
+        document.addEventListener('keydown', (e) => {
+            // Ctrl+C / Cmd+C - только в разрешенных элементах
+            if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+                const activeElement = document.activeElement;
+                if (!(activeElement.tagName === 'TEXTAREA' || 
+                      activeElement.tagName === 'INPUT' ||
+                      activeElement.classList.contains('message-text') ||
+                      activeElement.closest('.message-text'))) {
+                    e.preventDefault();
+                }
+            }
+        });
+        
+        // Блокировка выделения двойным/тройным кликом
+        document.addEventListener('mousedown', (e) => {
+            if (e.detail > 1) { // Двойной/тройной клик
+                if (!(e.target.tagName === 'TEXTAREA' || 
+                      e.target.tagName === 'INPUT' ||
+                      e.target.classList.contains('message-text') ||
+                      e.target.closest('.message-text'))) {
+                    e.preventDefault();
+                }
+            }
+        });
+        
         // Инициализация Telegram Web App
         if (window.Telegram && window.Telegram.WebApp) {
             this.tg = window.Telegram.WebApp;
@@ -105,18 +185,18 @@ class EDMAIApp {
             closeProfileSettings: document.getElementById('close-profile-settings'),
             editProfileBtn: document.getElementById('edit-profile-btn'),
             personalizationBtn: document.getElementById('personalization-btn'),
+            termsBtn: document.getElementById('terms-btn'),
+            supportBtn: document.getElementById('support-btn'),
             
             // Редактирование профиля
             closeEditProfile: document.getElementById('close-edit-profile'),
             editUsernameInput: document.getElementById('edit-username-input'),
             editApiKeyInput: document.getElementById('edit-api-key-input'),
             saveProfileBtn: document.getElementById('save-profile-btn'),
-            cancelEditProfile: document.getElementById('cancel-edit-profile'),
             logoutProfileBtn: document.getElementById('logout-profile-btn'),
             
             // Персонализация
             closePersonalization: document.getElementById('close-personalization'),
-            apiKeyPersonalizationInput: document.getElementById('api-key-personalization-input'),
             customPromptInput: document.getElementById('custom-prompt-input'),
             
             // Профиль в настройках
@@ -126,11 +206,6 @@ class EDMAIApp {
             
             // Приветственное сообщение
             welcomeMessage: document.getElementById('welcome-message'),
-            
-            // Панель продолжения генерации
-            continueGenerationPanel: document.getElementById('continue-generation-panel'),
-            continueGenerationBtn: document.getElementById('continue-generation-btn'),
-            generationStoppedText: document.querySelector('.generation-stopped-text'),
             
             // Контекстное меню
             contextMenu: document.getElementById('chat-context-menu'),
@@ -187,21 +262,24 @@ class EDMAIApp {
         this.elements.personalizationBtn.addEventListener('click', () => this.showPersonalizationModal());
         this.elements.closeProfileSettings.addEventListener('click', () => this.hideProfileSettingsModal());
         
+        // Кнопки пользовательского соглашения и техподдержки
+        this.elements.termsBtn.addEventListener('click', () => {
+            window.open('https://telegra.ph/POLZOVATELSKOE-SOGLASHENIE-po-ispolzovaniyu-programm-11-06', '_blank');
+            this.hideProfileSettingsModal();
+        });
+        
+        this.elements.supportBtn.addEventListener('click', () => {
+            window.open('https://t.me/EDEM_CR', '_blank');
+            this.hideProfileSettingsModal();
+        });
+        
         // Редактирование профиля
         this.elements.closeEditProfile.addEventListener('click', () => this.hideEditProfileModal());
         this.elements.saveProfileBtn.addEventListener('click', () => this.saveProfile());
-        this.elements.cancelEditProfile.addEventListener('click', () => this.hideEditProfileModal());
         this.elements.logoutProfileBtn.addEventListener('click', () => this.logout());
         
         // Персонализация
         this.elements.closePersonalization.addEventListener('click', () => this.hidePersonalizationModal());
-        this.elements.apiKeyPersonalizationInput.addEventListener('input', (e) => {
-            const key = e.target.value.trim();
-            if (!key.includes('••••')) {
-                this.apiKey = key;
-                this.saveData();
-            }
-        });
         this.elements.customPromptInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -224,9 +302,6 @@ class EDMAIApp {
         this.elements.pinChatBtn.addEventListener('click', () => this.togglePinChat());
         this.elements.renameChatBtn.addEventListener('click', () => this.renameChat());
         this.elements.deleteChatBtn.addEventListener('click', () => this.deleteChat());
-        
-        // Продолжение генерации
-        this.elements.continueGenerationBtn.addEventListener('click', () => this.continueGeneration());
         
         // Закрытие модальных окон при клике вне их
         [this.elements.profileSettingsModal, this.elements.editProfileModal, this.elements.personalizationModal].forEach(modal => {
@@ -523,9 +598,6 @@ class EDMAIApp {
             this.elements.welcomeMessage.style.display = 'none';
         }
         
-        // Скрываем панель продолжения генерации
-        this.hideContinuePanel();
-        
         // Загружаем сообщения из текущего чата
         const chat = this.chats[this.currentChatId];
         if (chat.messages.length === 0) {
@@ -550,6 +622,10 @@ class EDMAIApp {
     async sendMessage() {
         const message = this.elements.messageInput.value.trim();
         if (!message) return;
+        
+        // Удаляем все кнопки продолжения из предыдущих сообщений
+        this.removeAllContinueButtons();
+        this.interruptedMessageId = null;
         
         // Проверяем регистрацию
         if (!this.userProfile) {
@@ -612,14 +688,62 @@ class EDMAIApp {
             // Проверяем, была ли остановка генерации
             if (error.name === 'AbortError') {
                 // Генерация была остановлена пользователем
-                this.stoppedGenerationId = loadingId;
-                this.showContinuePanel();
+                const currentMessageEl = document.querySelector(`[data-id="${loadingId}"]`);
+                if (currentMessageEl) {
+                    this.interruptedMessageId = loadingId;
+                    currentMessageEl.classList.add('interrupted');
+                    
+                    // Заменяем индикатор загрузки на кнопку продолжения
+                    const typingIndicator = currentMessageEl.querySelector('.typing-indicator');
+                    if (typingIndicator) {
+                        typingIndicator.innerHTML = `
+                            <div class="typing-dots" style="opacity: 0.5;">
+                                <div class="typing-dot"></div>
+                                <div class="typing-dot"></div>
+                                <div class="typing-dot"></div>
+                            </div>
+                            <div class="typing-text">Генерация прервана</div>
+                            <button class="continue-generation-btn-inline" data-message-id="${loadingId}">
+                                <i class="fas fa-play"></i> Продолжить
+                            </button>
+                        `;
+                        
+                        // Добавляем обработчик для кнопки продолжения
+                        const continueBtn = typingIndicator.querySelector('.continue-generation-btn-inline');
+                        if (continueBtn) {
+                            continueBtn.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                this.continueGeneration(continueBtn.dataset.messageId);
+                            });
+                        }
+                    }
+                }
             } else {
                 // Другая ошибка
                 console.error('Ошибка при отправке сообщения:', error);
                 this.addMessageToUI(`Ошибка: ${error.message}`, 'ai');
             }
         }
+    }
+
+    removeAllContinueButtons() {
+        // Удаляем все кнопки продолжения
+        document.querySelectorAll('.continue-generation-btn-inline').forEach(btn => {
+            btn.remove();
+        });
+        
+        // Убираем класс interrupted
+        document.querySelectorAll('.message.interrupted').forEach(msg => {
+            msg.classList.remove('interrupted');
+        });
+        
+        // Убираем старые индикаторы "Генерация прервана"
+        document.querySelectorAll('.typing-indicator').forEach(indicator => {
+            const text = indicator.querySelector('.typing-text');
+            if (text && text.textContent.includes('прервана')) {
+                indicator.remove();
+            }
+        });
     }
 
     stopGeneration() {
@@ -631,23 +755,73 @@ class EDMAIApp {
             this.isGenerating = false;
             this.updateSendButtonState();
             
-            // Показываем уведомление
+            // Находим текущий индикатор загрузки
+            const loadingElements = document.querySelectorAll('.typing-indicator');
+            if (loadingElements.length > 0) {
+                const loadingElement = loadingElements[loadingElements.length - 1];
+                if (loadingElement && loadingElement.closest('.message')) {
+                    const messageEl = loadingElement.closest('.message');
+                    const messageId = messageEl.dataset.id || 'interrupted_' + Date.now();
+                    
+                    // Сохраняем ID прерванного сообщения
+                    this.interruptedMessageId = messageId;
+                    
+                    // Добавляем класс прерванного сообщения
+                    messageEl.classList.add('interrupted');
+                    
+                    // Заменяем индикатор загрузки на кнопку продолжения
+                    const typingIndicator = messageEl.querySelector('.typing-indicator');
+                    if (typingIndicator) {
+                        typingIndicator.innerHTML = `
+                            <div class="typing-dots" style="opacity: 0.5;">
+                                <div class="typing-dot"></div>
+                                <div class="typing-dot"></div>
+                                <div class="typing-dot"></div>
+                            </div>
+                            <div class="typing-text">Генерация прервана</div>
+                            <button class="continue-generation-btn-inline" data-message-id="${messageId}">
+                                <i class="fas fa-play"></i> Продолжить
+                            </button>
+                        `;
+                        
+                        // Добавляем обработчик для кнопки продолжения
+                        const continueBtn = typingIndicator.querySelector('.continue-generation-btn-inline');
+                        if (continueBtn) {
+                            continueBtn.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                this.continueGeneration(continueBtn.dataset.messageId);
+                            });
+                        }
+                    }
+                }
+            }
+            
             this.showNotification('Генерация остановлена', 'info');
         }
     }
 
-    continueGeneration() {
-        if (!this.lastPrompt || !this.stoppedGenerationId) return;
+    continueGeneration(messageId = null) {
+        if (!this.lastPrompt) return;
         
-        // Скрываем панель продолжения
-        this.hideContinuePanel();
+        // Если не указан ID, используем сохраненный
+        const targetMessageId = messageId || this.interruptedMessageId;
+        if (!targetMessageId) return;
         
-        // Удаляем предыдущее незавершенное сообщение
-        this.hideTypingIndicator(this.stoppedGenerationId);
+        // Удаляем кнопку продолжения из сообщения
+        const messageEl = document.querySelector(`[data-id="${targetMessageId}"]`);
+        if (messageEl) {
+            const continueBtn = messageEl.querySelector('.continue-generation-btn-inline');
+            if (continueBtn) continueBtn.remove();
+            messageEl.classList.remove('interrupted');
+        }
         
-        // Показываем новый индикатор загрузки
+        // Убираем старый индикатор
+        const oldIndicator = document.querySelector(`[data-id="${targetMessageId}"] .typing-indicator`);
+        if (oldIndicator) oldIndicator.remove();
+        
+        // Показываем новый индикатор загрузки в ТОМ ЖЕ сообщении
         const newLoadingId = 'loading_' + Date.now();
-        this.showTypingIndicator(newLoadingId);
+        const loadingEl = this.showTypingIndicator(newLoadingId, targetMessageId);
         
         // Устанавливаем флаг генерации
         this.isGenerating = true;
@@ -666,11 +840,26 @@ class EDMAIApp {
                 this.isGenerating = false;
                 this.updateSendButtonState();
                 
-                // Показываем ответ AI
-                this.addMessageToUI(response, 'ai');
+                // Находим сообщение с индикатором
+                const targetMessage = document.querySelector(`[data-id="${targetMessageId}"]`);
+                if (targetMessage) {
+                    // Удаляем индикатор из сообщения
+                    const indicator = targetMessage.querySelector('.typing-indicator');
+                    if (indicator) indicator.remove();
+                    
+                    // Создаем новый элемент с ответом
+                    const newMessageEl = this.addMessageToUI(response, 'ai');
+                    newMessageEl.dataset.id = targetMessageId;
+                    
+                    // Удаляем старое прерванное сообщение
+                    targetMessage.remove();
+                } else {
+                    // Если не нашли, просто добавляем новый ответ
+                    this.addMessageToUI(response, 'ai');
+                }
                 
-                // Сбрасываем ID остановленной генерации
-                this.stoppedGenerationId = null;
+                // Сбрасываем ID прерванного сообщения
+                this.interruptedMessageId = null;
             })
             .catch(error => {
                 // Убираем индикатор загрузки
@@ -682,8 +871,35 @@ class EDMAIApp {
                 
                 if (error.name === 'AbortError') {
                     // Генерация снова была остановлена
-                    this.stoppedGenerationId = newLoadingId;
-                    this.showContinuePanel();
+                    const currentMessageEl = document.querySelector(`[data-id="${targetMessageId}"]`);
+                    if (currentMessageEl) {
+                        currentMessageEl.classList.add('interrupted');
+                        
+                        // Добавляем кнопку продолжения
+                        const typingIndicator = currentMessageEl.querySelector('.typing-indicator');
+                        if (typingIndicator) {
+                            typingIndicator.innerHTML = `
+                                <div class="typing-dots" style="opacity: 0.5;">
+                                    <div class="typing-dot"></div>
+                                    <div class="typing-dot"></div>
+                                    <div class="typing-dot"></div>
+                                </div>
+                                <div class="typing-text">Генерация прервана</div>
+                                <button class="continue-generation-btn-inline" data-message-id="${targetMessageId}">
+                                    <i class="fas fa-play"></i> Продолжить
+                                </button>
+                            `;
+                            
+                            // Добавляем обработчик
+                            const continueBtn = typingIndicator.querySelector('.continue-generation-btn-inline');
+                            if (continueBtn) {
+                                continueBtn.addEventListener('click', (e) => {
+                                    e.stopPropagation();
+                                    this.continueGeneration(continueBtn.dataset.messageId);
+                                });
+                            }
+                        }
+                    }
                 } else {
                     console.error('Ошибка при продолжении генерации:', error);
                     this.addMessageToUI(`Ошибка: ${error.message}`, 'ai');
@@ -707,19 +923,6 @@ class EDMAIApp {
         }
     }
 
-    showContinuePanel() {
-        if (this.elements.continueGenerationPanel) {
-            this.elements.continueGenerationPanel.style.display = 'flex';
-            this.scrollToBottom();
-        }
-    }
-
-    hideContinuePanel() {
-        if (this.elements.continueGenerationPanel) {
-            this.elements.continueGenerationPanel.style.display = 'none';
-        }
-    }
-
     async callGeminiAPI(prompt, signal) {
         const apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
         
@@ -732,7 +935,14 @@ class EDMAIApp {
 Давай практичные шаги, примеры и варианты решений.
 Без клише и мотивационных фраз.
 Пиши спокойно, по-человечески, без пафоса.
-Структурируй ответы так, чтобы ими можно было пользоваться сразу.`;
+Структурируй ответы так, чтобы ими можно было пользоваться сразу.
+
+ВАЖНО: Если ответ получается очень длинным, раздели его на логические части:
+1. Сначала дай краткий ответ
+2. Затем подробное объяснение
+3. В конце - примеры или выводы
+
+Старайся завершать каждую мысль полностью, даже если нужно быть более кратким.`;
 
         // Добавляем кастомный промпт пользователя
         if (this.customPrompt) {
@@ -746,9 +956,6 @@ class EDMAIApp {
                 break;
             case 'funny':
                 systemPrompt += '\nОтвечай с юмором, используй шутки и мемы, но оставайся информативным.';
-                break;
-            case 'reasoning':
-                systemPrompt += '\nПоказывай свой мыслительный процесс перед ответом.';
                 break;
             case 'loving':
                 systemPrompt += '\nОтвечай нежно, с заботой и поддержкой, используй сердечки.';
@@ -766,7 +973,8 @@ class EDMAIApp {
                 temperature: 0.7,
                 topP: 0.95,
                 topK: 40,
-                maxOutputTokens: 2048,
+                maxOutputTokens: 4096, // Увеличил с 2048 до 4096
+                stopSequences: ["\n\n", "###", "---"] // Служебные стоп-последовательности
             }
         };
 
@@ -785,6 +993,9 @@ class EDMAIApp {
                 let errorDetail = `HTTP ${response.status}`;
                 try {
                     const errorData = await response.json();
+                    if (response.status === 429) {
+                        throw new Error('⚠️ Достигнут дневной лимит запросов (20 в день). Бесплатный тариф позволяет 20 запросов в сутки. Попробуйте завтра или настройте платёжный метод в Google AI Studio.');
+                    }
                     errorDetail += `: ${JSON.stringify(errorData.error || errorData)}`;
                 } catch (e) {
                     const text = await response.text();
@@ -796,18 +1007,68 @@ class EDMAIApp {
             const data = await response.json();
             
             if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
-                return data.candidates[0].content.parts[0].text;
+                let responseText = data.candidates[0].content.parts[0].text;
+                
+                // Проверяем, не обрезан ли ответ
+                const isTruncated = this.checkIfTruncated(responseText);
+                
+                // Если обрезан, добавляем индикатор
+                if (isTruncated) {
+                    responseText += "\n\n⚠️ *Ответ был обрезан из-за ограничения длины.*";
+                }
+                
+                return responseText;
             } else {
                 throw new Error('Неожиданный формат ответа от AI');
             }
         } catch (error) {
             if (error.name === 'AbortError') {
                 throw error;
+            } else if (error.message.includes('HTTP 429') || error.message.includes('днейный лимит')) {
+                throw new Error('⚠️ Достигнут дневной лимит запросов (20 в день). Бесплатный тариф позволяет 20 запросов в сутки. Попробуйте завтра или настройте платёжный метод в Google AI Studio.');
+            } else if (error.message.includes('RESOURCE_EXHAUSTED')) {
+                throw new Error('⚠️ Исчерпан лимит запросов. Дождитесь обновления (24 часа) или настройте платёжный метод.');
+            } else if (error.message.includes('HTTP 400')) {
+                throw new Error('❌ Неверный запрос. Проверьте API ключ.');
+            } else if (error.message.includes('HTTP 401') || error.message.includes('HTTP 403')) {
+                throw new Error('🔑 Неверный или отсутствующий API ключ. Проверьте настройки.');
+            } else if (error.message.includes('HTTP 500')) {
+                throw new Error('⚙️ Ошибка сервера Google. Попробуйте позже.');
             } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                throw new Error('Сетевая ошибка. Проверьте подключение к интернету');
+                throw new Error('🌐 Нет подключения к интернету.');
+            } else {
+                // Упрощаем сообщение об ошибке
+                const simpleError = error.message.split(':')[0];
+                throw new Error(`Ошибка: ${simpleError}`);
             }
-            throw error;
         }
+    }
+
+    checkIfTruncated(text) {
+        // Проверяем признаки обрезанного текста:
+        // 1. Последнее предложение без точки/знака завершения
+        const lastChar = text.trim().slice(-1);
+        const endingChars = ['.', '!', '?', ':', ';', ')', ']', '}'];
+        
+        if (!endingChars.includes(lastChar) && text.length > 100) {
+            return true;
+        }
+        
+        // 2. Обрыв в середине слова
+        const words = text.trim().split(' ');
+        const lastWord = words[words.length - 1];
+        if (lastWord.length < 3 && text.length > 500) {
+            return true;
+        }
+        
+        // 3. Проверяем, нет ли внезапного обрыва
+        const lines = text.split('\n');
+        const lastLine = lines[lines.length - 1];
+        if (lastLine.length > 0 && lastLine.length < 20 && text.length > 1000) {
+            return true;
+        }
+        
+        return false;
     }
 
     addMessageToUI(text, type = 'ai', messageId = null, fromHistory = false) {
@@ -830,7 +1091,24 @@ class EDMAIApp {
         
         // Генерируем HTML в зависимости от типа сообщения
         if (type === 'ai') {
-            const avatarColor = this.generateAvatarColor('EDM AI');
+            // Рендеринг markdown с безопасностью
+            const rawMarkdown = text;
+            let safeHtml;
+            try {
+                if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
+                    const rawHtml = marked.parse(rawMarkdown);
+                    safeHtml = DOMPurify.sanitize(rawHtml, {
+                        ALLOWED_TAGS: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'br', 'strong', 'em', 'code', 'pre', 'ul', 'ol', 'li', 'blockquote', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'span', 'div'],
+                        ALLOWED_ATTR: ['class', 'style']
+                    });
+                } else {
+                    safeHtml = this.escapeHtml(text);
+                }
+            } catch (error) {
+                console.error('Ошибка рендеринга markdown:', error);
+                safeHtml = this.escapeHtml(text);
+            }
+            
             messageEl.innerHTML = `
                 <div class="message-avatar">
                     <div class="ai-avatar">
@@ -839,7 +1117,7 @@ class EDMAIApp {
                 </div>
                 <div class="message-content">
                     <div class="message-bubble">
-                        <div class="message-text">${this.escapeHtml(text)}</div>
+                        <div class="message-text">${safeHtml}</div>
                         <div class="message-actions">
                             <button class="msg-action-btn copy-btn" title="Скопировать" data-message-id="${messageId || Date.now()}">
                                 <i class="fas fa-copy"></i>
@@ -853,24 +1131,22 @@ class EDMAIApp {
             `;
             
             // Добавляем обработчики для кнопок
-            setTimeout(() => {
-                const copyBtn = messageEl.querySelector('.copy-btn');
-                const regenerateBtn = messageEl.querySelector('.regenerate-btn');
-                
-                if (copyBtn) {
-                    copyBtn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        this.copyMessage(copyBtn.dataset.messageId);
-                    });
-                }
-                
-                if (regenerateBtn) {
-                    regenerateBtn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        this.regenerateMessage(regenerateBtn.dataset.messageId);
-                    });
-                }
-            }, 0);
+            const copyBtn = messageEl.querySelector('.copy-btn');
+            const regenerateBtn = messageEl.querySelector('.regenerate-btn');
+            
+            if (copyBtn) {
+                copyBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.copyMessage(copyBtn.dataset.messageId);
+                });
+            }
+            
+            if (regenerateBtn) {
+                regenerateBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.regenerateMessage(regenerateBtn.dataset.messageId);
+                });
+            }
             
         } else if (type === 'user') {
             const avatarColor = this.userProfile ? 
@@ -936,7 +1212,7 @@ class EDMAIApp {
         this.updateChatsList();
     }
 
-    showTypingIndicator(id) {
+    showTypingIndicator(id, attachToMessageId = null) {
         const typingEl = document.createElement('div');
         typingEl.className = 'message ai-message new-message';
         typingEl.dataset.id = id;
@@ -958,6 +1234,21 @@ class EDMAIApp {
             </div>
         `;
         
+        // Если нужно прикрепить к существующему сообщению
+        if (attachToMessageId) {
+            const existingMessage = document.querySelector(`[data-id="${attachToMessageId}"]`);
+            if (existingMessage) {
+                const messageContent = existingMessage.querySelector('.message-content');
+                if (messageContent) {
+                    const oldIndicator = messageContent.querySelector('.typing-indicator');
+                    if (oldIndicator) oldIndicator.remove();
+                    messageContent.appendChild(typingEl.querySelector('.typing-indicator'));
+                }
+                return existingMessage;
+            }
+        }
+        
+        // Иначе добавляем новое сообщение
         this.elements.messagesContainer.appendChild(typingEl);
         this.scrollToBottom();
         
@@ -972,11 +1263,22 @@ class EDMAIApp {
     }
 
     copyMessage(messageId) {
+        // Разрешаем копирование только через кнопки
         const messageElement = document.querySelector(`[data-id="${messageId}"]`);
         if (!messageElement) return;
         
+        // Проверяем, что это AI сообщение
+        if (!messageElement.classList.contains('ai-message')) {
+            console.warn('Копирование разрешено только для AI сообщений');
+            return;
+        }
+        
         const messageText = messageElement.querySelector('.message-text');
         if (!messageText) return;
+        
+        // Временно разрешаем выделение
+        const originalUserSelect = messageText.style.userSelect;
+        messageText.style.userSelect = 'text';
         
         const textToCopy = messageText.textContent || messageText.innerText;
         
@@ -987,7 +1289,7 @@ class EDMAIApp {
         textarea.style.opacity = '0';
         document.body.appendChild(textarea);
         textarea.select();
-        textarea.setSelectionRange(0, 99999); // Для мобильных
+        textarea.setSelectionRange(0, 99999);
         
         try {
             const successful = document.execCommand('copy');
@@ -1005,15 +1307,17 @@ class EDMAIApp {
                     }, 2000);
                 }
                 
-                this.showNotification('Текст скопирован в буфер обмена', 'success');
+                this.showNotification('✅ Текст скопирован в буфер обмена', 'success');
             } else {
-                this.showNotification('Не удалось скопировать текст', 'error');
+                this.showNotification('❌ Не удалось скопировать текст', 'error');
             }
         } catch (err) {
             console.error('Ошибка копирования:', err);
-            this.showNotification('Не удалось скопировать текст', 'error');
+            this.showNotification('❌ Не удалось скопировать текст', 'error');
         } finally {
             document.body.removeChild(textarea);
+            // Восстанавливаем блокировку
+            messageText.style.userSelect = originalUserSelect;
         }
     }
 
@@ -1246,12 +1550,6 @@ class EDMAIApp {
     }
 
     showPersonalizationModal() {
-        if (this.apiKey) {
-            this.elements.apiKeyPersonalizationInput.value = '••••••••••••' + this.apiKey.slice(-4);
-        } else {
-            this.elements.apiKeyPersonalizationInput.value = '';
-        }
-        
         this.elements.customPromptInput.value = this.customPrompt;
         this.updatePromptStyleButtons();
         
@@ -1286,23 +1584,23 @@ class EDMAIApp {
     }
 
     updateProfileUI() {
+        if (!this.elements.profilePlaceholder) return;
+        
         if (!this.userProfile) {
-            if (this.elements.profilePlaceholder) {
-                this.elements.profilePlaceholder.innerHTML = `
-                    <i class="fas fa-user-circle"></i>
-                    <span>Профиль</span>
-                `;
-            }
+            this.elements.profilePlaceholder.innerHTML = `
+                <i class="fas fa-user-circle" style="font-size: 24px; color: var(--secondary-text);"></i>
+                <span style="font-weight: 500; font-size: 14px;">Профиль</span>
+            `;
         } else {
-            if (this.elements.profilePlaceholder) {
-                const avatarColor = this.generateAvatarColor(this.userProfile.username);
-                this.elements.profilePlaceholder.innerHTML = `
-                    <div class="profile-avatar-small" style="background: ${avatarColor}">
-                        ${this.userProfile.username.charAt(0).toUpperCase()}
-                    </div>
-                    <span>${this.userProfile.username}</span>
-                `;
-            }
+            const avatarColor = this.generateAvatarColor(this.userProfile.username);
+            this.elements.profilePlaceholder.innerHTML = `
+                <div class="profile-avatar-small" style="background: ${avatarColor};">
+                    ${this.userProfile.username.charAt(0).toUpperCase()}
+                </div>
+                <span style="font-weight: 500; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1;">
+                    ${this.userProfile.username}
+                </span>
+            `;
         }
     }
 
