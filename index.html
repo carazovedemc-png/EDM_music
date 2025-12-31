@@ -27,6 +27,13 @@
                 <div class="section-title">Чаты</div>
                 <div class="chats-list" id="chats-list"></div>
             </div>
+            
+            <div class="menu-footer">
+                <div class="profile-placeholder" id="profile-placeholder">
+                    <i class="fas fa-user-circle"></i>
+                    <span>Профиль</span>
+                </div>
+            </div>
         </div>
         
         <!-- Основное окно чата -->
@@ -57,26 +64,26 @@
             
             <!-- Панель ввода -->
             <div class="input-section">
-                <div class="input-container">
-                    <div class="input-wrapper">
+                <div class="input-wrapper">
+                    <div class="message-input-container">
                         <textarea 
                             id="message-input" 
                             class="message-input" 
-                            placeholder="Введите ваше сообщение..."
+                            placeholder="Введите сообщение..."
                             rows="1"
                         ></textarea>
-                        
-                        <!-- Кнопка голосового ввода -->
-                        <button class="voice-control-btn" id="voice-control-btn" title="Голосовой ввод">
-                            <i class="fas fa-microphone"></i>
-                        </button>
-                        
-                        <!-- Кнопка отправки/остановки генерации -->
-                        <button class="send-btn" id="send-btn" title="Отправить">
-                            <i class="fas fa-arrow-up" id="send-icon"></i>
-                            <i class="fas fa-stop" id="stop-icon" style="display: none;"></i>
-                        </button>
                     </div>
+                    
+                    <!-- Кнопка голосового ввода -->
+                    <button class="voice-control-btn" id="voice-control-btn" title="Голосовой ввод">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                    
+                    <!-- Кнопка отправки/остановки генерации -->
+                    <button class="send-btn" id="send-btn" title="Отправить">
+                        <i class="fas fa-arrow-up" id="send-icon"></i>
+                        <i class="fas fa-stop" id="stop-icon" style="display: none;"></i>
+                    </button>
                 </div>
             </div>
         </div>
@@ -108,10 +115,6 @@
                         
                         <button class="settings-btn personalization-btn" id="personalization-btn">
                             <i class="fas fa-magic"></i> Персонализация
-                        </button>
-                        
-                        <button class="settings-btn reset-mic-btn" id="reset-mic-btn">
-                            <i class="fas fa-microphone-slash"></i> Сбросить разрешение микрофона
                         </button>
                     </div>
                 </div>

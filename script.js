@@ -11,6 +11,7 @@ class EDMAIApp {
         this.recognition = null;
         this.finalTranscript = '';
         this.interimTranscript = '';
+        this.hasMicPermission = false;
         
         // Свойства для остановки генерации
         this.isGenerating = false;
@@ -20,8 +21,8 @@ class EDMAIApp {
         this.stoppedGenerationId = null;
         
         // Свойства для промптов
-        this.customPrompt = localStorage.getItem('edm_ai_custom_prompt') || '';
-        this.communicationStyle = localStorage.getItem('edm_ai_communication_style') || 'normal';
+        this.customPrompt = '';
+        this.communicationStyle = 'normal';
         this.communicationStyles = {
             normal: { name: 'Обычный', icon: 'fa-comment' },
             aggressive: { name: 'Агрессивный', icon: 'fa-fire' },
@@ -92,6 +93,9 @@ class EDMAIApp {
             // Список чатов
             chatsList: document.getElementById('chats-list'),
             
+            // Профиль в меню
+            profilePlaceholder: document.getElementById('profile-placeholder'),
+            
             // Модальные окна
             profileSettingsModal: document.getElementById('profile-settings-modal'),
             editProfileModal: document.getElementById('edit-profile-modal'),
@@ -101,7 +105,6 @@ class EDMAIApp {
             closeProfileSettings: document.getElementById('close-profile-settings'),
             editProfileBtn: document.getElementById('edit-profile-btn'),
             personalizationBtn: document.getElementById('personalization-btn'),
-            resetMicBtn: document.getElementById('reset-mic-btn'),
             
             // Редактирование профиля
             closeEditProfile: document.getElementById('close-edit-profile'),
@@ -176,10 +179,12 @@ class EDMAIApp {
         // Новые чаты
         this.elements.newChatBtnTop.addEventListener('click', () => this.createNewChat());
         
+        // Профиль в меню
+        this.elements.profilePlaceholder.addEventListener('click', () => this.showProfileSettingsModal());
+        
         // Настройки профиля
         this.elements.editProfileBtn.addEventListener('click', () => this.showEditProfileModal());
         this.elements.personalizationBtn.addEventListener('click', () => this.showPersonalizationModal());
-        this.elements.resetMicBtn.addEventListener('click', () => this.resetMicrophonePermission());
         this.elements.closeProfileSettings.addEventListener('click', () => this.hideProfileSettingsModal());
         
         // Редактирование профиля
@@ -191,8 +196,11 @@ class EDMAIApp {
         // Персонализация
         this.elements.closePersonalization.addEventListener('click', () => this.hidePersonalizationModal());
         this.elements.apiKeyPersonalizationInput.addEventListener('input', (e) => {
-            this.apiKey = e.target.value.trim();
-            this.saveData();
+            const key = e.target.value.trim();
+            if (!key.includes('••••')) {
+                this.apiKey = key;
+                this.saveData();
+            }
         });
         this.elements.customPromptInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -230,41 +238,6 @@ class EDMAIApp {
                 }
             });
         });
-        
-        // Нажатие на профиль в верхней панели
-        this.createProfileButton();
-    }
-
-    createProfileButton() {
-        const topBar = document.querySelector('.top-bar');
-        const profileBtn = document.createElement('button');
-        profileBtn.className = 'profile-btn';
-        profileBtn.id = 'profile-btn';
-        
-        if (this.userProfile) {
-            const avatarColor = this.generateAvatarColor(this.userProfile.username);
-            profileBtn.innerHTML = `
-                <div class="profile-avatar-small" style="background: ${avatarColor}">
-                    ${this.userProfile.username.charAt(0).toUpperCase()}
-                </div>
-                <span class="profile-username">${this.userProfile.username}</span>
-            `;
-        } else {
-            profileBtn.innerHTML = `
-                <div class="profile-avatar-small" style="background: linear-gradient(135deg, #667eea, #764ba2)">
-                    В
-                </div>
-                <span class="profile-username">Войти</span>
-            `;
-        }
-        
-        profileBtn.addEventListener('click', () => this.showProfileSettingsModal());
-        
-        // Вставляем после логотипа
-        const logo = document.querySelector('.logo');
-        topBar.insertBefore(profileBtn, logo.nextSibling);
-        
-        this.elements.profileBtn = profileBtn;
     }
 
     initHotkeys() {
@@ -307,7 +280,7 @@ class EDMAIApp {
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             this.recognition = new SpeechRecognition();
-            this.recognition.continuous = true; // Непрерывная запись
+            this.recognition.continuous = false; // Используем старый подход
             this.recognition.interimResults = true;
             this.recognition.lang = 'ru-RU';
             this.recognition.maxAlternatives = 1;
@@ -318,6 +291,7 @@ class EDMAIApp {
                 this.elements.voiceControlBtn.innerHTML = '<i class="fas fa-stop"></i>';
                 this.finalTranscript = '';
                 this.interimTranscript = '';
+                this.showNotification('Говорите...', 'info');
             };
             
             this.recognition.onresult = (event) => {
@@ -341,7 +315,7 @@ class EDMAIApp {
             this.recognition.onerror = (event) => {
                 console.error('Speech recognition error:', event.error);
                 if (event.error === 'not-allowed') {
-                    localStorage.removeItem('edm_ai_mic_permission');
+                    this.hasMicPermission = false;
                 }
                 this.stopVoiceRecognition();
                 this.showNotification('Ошибка распознавания речи', 'error');
@@ -353,6 +327,7 @@ class EDMAIApp {
                     this.elements.messageInput.value = this.finalTranscript;
                     this.adjustTextareaHeight();
                     this.elements.messageInput.focus();
+                    this.showNotification('Речь распознана', 'success');
                 }
             };
         } else {
@@ -362,14 +337,14 @@ class EDMAIApp {
     }
 
     initContextMenu() {
-        // Долгое нажатие на чат
+        // Долгое нажатие на чат - уменьшена задержка до 400ms
         document.addEventListener('touchstart', (e) => {
             const chatItem = e.target.closest('.chat-item');
             if (chatItem) {
                 this.contextMenuChatId = chatItem.dataset.chatId;
                 this.touchHoldTimer = setTimeout(() => {
                     this.showContextMenu(e, chatItem);
-                }, 800); // 800ms для долгого нажатия
+                }, 400); // Уменьшено до 400ms
             }
         }, { passive: true });
         
@@ -503,6 +478,15 @@ class EDMAIApp {
         if (savedProfile) {
             this.userProfile = JSON.parse(savedProfile);
         }
+        
+        // Загрузка кастомного промпта
+        this.customPrompt = localStorage.getItem('edm_ai_custom_prompt') || '';
+        
+        // Загрузка стиля общения
+        this.communicationStyle = localStorage.getItem('edm_ai_communication_style') || 'normal';
+        
+        // Загрузка разрешения микрофона
+        this.hasMicPermission = localStorage.getItem('edm_ai_mic_permission') === 'true';
     }
 
     saveData() {
@@ -514,6 +498,9 @@ class EDMAIApp {
         if (this.userProfile) {
             localStorage.setItem('edm_ai_profile', JSON.stringify(this.userProfile));
         }
+        localStorage.setItem('edm_ai_custom_prompt', this.customPrompt);
+        localStorage.setItem('edm_ai_communication_style', this.communicationStyle);
+        localStorage.setItem('edm_ai_mic_permission', this.hasMicPermission.toString());
     }
 
     loadCurrentChat() {
@@ -892,6 +879,7 @@ class EDMAIApp {
             const avatarText = this.userProfile ? 
                 this.userProfile.username.charAt(0).toUpperCase() : 'В';
             
+            // Аватар пользователя справа
             messageEl.innerHTML = `
                 <div class="message-content">
                     <div class="message-bubble">
@@ -1299,22 +1287,20 @@ class EDMAIApp {
 
     updateProfileUI() {
         if (!this.userProfile) {
-            if (this.elements.profileBtn) {
-                this.elements.profileBtn.innerHTML = `
-                    <div class="profile-avatar-small" style="background: linear-gradient(135deg, #667eea, #764ba2)">
-                        В
-                    </div>
-                    <span class="profile-username">Войти</span>
+            if (this.elements.profilePlaceholder) {
+                this.elements.profilePlaceholder.innerHTML = `
+                    <i class="fas fa-user-circle"></i>
+                    <span>Профиль</span>
                 `;
             }
         } else {
-            const avatarColor = this.generateAvatarColor(this.userProfile.username);
-            if (this.elements.profileBtn) {
-                this.elements.profileBtn.innerHTML = `
+            if (this.elements.profilePlaceholder) {
+                const avatarColor = this.generateAvatarColor(this.userProfile.username);
+                this.elements.profilePlaceholder.innerHTML = `
                     <div class="profile-avatar-small" style="background: ${avatarColor}">
                         ${this.userProfile.username.charAt(0).toUpperCase()}
                     </div>
-                    <span class="profile-username">${this.userProfile.username}</span>
+                    <span>${this.userProfile.username}</span>
                 `;
             }
         }
@@ -1336,22 +1322,42 @@ class EDMAIApp {
             return;
         }
         
-        // Проверяем сохраненное разрешение
-        const hasPermission = localStorage.getItem('edm_ai_mic_permission') === 'granted';
+        // Если уже идет запись, останавливаем
+        if (this.isRecording) {
+            this.stopVoiceRecognition();
+            return;
+        }
         
-        if (!hasPermission) {
-            // Запрашиваем разрешение
-            navigator.mediaDevices.getUserMedia({ audio: true })
-                .then(() => {
-                    localStorage.setItem('edm_ai_mic_permission', 'granted');
-                    this.startRecording();
-                })
-                .catch((error) => {
-                    console.error('Microphone permission denied:', error);
-                    this.showNotification('Доступ к микрофону запрещен', 'error');
-                });
-        } else {
+        // Проверяем сохраненное разрешение
+        if (this.hasMicPermission) {
             this.startRecording();
+        } else {
+            // Запрашиваем разрешение один раз
+            if (typeof navigator.permissions !== 'undefined') {
+                navigator.permissions.query({ name: 'microphone' }).then(permissionStatus => {
+                    if (permissionStatus.state === 'granted') {
+                        this.hasMicPermission = true;
+                        this.saveData();
+                        this.startRecording();
+                    } else if (permissionStatus.state === 'prompt') {
+                        // Прямой запрос доступа к микрофону
+                        navigator.mediaDevices.getUserMedia({ audio: true })
+                            .then(() => {
+                                this.hasMicPermission = true;
+                                this.saveData();
+                                this.startRecording();
+                            })
+                            .catch(() => {
+                                this.showNotification('Доступ к микрофону запрещен', 'error');
+                            });
+                    } else {
+                        this.showNotification('Разрешите доступ к микрофону в настройках браузера', 'error');
+                    }
+                });
+            } else {
+                // Для браузеров без Permissions API
+                this.startRecording();
+            }
         }
     }
 
@@ -1372,18 +1378,7 @@ class EDMAIApp {
             this.isRecording = false;
             this.elements.voiceControlBtn.classList.remove('recording');
             this.elements.voiceControlBtn.innerHTML = '<i class="fas fa-microphone"></i>';
-            
-            if (this.finalTranscript) {
-                this.elements.messageInput.value = this.finalTranscript;
-                this.adjustTextareaHeight();
-                this.elements.messageInput.focus();
-            }
         }
-    }
-
-    resetMicrophonePermission() {
-        localStorage.removeItem('edm_ai_mic_permission');
-        this.showNotification('Разрешение микрофона сброшено', 'success');
     }
 
     adjustTextareaHeight() {

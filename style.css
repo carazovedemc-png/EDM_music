@@ -217,6 +217,44 @@ body {
     text-overflow: ellipsis;
 }
 
+/* Меню профиля внизу */
+.menu-footer {
+    padding: 16px;
+    border-top: 1px solid var(--border-color);
+}
+
+.profile-placeholder {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    transition: var(--transition);
+    width: 100%;
+    border: none;
+}
+
+.profile-placeholder:active {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+.profile-placeholder i {
+    font-size: 20px;
+    color: var(--secondary-text);
+}
+
+.profile-placeholder span {
+    font-weight: 500;
+    font-size: 14px;
+    color: var(--primary-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+}
+
 /* Контекстное меню для чатов */
 .context-menu {
     position: fixed;
@@ -285,19 +323,19 @@ body {
     position: relative;
     flex-shrink: 0;
     min-height: 60px;
-    gap: 12px;
+    gap: 8px;
     width: 100%;
     box-sizing: border-box;
 }
 
 .menu-toggle, .new-chat-btn-top {
-    width: 44px;
-    height: 44px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     background: var(--surface-bg);
     border: 1px solid var(--border-color);
     color: var(--primary-text);
-    font-size: 18px;
+    font-size: 14px;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -331,50 +369,6 @@ body {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-}
-
-.profile-btn {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 20px;
-    border: none;
-    color: var(--primary-text);
-    font-size: 14px;
-    cursor: pointer;
-    transition: var(--transition);
-    flex-shrink: 0;
-    max-width: 180px;
-    overflow: hidden;
-}
-
-.profile-btn:active {
-    background: rgba(0, 0, 0, 0.5);
-}
-
-.profile-avatar-small {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 14px;
-    color: white;
-    flex-shrink: 0;
-}
-
-.profile-username {
-    font-weight: 500;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    flex: 1;
-    min-width: 0;
 }
 
 /* Область сообщений */
@@ -465,8 +459,13 @@ body {
 }
 
 .message.user-message {
-    align-self: flex-end;
     flex-direction: row-reverse;
+    align-self: flex-end;
+}
+
+.message.ai-message {
+    flex-direction: row;
+    align-self: flex-start;
 }
 
 .message-avatar {
@@ -645,23 +644,24 @@ body {
     box-sizing: border-box;
 }
 
-.input-container {
-    background: var(--surface-bg);
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius-lg);
-    padding: 8px;
-    box-shadow: var(--shadow-md);
-    width: 100%;
-    box-sizing: border-box;
-}
-
 .input-wrapper {
     display: flex;
     gap: 8px;
     align-items: center;
     position: relative;
-    min-height: 48px;
     width: 100%;
+}
+
+.message-input-container {
+    flex: 1;
+    background: var(--surface-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 24px;
+    padding: 0;
+    overflow: hidden;
+    height: 40px;
+    display: flex;
+    align-items: center;
 }
 
 .message-input {
@@ -671,14 +671,12 @@ body {
     color: var(--primary-text);
     font-size: 15px;
     font-family: 'Inter', sans-serif;
-    padding: 12px 12px 12px 16px;
+    padding: 12px 16px;
     outline: none;
     resize: none;
     min-height: 40px;
     max-height: 120px;
     line-height: 1.4;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
     width: 100%;
     box-sizing: border-box;
 }
@@ -689,19 +687,20 @@ body {
 
 /* Кнопки голосового ввода и отправки */
 .voice-control-btn {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     background: var(--surface-bg);
     border: 1px solid var(--border-color);
     color: var(--secondary-text);
-    font-size: 14px;
+    font-size: 16px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: var(--transition);
     flex-shrink: 0;
+    position: relative;
 }
 
 .voice-control-btn:active {
@@ -717,29 +716,31 @@ body {
 }
 
 .send-btn {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
-    background: var(--accent-color);
-    border: 1px solid var(--accent-color);
-    color: white;
-    font-size: 14px;
+    background: var(--surface-bg);
+    border: 1px solid var(--border-color);
+    color: var(--secondary-text);
+    font-size: 16px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: var(--transition);
     flex-shrink: 0;
+    position: relative;
 }
 
 .send-btn:active {
-    background: var(--accent-hover);
+    background: var(--surface-bg-hover);
     transform: scale(0.95);
 }
 
 .send-btn.generating {
     background: var(--error-color);
     border-color: var(--error-color);
+    color: white;
 }
 
 #send-icon, #stop-icon {
@@ -999,12 +1000,6 @@ body {
     background: rgba(138, 43, 226, 0.1);
     border-color: rgba(138, 43, 226, 0.3);
     color: var(--accent-color);
-}
-
-.settings-btn.reset-mic-btn {
-    background: rgba(239, 68, 68, 0.1);
-    border-color: rgba(239, 68, 68, 0.3);
-    color: var(--error-color);
 }
 
 /* Форма аутентификации */
@@ -1341,6 +1336,12 @@ body {
         left: 10px;
         max-width: none;
     }
+    
+    .menu-toggle, .new-chat-btn-top {
+        width: 32px;
+        height: 32px;
+        font-size: 12px;
+    }
 }
 
 @media (max-height: 700px) {
@@ -1361,23 +1362,6 @@ body {
     
     .welcome-message p {
         font-size: 14px;
-    }
-}
-
-/* Для очень маленьких экранов */
-@media (max-width: 360px) {
-    .profile-btn {
-        max-width: 140px;
-    }
-    
-    .profile-username {
-        font-size: 12px;
-    }
-    
-    .prompt-style-btn {
-        width: 40px;
-        height: 40px;
-        font-size: 16px;
     }
 }
 
