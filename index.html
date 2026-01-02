@@ -3,23 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>EDM AI</title>
+    <title>EDM AI с 2D Персонажем</title>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Markdown и подсветка кода -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/13.0.0/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.8/purify.min.js"></script>
+    <script src="https://esotericsoftware.com/files/runtimes/spine-webgl/3.8/spine-webgl.js"></script>
 </head>
 <body oncopy="return false" oncut="return false" onpaste="return false">
     <div class="app-container">
-        
-        <!-- Боковое меню -->
         <div class="side-menu" id="side-menu">
             <div class="menu-header">
                 <div class="menu-logo">EDM AI</div>
@@ -27,12 +25,10 @@
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            
             <div class="chats-section">
                 <div class="section-title">Чаты</div>
                 <div class="chats-list" id="chats-list"></div>
             </div>
-            
             <div class="menu-footer">
                 <div class="profile-placeholder" id="profile-placeholder">
                     <i class="fas fa-user-circle"></i>
@@ -40,10 +36,7 @@
                 </div>
             </div>
         </div>
-        
-        <!-- Основное окно чата -->
         <div class="main-content">
-            <!-- Верхняя панель -->
             <div class="top-bar">
                 <button class="menu-toggle" id="menu-toggle">
                     <i class="fas fa-bars"></i>
@@ -55,8 +48,6 @@
                     <i class="fas fa-plus"></i>
                 </button>
             </div>
-            
-            <!-- Область сообщений -->
             <div class="messages-container" id="messages-container">
                 <div class="welcome-message" id="welcome-message">
                     <div class="welcome-logo">
@@ -66,25 +57,14 @@
                     <p>Задайте любой вопрос, и я постараюсь помочь вам!</p>
                 </div>
             </div>
-            
-            <!-- Панель ввода -->
             <div class="input-section">
                 <div class="input-wrapper">
                     <div class="message-input-container">
-                        <textarea 
-                            id="message-input" 
-                            class="message-input" 
-                            placeholder="Введите сообщение..."
-                            rows="1"
-                        ></textarea>
+                        <textarea id="message-input" class="message-input" placeholder="Введите сообщение..." rows="1"></textarea>
                     </div>
-                    
-                    <!-- Кнопка голосового ввода -->
                     <button class="voice-control-btn" id="voice-control-btn" title="Голосовой ввод">
                         <i class="fas fa-microphone"></i>
                     </button>
-                    
-                    <!-- Кнопка отправки/остановки генерации -->
                     <button class="send-btn" id="send-btn" title="Отправить">
                         <i class="fas fa-arrow-up" id="send-icon"></i>
                         <i class="fas fa-stop" id="stop-icon" style="display: none;"></i>
@@ -92,8 +72,198 @@
                 </div>
             </div>
         </div>
-        
-        <!-- Модальное окно профиля и настроек -->
+        <div class="character-scene" id="character-scene">
+            <div class="character-viewport">
+                <canvas id="spine-canvas"></canvas>
+                <div class="speech-bubble" id="speech-bubble">
+                    <div class="bubble-text" id="bubble-text"></div>
+                    <div class="bubble-arrow"></div>
+                </div>
+                <div class="character-status" id="character-status">
+                    <i class="fas fa-circle" style="color: #10b981; font-size: 8px;"></i>
+                    <span>Подключено</span>
+                </div>
+            </div>
+            <div class="character-control-panel">
+                <div class="control-section">
+                    <div class="section-title-small">Управление</div>
+                    <div class="controls-grid">
+                        <button class="control-btn" id="char-toggle-voice" title="Голос">
+                            <i class="fas fa-volume-up"></i>
+                        </button>
+                        <button class="control-btn" id="char-toggle-anim" title="Анимации">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <button class="control-btn" id="char-settings" title="Настройки">
+                            <i class="fas fa-cog"></i>
+                        </button>
+                        <button class="control-btn" id="char-hide" title="Скрыть">
+                            <i class="fas fa-eye-slash"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="control-section">
+                    <div class="section-title-small">Эмоции</div>
+                    <div class="emotions-grid">
+                        <button class="emotion-btn" data-emotion="happy" title="Радость">
+                            <i class="fas fa-smile"></i>
+                        </button>
+                        <button class="emotion-btn" data-emotion="sad" title="Грусть">
+                            <i class="fas fa-sad-tear"></i>
+                        </button>
+                        <button class="emotion-btn" data-emotion="angry" title="Злость">
+                            <i class="fas fa-angry"></i>
+                        </button>
+                        <button class="emotion-btn" data-emotion="surprise" title="Удивление">
+                            <i class="fas fa-surprise"></i>
+                        </button>
+                        <button class="emotion-btn" data-emotion="thinking" title="Думает">
+                            <i class="fas fa-brain"></i>
+                        </button>
+                        <button class="emotion-btn" data-emotion="love" title="Любовь">
+                            <i class="fas fa-heart"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="control-section">
+                    <div class="section-title-small">Позы</div>
+                    <div class="poses-grid">
+                        <button class="pose-btn" data-pose="idle" title="Ожидание">
+                            <i class="fas fa-user"></i>
+                        </button>
+                        <button class="pose-btn" data-pose="talk" title="Разговор">
+                            <i class="fas fa-comment"></i>
+                        </button>
+                        <button class="pose-btn" data-pose="listen" title="Слушает">
+                            <i class="fas fa-ear-listen"></i>
+                        </button>
+                        <button class="pose-btn" data-pose="think" title="Думает">
+                            <i class="fas fa-lightbulb"></i>
+                        </button>
+                        <button class="pose-btn" data-pose="wave" title="Машет">
+                            <i class="fas fa-hand-wave"></i>
+                        </button>
+                        <button class="pose-btn" data-pose="dance" title="Танец">
+                            <i class="fas fa-music"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button class="show-character-btn" id="show-character-btn" title="Показать персонажа">
+            <i class="fas fa-ghost"></i>
+        </button>
+        <div class="modal-overlay" id="character-settings-modal">
+            <div class="modal-container character-settings-modal">
+                <div class="modal-header">
+                    <button class="modal-close" id="close-character-settings">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <h2>Настройки 2D-персонажа</h2>
+                </div>
+                <div class="modal-body">
+                    <div class="settings-section">
+                        <div class="form-group">
+                            <label for="model-path-input">
+                                <i class="fas fa-folder"></i> Путь к модели Spine
+                            </label>
+                            <input type="text" id="model-path-input" class="auth-input" placeholder="assets/spine/character/character.json" value="assets/spine/character/character.json">
+                            <div class="setting-hint">Укажите путь к файлу .json вашей Spine модели</div>
+                        </div>
+                        <div class="form-group">
+                            <label for="animation-scale-slider">
+                                <i class="fas fa-expand-alt"></i> Масштаб модели
+                            </label>
+                            <input type="range" id="animation-scale-slider" min="0.1" max="2" step="0.1" value="0.8">
+                            <div class="slider-value" id="animation-scale-value">0.8x</div>
+                        </div>
+                        <div class="form-group">
+                            <label for="animation-speed-slider">
+                                <i class="fas fa-tachometer-alt"></i> Скорость анимации
+                            </label>
+                            <input type="range" id="animation-speed-slider" min="0.1" max="3" step="0.1" value="1">
+                            <div class="slider-value" id="animation-speed-value">1.0x</div>
+                        </div>
+                        <div class="form-group">
+                            <label for="renderer-select">
+                                <i class="fas fa-tv"></i> Рендерер
+                            </label>
+                            <select id="renderer-select" class="auth-input">
+                                <option value="webgl">WebGL (рекомендуется)</option>
+                                <option value="canvas">Canvas</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="auto-idle-checkbox">
+                                <i class="fas fa-random"></i> Авто-анимации простоя
+                            </label>
+                            <div class="checkbox-wrapper">
+                                <input type="checkbox" id="auto-idle-checkbox" checked>
+                                <label for="auto-idle-checkbox" class="checkbox-label">Включить случайные движения в режиме ожидания</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <i class="fas fa-palette"></i> Цвет подсветки
+                            </label>
+                            <div class="color-picker">
+                                <input type="color" id="character-color-picker" value="#8a2be2">
+                                <div class="color-presets">
+                                    <div class="color-preset" style="background: #8a2be2;" data-color="#8a2be2"></div>
+                                    <div class="color-preset" style="background: #3b82f6;" data-color="#3b82f6"></div>
+                                    <div class="color-preset" style="background: #10b981;" data-color="#10b981"></div>
+                                    <div class="color-preset" style="background: #f59e0b;" data-color="#f59e0b"></div>
+                                    <div class="color-preset" style="background: #ef4444;" data-color="#ef4444"></div>
+                                    <div class="color-preset" style="background: #ec4899;" data-color="#ec4899"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="auth-buttons">
+                            <button class="auth-btn primary" id="save-character-settings">
+                                <i class="fas fa-save"></i> Сохранить и перезагрузить
+                            </button>
+                            <button class="auth-btn secondary" id="test-animations-btn">
+                                <i class="fas fa-play-circle"></i> Тест всех анимаций
+                            </button>
+                            <button class="auth-btn secondary" id="reset-character-settings">
+                                <i class="fas fa-undo"></i> Сбросить настройки
+                            </button>
+                        </div>
+                        <div class="debug-info">
+                            <h4>Отладка модели Spine</h4>
+                            <div class="debug-stats" id="debug-stats">Загрузите модель для отображения статистики...</div>
+                            <button class="debug-btn" id="debug-bones-btn">
+                                <i class="fas fa-bone"></i> Показать кости
+                            </button>
+                            <button class="debug-btn" id="debug-slots-btn">
+                                <i class="fas fa-layer-group"></i> Показать слоты
+                            </button>
+                            <button class="debug-btn" id="debug-hitboxes-btn">
+                                <i class="fas fa-square"></i> Показать хитбоксы
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-overlay" id="model-loading-modal">
+            <div class="modal-container loading-modal">
+                <div class="modal-header">
+                    <h2><i class="fas fa-spinner fa-spin"></i> Загрузка 2D-модели</h2>
+                </div>
+                <div class="modal-body">
+                    <div class="loading-content">
+                        <div class="spinner"></div>
+                        <div class="loading-text" id="loading-text">Инициализация Spine runtime...</div>
+                        <div class="loading-progress">
+                            <div class="progress-bar" id="loading-progress-bar"></div>
+                            <div class="progress-text" id="loading-progress-text">0%</div>
+                        </div>
+                        <div class="loading-details" id="loading-details">Ожидание загрузки ресурсов...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="modal-overlay" id="profile-settings-modal">
             <div class="modal-container profile-settings-modal">
                 <div class="modal-header">
@@ -105,27 +275,24 @@
                 <div class="modal-body">
                     <div class="settings-section">
                         <div class="profile-info">
-                            <div class="profile-avatar-large" id="profile-settings-avatar">
-                                В
-                            </div>
+                            <div class="profile-avatar-large" id="profile-settings-avatar">В</div>
                             <div class="profile-details">
                                 <div class="profile-username-large" id="profile-settings-username">Гость</div>
                                 <div class="profile-api-key" id="profile-api-key">API ключ: не установлен</div>
                             </div>
                         </div>
-                        
                         <button class="settings-btn edit-profile-btn" id="edit-profile-btn">
                             <i class="fas fa-edit"></i> Редактировать профиль
                         </button>
-                        
+                        <button class="settings-btn character-btn" id="character-settings-btn">
+                            <i class="fas fa-user-circle"></i> Персонаж
+                        </button>
                         <button class="settings-btn personalization-btn" id="personalization-btn">
                             <i class="fas fa-magic"></i> Персонализация
                         </button>
-                        
                         <button class="settings-btn" id="terms-btn">
                             <i class="fas fa-file-contract"></i> Пользовательское соглашение
                         </button>
-                        
                         <button class="settings-btn" id="support-btn">
                             <i class="fas fa-headset"></i> Техподдержка
                         </button>
@@ -133,8 +300,6 @@
                 </div>
             </div>
         </div>
-        
-        <!-- Модальное окно редактирования профиля -->
         <div class="modal-overlay" id="edit-profile-modal">
             <div class="modal-container auth-modal">
                 <div class="modal-header">
@@ -149,30 +314,15 @@
                             <label for="edit-username-input">
                                 <i class="fas fa-user"></i> Имя пользователя
                             </label>
-                            <input 
-                                type="text" 
-                                id="edit-username-input" 
-                                class="auth-input"
-                                placeholder="Введите новое имя"
-                                maxlength="20"
-                            >
+                            <input type="text" id="edit-username-input" class="auth-input" placeholder="Введите новое имя" maxlength="20">
                         </div>
-                        
                         <div class="form-group">
                             <label for="edit-api-key-input">
                                 <i class="fas fa-key"></i> API ключ
                             </label>
-                            <input 
-                                type="password" 
-                                id="edit-api-key-input" 
-                                class="auth-input"
-                                placeholder="Введите ваш API ключ"
-                            >
-                            <div class="setting-hint">
-                                Получите ключ на <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a>
-                            </div>
+                            <input type="password" id="edit-api-key-input" class="auth-input" placeholder="Введите ваш API ключ">
+                            <div class="setting-hint">Получите ключ на <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a></div>
                         </div>
-                        
                         <div class="auth-buttons">
                             <button class="auth-btn primary" id="save-profile-btn">
                                 <i class="fas fa-save"></i> Сохранить
@@ -185,8 +335,6 @@
                 </div>
             </div>
         </div>
-        
-        <!-- Модальное окно персонализации -->
         <div class="modal-overlay" id="personalization-modal">
             <div class="modal-container personalization-modal">
                 <div class="modal-header">
@@ -201,14 +349,8 @@
                             <label for="custom-prompt-input">
                                 <i class="fas fa-comment-alt"></i> Кастомный промпт
                             </label>
-                            <textarea 
-                                id="custom-prompt-input" 
-                                class="prompt-input"
-                                placeholder="Введите ваш промпт. Он будет использоваться для всех ответов ИИ."
-                                rows="6"
-                            ></textarea>
+                            <textarea id="custom-prompt-input" class="prompt-input" placeholder="Введите ваш промпт. Он будет использоваться для всех ответов ИИ." rows="6"></textarea>
                         </div>
-                        
                         <div class="prompt-styles-section">
                             <div class="section-title-small">Стиль общения</div>
                             <div class="prompt-styles-grid">
@@ -230,8 +372,6 @@
                 </div>
             </div>
         </div>
-        
-        <!-- Контекстное меню для чатов -->
         <div class="context-menu" id="chat-context-menu">
             <div class="context-menu-item" id="pin-chat-btn">
                 <i class="fas fa-thumbtack"></i> Закрепить
@@ -244,7 +384,15 @@
             </div>
         </div>
     </div>
-    
     <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            window.app = new EDMAIApp();
+            window.characterManager = new CharacterManager(window.app);
+            setTimeout(() => {
+                window.characterManager.loadSpineModel();
+            }, 500);
+        });
+    </script>
 </body>
 </html>
