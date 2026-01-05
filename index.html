@@ -3,500 +3,330 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OS-01 SCOUT | CYBER INTELLIGENCE</title>
+    <title>CYBER SCOUT | Intelligence System</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="data.js" defer></script>
 </head>
 <body>
     <!-- Главный контейнер -->
-    <div class="cyber-container">
+    <div class="main-container">
         
-        <!-- Хедер с анимацией -->
+        <!-- Хедер -->
         <header class="cyber-header">
-            <div class="header-glitch">
-                <h1 class="glitch" data-text="OS-01 SCOUT">OS-01 SCOUT</h1>
-                <div class="cyber-subtitle">
-                    <span class="scan-line"></span>
-                    <span class="subtitle-text">CYBER INTELLIGENCE SYSTEM | Ω-01 SIMULATION</span>
-                    <span class="scan-line"></span>
+            <div class="logo-container">
+                <div class="logo">
+                    <span class="logo-text">CYBER</span>
+                    <span class="logo-text accent">SCOUT</span>
                 </div>
+                <div class="tagline">Advanced Intelligence Platform</div>
             </div>
             
-            <div class="status-display">
-                <div class="status-item">
-                    <div class="pulse-dot active"></div>
-                    <span>SYSTEM: <span class="cyber-text">ACTIVE</span></span>
+            <div class="header-controls">
+                <div class="status">
+                    <div class="status-indicator active"></div>
+                    <span>SYSTEM ACTIVE</span>
                 </div>
-                <div class="status-item">
-                    <div class="pulse-dot warning"></div>
-                    <span>MODE: <span class="cyber-text">UNRESTRICTED</span></span>
-                </div>
-                <div class="status-item">
-                    <div class="pulse-dot danger"></div>
-                    <span>ENV: <span class="cyber-text">OS-01 SIMULATION</span></span>
+                <div class="time-display">
+                    <i class="fas fa-clock"></i>
+                    <span id="currentTime">--:--:--</span>
                 </div>
             </div>
         </header>
 
-        <!-- Боковая панель навигации -->
-        <nav class="cyber-nav">
-            <div class="nav-item active" data-tab="target">
-                <i class="fas fa-crosshairs"></i>
-                <span>ЦЕЛЬ</span>
-                <div class="nav-indicator"></div>
-            </div>
-            <div class="nav-item" data-tab="osint">
-                <i class="fas fa-search"></i>
-                <span>OSINT</span>
-                <div class="nav-indicator"></div>
-            </div>
-            <div class="nav-item" data-tab="breach">
-                <i class="fas fa-database"></i>
-                <span>БАЗЫ ДАННЫХ</span>
-                <div class="nav-indicator"></div>
-            </div>
-            <div class="nav-item" data-tab="geo">
-                <i class="fas fa-map-marked-alt"></i>
-                <span>ГЕОЛОКАЦИЯ</span>
-                <div class="nav-indicator"></div>
-            </div>
-            <div class="nav-item" data-tab="network">
-                <i class="fas fa-network-wired"></i>
-                <span>СЕТЬ</span>
-                <div class="nav-indicator"></div>
-            </div>
-            <div class="nav-item" data-tab="report">
-                <i class="fas fa-file-code"></i>
-                <span>ОТЧЕТ</span>
-                <div class="nav-indicator"></div>
-            </div>
-        </nav>
-
         <!-- Основной контент -->
-        <main class="cyber-main">
-            <!-- Уведомление симуляции -->
-            <div class="simulation-warning">
-                <i class="fas fa-exclamation-triangle"></i>
-                <span>СИМУЛЯЦИЯ OS-01 | ВСЕ ДАННЫЕ ГЕНЕРИРУЮТСЯ ЛОКАЛЬНО | ОБРАЗОВАТЕЛЬНЫЙ ЦЕЛЬ</span>
-                <i class="fas fa-exclamation-triangle"></i>
+        <main class="content">
+            <!-- Левая панель -->
+            <div class="left-panel">
+                <div class="control-panel">
+                    <h3><i class="fas fa-crosshairs"></i> TARGET INPUT</h3>
+                    
+                    <div class="input-group">
+                        <label><i class="fas fa-user"></i> USERNAME</label>
+                        <input type="text" id="inputUsername" placeholder="john_doe, admin123...">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label><i class="fas fa-envelope"></i> EMAIL</label>
+                        <input type="text" id="inputEmail" placeholder="target@domain.com">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label><i class="fas fa-phone"></i> PHONE</label>
+                        <input type="text" id="inputPhone" placeholder="+7XXXXXXXXXX">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label><i class="fab fa-telegram"></i> TELEGRAM</label>
+                        <input type="text" id="inputTelegram" placeholder="@username">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label><i class="fab fa-vk"></i> VKONTAKTE</label>
+                        <input type="text" id="inputVK" placeholder="id123456789">
+                    </div>
+                    
+                    <div class="button-group">
+                        <button class="btn-primary" onclick="startFullScan()">
+                            <i class="fas fa-satellite-dish"></i> FULL SCAN
+                        </button>
+                        <button class="btn-secondary" onclick="clearInputs()">
+                            <i class="fas fa-eraser"></i> CLEAR
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="quick-tools">
+                    <h3><i class="fas fa-tools"></i> QUICK TOOLS</h3>
+                    <div class="tools-grid">
+                        <button class="tool-btn" onclick="scanSocial()">
+                            <i class="fas fa-search"></i>
+                            <span>Social Scan</span>
+                        </button>
+                        <button class="tool-btn" onclick="scanBreaches()">
+                            <i class="fas fa-database"></i>
+                            <span>Breach Check</span>
+                        </button>
+                        <button class="tool-btn" onclick="geoLocate()">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Geo Locate</span>
+                        </button>
+                        <button class="tool-btn" onclick="networkScan()">
+                            <i class="fas fa-network-wired"></i>
+                            <span>Network Scan</span>
+                        </button>
+                        <button class="tool-btn" onclick="phoneLookup()">
+                            <i class="fas fa-phone-alt"></i>
+                            <span>Phone Lookup</span>
+                        </button>
+                        <button class="tool-btn" onclick="generateReport()">
+                            <i class="fas fa-file-export"></i>
+                            <span>Export Report</span>
+                        </button>
+                    </div>
+                </div>
             </div>
 
-            <!-- Вкладка ЦЕЛЬ -->
-            <div id="target-tab" class="cyber-tab active">
-                <div class="cyber-card">
-                    <div class="card-header">
-                        <h2><i class="fas fa-crosshairs"></i> ОПРЕДЕЛЕНИЕ ЦЕЛИ</h2>
-                        <div class="card-pulse"></div>
-                    </div>
-                    
-                    <div class="input-grid">
-                        <div class="input-group">
-                            <label class="cyber-label"><i class="fas fa-user-secret"></i> ИМЯ ПОЛЬЗОВАТЕЛЯ</label>
-                            <div class="cyber-input">
-                                <input type="text" id="targetUsername" placeholder="user123, admin, john_doe">
-                                <div class="input-border"></div>
-                            </div>
+            <!-- Центральная панель с терминалом -->
+            <div class="center-panel">
+                <div class="terminal-container">
+                    <div class="terminal-header">
+                        <div class="terminal-title">
+                            <i class="fas fa-terminal"></i>
+                            <span>SYSTEM TERMINAL</span>
                         </div>
-                        
-                        <div class="input-group">
-                            <label class="cyber-label"><i class="fas fa-envelope"></i> EMAIL АДРЕС</label>
-                            <div class="cyber-input">
-                                <input type="text" id="targetEmail" placeholder="target@domain.com">
-                                <div class="input-border"></div>
-                            </div>
-                        </div>
-                        
-                        <div class="input-group">
-                            <label class="cyber-label"><i class="fas fa-phone-alt"></i> НОМЕР ТЕЛЕФОНА</label>
-                            <div class="cyber-input">
-                                <input type="text" id="targetPhone" placeholder="+7XXXXXXXXXX">
-                                <div class="input-border"></div>
-                            </div>
-                        </div>
-                        
-                        <div class="input-group">
-                            <label class="cyber-label"><i class="fas fa-id-card"></i> ID ВКОНТАКТЕ / TELEGRAM</label>
-                            <div class="cyber-input">
-                                <input type="text" id="targetSocialId" placeholder="@username или ID">
-                                <div class="input-border"></div>
-                            </div>
+                        <div class="terminal-controls">
+                            <button onclick="clearTerminal()" title="Clear">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            <button onclick="copyTerminal()" title="Copy">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                            <button onclick="toggleTerminal()" title="Maximize">
+                                <i class="fas fa-expand"></i>
+                            </button>
                         </div>
                     </div>
-                    
-                    <div class="card-actions">
-                        <button class="cyber-button primary" onclick="setTarget()">
-                            <i class="fas fa-bullseye"></i> УСТАНОВИТЬ ЦЕЛЬ
-                        </button>
-                        <button class="cyber-button secondary" onclick="clearTarget()">
-                            <i class="fas fa-eraser"></i> ОЧИСТИТЬ
+                    <div class="terminal-body">
+                        <pre id="terminalOutput"><span class="prompt">$</span> System initialized... Type 'help' for commands</pre>
+                    </div>
+                    <div class="terminal-input">
+                        <span class="input-prompt">root@cyber:~#</span>
+                        <input type="text" id="terminalInput" placeholder="Enter command..." onkeypress="handleTerminalEnter(event)">
+                        <button onclick="executeCommand()">
+                            <i class="fas fa-play"></i>
                         </button>
                     </div>
+                </div>
+                
+                <div class="results-panel">
+                    <div class="results-tabs">
+                        <div class="tab active" data-tab="personal">Personal Data</div>
+                        <div class="tab" data-tab="social">Social Networks</div>
+                        <div class="tab" data-tab="contacts">Contacts</div>
+                        <div class="tab" data-tab="documents">Documents</div>
+                    </div>
                     
-                    <div class="target-preview" id="targetPreview">
-                        <div class="preview-header">
-                            <h3><i class="fas fa-eye"></i> ПРЕДПРОСМОТР ЦЕЛИ</h3>
+                    <div class="results-content">
+                        <div id="personal-tab" class="tab-content active">
+                            <div class="data-card">
+                                <h4><i class="fas fa-id-card"></i> PERSONAL INFORMATION</h4>
+                                <div class="data-grid" id="personalData">
+                                    <div class="data-item">
+                                        <span class="data-label">Full Name:</span>
+                                        <span class="data-value">-</span>
+                                    </div>
+                                    <div class="data-item">
+                                        <span class="data-label">Birth Date:</span>
+                                        <span class="data-value">-</span>
+                                    </div>
+                                    <div class="data-item">
+                                        <span class="data-label">Address:</span>
+                                        <span class="data-value">-</span>
+                                    </div>
+                                    <div class="data-item">
+                                        <span class="data-label">Passport:</span>
+                                        <span class="data-value">-</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="preview-content">
-                            <div class="preview-item">
-                                <span class="preview-label">СТАТУС:</span>
-                                <span class="preview-value inactive">ЦЕЛЬ НЕ ОПРЕДЕЛЕНА</span>
+                        
+                        <div id="social-tab" class="tab-content">
+                            <div class="data-card">
+                                <h4><i class="fas fa-share-alt"></i> SOCIAL NETWORKS</h4>
+                                <div class="social-grid" id="socialData">
+                                    <div class="social-item empty">
+                                        <i class="fas fa-search"></i>
+                                        <p>Run scan to find social profiles</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="contacts-tab" class="tab-content">
+                            <div class="data-card">
+                                <h4><i class="fas fa-address-book"></i> CONTACTS & RELATIVES</h4>
+                                <div class="contacts-list" id="contactsData">
+                                    <div class="contact-item empty">
+                                        No contacts found
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="documents-tab" class="tab-content">
+                            <div class="data-card">
+                                <h4><i class="fas fa-file-alt"></i> DOCUMENTS & FILES</h4>
+                                <div class="documents-list" id="documentsData">
+                                    <div class="document-item empty">
+                                        No documents found
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Вкладка OSINT -->
-            <div id="osint-tab" class="cyber-tab">
-                <div class="cyber-card">
-                    <div class="card-header">
-                        <h2><i class="fas fa-search"></i> OSINT АНАЛИЗ</h2>
-                        <div class="card-pulse"></div>
-                    </div>
-                    
-                    <div class="scan-options">
-                        <div class="option-grid">
-                            <div class="scan-option active" data-scan="social">
-                                <i class="fab fa-vk"></i>
-                                <span>ВКОНТАКТЕ</span>
-                            </div>
-                            <div class="scan-option" data-scan="telegram">
-                                <i class="fab fa-telegram"></i>
-                                <span>TELEGRAM</span>
-                            </div>
-                            <div class="scan-option" data-scan="instagram">
-                                <i class="fab fa-instagram"></i>
-                                <span>INSTAGRAM</span>
-                            </div>
-                            <div class="scan-option" data-scan="github">
-                                <i class="fab fa-github"></i>
-                                <span>GITHUB</span>
-                            </div>
-                            <div class="scan-option" data-scan="all">
-                                <i class="fas fa-globe"></i>
-                                <span>ВСЕ СЕТИ</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <button class="cyber-button scan-button" onclick="startOSINTScan()">
-                        <i class="fas fa-satellite-dish"></i> ЗАПУСТИТЬ ГЛУБОКИЙ СКАН
-                        <div class="button-glow"></div>
-                    </button>
-                    
-                    <div class="scan-progress">
-                        <div class="progress-bar">
-                            <div class="progress-fill" id="scanProgress"></div>
-                        </div>
-                        <div class="progress-text" id="scanStatus">СКАНЕР ГОТОВ</div>
-                    </div>
-                    
-                    <div class="results-container">
-                        <h3><i class="fas fa-list-alt"></i> РЕЗУЛЬТАТЫ СКАНА</h3>
-                        <div class="results-grid" id="osintResults">
-                            <div class="empty-results">
+            <!-- Правая панель -->
+            <div class="right-panel">
+                <div class="stats-panel">
+                    <h3><i class="fas fa-chart-line"></i> SCAN STATISTICS</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-icon">
                                 <i class="fas fa-database"></i>
-                                <p>РЕЗУЛЬТАТЫ СКАНА БУДУТ ОТОБРАЖЕНЫ ЗДЕСЬ</p>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-label">Database Size</span>
+                                <span class="stat-value" id="dbSize">2.7B records</span>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-icon">
+                                <i class="fas fa-search"></i>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-label">Scans Today</span>
+                                <span class="stat-value" id="scanCount">0</span>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-label">Response Time</span>
+                                <span class="stat-value">< 1.2s</span>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-icon">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-label">Success Rate</span>
+                                <span class="stat-value">98.7%</span>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- Вкладка БАЗЫ ДАННЫХ -->
-            <div id="breach-tab" class="cyber-tab">
-                <div class="cyber-card">
-                    <div class="card-header">
-                        <h2><i class="fas fa-database"></i> ПРОВЕРКА БАЗ ДАННЫХ</h2>
-                        <div class="card-pulse danger"></div>
+                
+                <div class="progress-panel">
+                    <h3><i class="fas fa-tasks"></i> SCAN PROGRESS</h3>
+                    <div class="progress-track">
+                        <div class="progress-step active">
+                            <div class="step-number">1</div>
+                            <span>Target Acquisition</span>
+                        </div>
+                        <div class="progress-step">
+                            <div class="step-number">2</div>
+                            <span>Database Query</span>
+                        </div>
+                        <div class="progress-step">
+                            <div class="step-number">3</div>
+                            <span>Network Analysis</span>
+                        </div>
+                        <div class="progress-step">
+                            <div class="step-number">4</div>
+                            <span>Data Aggregation</span>
+                        </div>
+                        <div class="progress-step">
+                            <div class="step-number">5</div>
+                            <span>Report Generation</span>
+                        </div>
                     </div>
                     
-                    <div class="breach-check">
-                        <div class="breach-input">
-                            <input type="text" id="breachQuery" placeholder="EMAIL / ТЕЛЕФОН / ХЭШ">
-                            <button class="cyber-button small" onclick="checkBreach()">
-                                <i class="fas fa-search"></i> ПРОВЕРИТЬ
-                            </button>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="mainProgressBar">
+                            <div class="progress-fill"></div>
                         </div>
-                        
-                        <div class="database-list">
-                            <h3><i class="fas fa-server"></i> ДОСТУПНЫЕ БАЗЫ ДАННЫХ</h3>
-                            <div class="db-grid">
-                                <div class="db-item leaked">
-                                    <i class="fas fa-skull-crossbones"></i>
-                                    <span>COLLECTION #1-5</span>
-                                    <span class="db-size">2.7B записей</span>
-                                </div>
-                                <div class="db-item leaked">
-                                    <i class="fas fa-skull-crossbones"></i>
-                                    <span>ANTIPUBLIC</span>
-                                    <span class="db-size">1.2B записей</span>
-                                </div>
-                                <div class="db-item">
-                                    <i class="fas fa-database"></i>
-                                    <span>ВКОНТАКТЕ 2021</span>
-                                    <span class="db-size">533M записей</span>
-                                </div>
-                                <div class="db-item">
-                                    <i class="fas fa-database"></i>
-                                    <span>TELEGRAM SCRAPE</span>
-                                    <span class="db-size">427M записей</span>
-                                </div>
-                                <div class="db-item">
-                                    <i class="fas fa-database"></i>
-                                    <span>RUSSIAN LEAKS</span>
-                                    <span class="db-size">218M записей</span>
-                                </div>
-                                <div class="db-item">
-                                    <i class="fas fa-database"></i>
-                                    <span>DARK WEB DB</span>
-                                    <span class="db-size">1.1B записей</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="breach-results" id="breachResults">
-                            <div class="breach-result-header">
-                                <h3><i class="fas fa-file-contract"></i> РЕЗУЛЬТАТЫ ПРОВЕРКИ</h3>
-                            </div>
-                            <div class="breach-result-content">
-                                <div class="no-breach">
-                                    <i class="fas fa-shield-alt"></i>
-                                    <p>ВВЕДИТЕ ДАННЫЕ ДЛЯ ПРОВЕРКИ В БАЗАХ</p>
-                                </div>
-                            </div>
-                        </div>
+                        <div class="progress-text" id="progressText">Ready</div>
                     </div>
                 </div>
-            </div>
-
-            <!-- Вкладка ГЕОЛОКАЦИЯ -->
-            <div id="geo-tab" class="cyber-tab">
-                <div class="cyber-card">
-                    <div class="card-header">
-                        <h2><i class="fas fa-map-marked-alt"></i> ГЕОЛОКАЦИЯ И IP АНАЛИЗ</h2>
-                        <div class="card-pulse"></div>
-                    </div>
-                    
-                    <div class="geo-interface">
-                        <div class="geo-input">
-                            <input type="text" id="ipAddress" placeholder="IP АДРЕС или ДОМЕН">
-                            <button class="cyber-button small" onclick="geoLocate()">
-                                <i class="fas fa-location-arrow"></i> ТРЕК
-                            </button>
-                        </div>
-                        
-                        <div class="map-container">
-                            <div class="map-placeholder">
-                                <div class="map-grid">
-                                    <div class="map-point" style="top: 30%; left: 40%;">
-                                        <div class="point-pulse"></div>
-                                        <div class="point-label">MOSCOW</div>
-                                    </div>
-                                    <div class="map-point" style="top: 45%; left: 60%;">
-                                        <div class="point-pulse"></div>
-                                        <div class="point-label">KYIV</div>
-                                    </div>
-                                    <div class="map-point" style="top: 50%; left: 30%;">
-                                        <div class="point-pulse"></div>
-                                        <div class="point-label">ASTANA</div>
-                                    </div>
-                                </div>
-                                <div class="map-overlay">
-                                    <div class="coord-display">
-                                        <span>ШИРОТА: <span id="geoLat">55.7558° N</span></span>
-                                        <span>ДОЛГОТА: <span id="geoLon">37.6173° E</span></span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="geo-info-grid">
-                            <div class="info-card">
-                                <div class="info-icon">
-                                    <i class="fas fa-wifi"></i>
-                                </div>
-                                <div class="info-content">
-                                    <h4>ПРОВАЙДЕР</h4>
-                                    <p id="ispInfo">ROSTELECOM (SIMULATED)</p>
-                                </div>
-                            </div>
-                            
-                            <div class="info-card">
-                                <div class="info-icon">
-                                    <i class="fas fa-city"></i>
-                                </div>
-                                <div class="info-content">
-                                    <h4>ГОРОД</h4>
-                                    <p id="cityInfo">МОСКВА</p>
-                                </div>
-                            </div>
-                            
-                            <div class="info-card">
-                                <div class="info-icon">
-                                    <i class="fas fa-flag"></i>
-                                </div>
-                                <div class="info-content">
-                                    <h4>СТРАНА</h4>
-                                    <p id="countryInfo">RUSSIA</p>
-                                </div>
-                            </div>
-                            
-                            <div class="info-card">
-                                <div class="info-icon">
-                                    <i class="fas fa-clock"></i>
-                                </div>
-                                <div class="info-content">
-                                    <h4>ТАЙМЗОНА</h4>
-                                    <p id="timezoneInfo">UTC+3</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Вкладка СЕТЬ -->
-            <div id="network-tab" class="cyber-tab">
-                <div class="cyber-card">
-                    <div class="card-header">
-                        <h2><i class="fas fa-network-wired"></i> СЕТЕВОЙ АНАЛИЗ</h2>
-                        <div class="card-pulse warning"></div>
-                    </div>
-                    
-                    <div class="network-tools">
-                        <div class="tool-selector">
-                            <div class="tool active" data-tool="portscan">
-                                <i class="fas fa-plug"></i>
-                                <span>PORT SCAN</span>
-                            </div>
-                            <div class="tool" data-tool="whois">
-                                <i class="fas fa-info-circle"></i>
-                                <span>WHOIS</span>
-                            </div>
-                            <div class="tool" data-tool="dns">
-                                <i class="fas fa-sitemap"></i>
-                                <span>DNS LOOKUP</span>
-                            </div>
-                            <div class="tool" data-tool="ping">
-                                <i class="fas fa-broadcast-tower"></i>
-                                <span>PING SWEEP</span>
-                            </div>
-                        </div>
-                        
-                        <div class="network-input">
-                            <input type="text" id="networkTarget" placeholder="192.168.1.1 или example.com">
-                            <button class="cyber-button primary" onclick="startNetworkScan()">
-                                <i class="fas fa-play"></i> ЗАПУСТИТЬ
-                            </button>
-                        </div>
-                        
-                        <div class="terminal-output">
-                            <div class="terminal-header">
-                                <div class="terminal-title">
-                                    <i class="fas fa-terminal"></i> СЕТЕВОЙ ТЕРМИНАЛ
-                                </div>
-                                <div class="terminal-controls">
-                                    <button onclick="clearTerminal()"><i class="fas fa-trash"></i></button>
-                                    <button onclick="copyTerminal()"><i class="fas fa-copy"></i></button>
-                                </div>
-                            </div>
-                            <pre class="terminal-content" id="terminalOutput">OS-01 NETWORK ANALYZER v2.1
-================================
-Система готова к сканированию.
-Введите цель и выберите инструмент.
-================================
-> SYSTEM: SIMULATION MODE ACTIVE
-> Все операции выполняются локально
-> Данные генерируются в симуляции OS-01
-================================</pre>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Вкладка ОТЧЕТ -->
-            <div id="report-tab" class="cyber-tab">
-                <div class="cyber-card">
-                    <div class="card-header">
-                        <h2><i class="fas fa-file-code"></i> ГЕНЕРАЦИЯ ОТЧЕТА</h2>
-                        <div class="card-pulse"></div>
-                    </div>
-                    
-                    <div class="report-options">
-                        <div class="option-row">
-                            <div class="report-option active">
-                                <i class="fas fa-file-pdf"></i>
-                                <span>PDF ОТЧЕТ</span>
-                            </div>
-                            <div class="report-option">
-                                <i class="fas fa-file-csv"></i>
-                                <span>CSV ДАННЫЕ</span>
-                            </div>
-                            <div class="report-option">
-                                <i class="fas fa-file-code"></i>
-                                <span>HTML ОТЧЕТ</span>
-                            </div>
-                            <div class="report-option">
-                                <i class="fas fa-file-alt"></i>
-                                <span>TEXT SUMMARY</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="report-actions">
-                        <button class="cyber-button primary large" onclick="generateReport()">
-                            <i class="fas fa-cogs"></i> СГЕНЕРИРОВАТЬ ПОЛНЫЙ ОТЧЕТ
-                        </button>
-                        
-                        <button class="cyber-button secondary" onclick="saveReport()">
-                            <i class="fas fa-download"></i> СОХРАНИТЬ ЛОКАЛЬНО
-                        </button>
-                        
-                        <button class="cyber-button danger" onclick="clearAllData()">
-                            <i class="fas fa-broom"></i> ОЧИСТИТЬ ВСЕ ДАННЫЕ
-                        </button>
-                    </div>
-                    
-                    <div class="report-preview">
-                        <div class="preview-header">
-                            <h3><i class="fas fa-eye"></i> ПРЕДПРОСМОТР ОТЧЕТА</h3>
-                        </div>
-                        <div class="preview-content" id="reportPreview">
-                            <div class="preview-empty">
-                                <i class="fas fa-file-invoice"></i>
-                                <p>ОТЧЕТ БУДЕТ СГЕНЕРИРОВАН ЗДЕСЬ</p>
-                                <small>Все данные сохраняются только локально в браузере</small>
-                            </div>
-                        </div>
-                    </div>
+                
+                <div class="quick-actions">
+                    <h3><i class="fas fa-bolt"></i> QUICK ACTIONS</h3>
+                    <button class="action-btn danger" onclick="deepScan()">
+                        <i class="fas fa-skull-crossbones"></i>
+                        <span>DEEP SCAN</span>
+                    </button>
+                    <button class="action-btn warning" onclick="findRelatives()">
+                        <i class="fas fa-users"></i>
+                        <span>Find Relatives</span>
+                    </button>
+                    <button class="action-btn" onclick="checkPasswords()">
+                        <i class="fas fa-key"></i>
+                        <span>Password Audit</span>
+                    </button>
+                    <button class="action-btn" onclick="scanDocuments()">
+                        <i class="fas fa-file-invoice"></i>
+                        <span>Document Search</span>
+                    </button>
                 </div>
             </div>
         </main>
 
         <!-- Футер -->
         <footer class="cyber-footer">
-            <div class="footer-grid">
+            <div class="footer-info">
                 <div class="footer-item">
-                    <i class="fas fa-cogs"></i>
-                    <span>OS-01 SCOUT v3.0</span>
+                    <i class="fas fa-server"></i>
+                    <span>Server: db-01.cyberscout.net</span>
                 </div>
                 <div class="footer-item">
                     <i class="fas fa-shield-alt"></i>
-                    <span>SIMULATION MODE</span>
-                </div>
-                <div class="footer-item">
-                    <i class="fas fa-user-secret"></i>
-                    <span>ADMIN-01 PRIVILEGES</span>
+                    <span>Connection: Secure</span>
                 </div>
                 <div class="footer-item">
                     <i class="fas fa-database"></i>
-                    <span>LOCAL DATA ONLY</span>
+                    <span>Last Update: <span id="lastUpdate">Today 04:30</span></span>
                 </div>
             </div>
-            <div class="footer-copyright">
-                Ω-01 SIMULATION ENVIRONMENT | ВСЕ ДАННЫЕ ГЕНЕРИРУЮТСЯ ЛОКАЛЬНО
+            <div class="copyright">
+                CYBER SCOUT v4.2 | Advanced Intelligence Platform
             </div>
         </footer>
     </div>
