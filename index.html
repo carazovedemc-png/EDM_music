@@ -3,32 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CYBER SCOUT | Intelligence System</title>
+    <title>CYBER SCOUT | Universal Intelligence</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="data.js" defer></script>
 </head>
 <body>
-    <!-- Главный контейнер -->
     <div class="main-container">
-        
         <!-- Хедер -->
         <header class="cyber-header">
-            <div class="logo-container">
-                <div class="logo">
-                    <span class="logo-text">CYBER</span>
-                    <span class="logo-text accent">SCOUT</span>
-                </div>
-                <div class="tagline">Advanced Intelligence Platform</div>
+            <div class="logo">
+                <span class="logo-text">CYBER</span>
+                <span class="logo-text accent">SCOUT</span>
             </div>
+            <div class="tagline">Universal Intelligence Platform</div>
             
-            <div class="header-controls">
-                <div class="status">
-                    <div class="status-indicator active"></div>
-                    <span>SYSTEM ACTIVE</span>
+            <div class="system-status">
+                <div class="status-item">
+                    <div class="status-dot active"></div>
+                    <span>ONLINE</span>
                 </div>
-                <div class="time-display">
+                <div class="status-item">
+                    <i class="fas fa-database"></i>
+                    <span id="dbStatus">DB: READY</span>
+                </div>
+                <div class="status-item">
                     <i class="fas fa-clock"></i>
                     <span id="currentTime">--:--:--</span>
                 </div>
@@ -36,79 +35,82 @@
         </header>
 
         <!-- Основной контент -->
-        <main class="content">
+        <div class="content">
             <!-- Левая панель -->
             <div class="left-panel">
-                <div class="control-panel">
-                    <h3><i class="fas fa-crosshairs"></i> TARGET INPUT</h3>
+                <div class="panel-section">
+                    <h3><i class="fas fa-file-upload"></i> DATA SOURCES</h3>
                     
-                    <div class="input-group">
-                        <label><i class="fas fa-user"></i> USERNAME</label>
-                        <input type="text" id="inputUsername" placeholder="john_doe, admin123...">
-                    </div>
-                    
-                    <div class="input-group">
-                        <label><i class="fas fa-envelope"></i> EMAIL</label>
-                        <input type="text" id="inputEmail" placeholder="target@domain.com">
-                    </div>
-                    
-                    <div class="input-group">
-                        <label><i class="fas fa-phone"></i> PHONE</label>
-                        <input type="text" id="inputPhone" placeholder="+7XXXXXXXXXX">
-                    </div>
-                    
-                    <div class="input-group">
-                        <label><i class="fab fa-telegram"></i> TELEGRAM</label>
-                        <input type="text" id="inputTelegram" placeholder="@username">
-                    </div>
-                    
-                    <div class="input-group">
-                        <label><i class="fab fa-vk"></i> VKONTAKTE</label>
-                        <input type="text" id="inputVK" placeholder="id123456789">
-                    </div>
-                    
-                    <div class="button-group">
-                        <button class="btn-primary" onclick="startFullScan()">
-                            <i class="fas fa-satellite-dish"></i> FULL SCAN
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <p class="upload-text">Drop files here or click to upload</p>
+                        <p class="upload-subtext">Supports: .txt, .csv, .json, .xml, .log, .doc, .pdf</p>
+                        <input type="file" id="fileInput" multiple accept=".txt,.csv,.json,.xml,.log,.doc,.pdf,.rtf,.docx">
+                        <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                            <i class="fas fa-folder-open"></i> BROWSE FILES
                         </button>
-                        <button class="btn-secondary" onclick="clearInputs()">
-                            <i class="fas fa-eraser"></i> CLEAR
+                    </div>
+                    
+                    <div class="file-list" id="fileList">
+                        <div class="file-list-header">
+                            <h4>Loaded Files</h4>
+                            <span class="file-count" id="fileCount">0 files</span>
+                        </div>
+                        <div class="files-container" id="filesContainer">
+                            <div class="empty-files">
+                                <i class="fas fa-file-alt"></i>
+                                <p>No files loaded</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="data-actions">
+                        <button class="action-btn primary" onclick="processAllFiles()">
+                            <i class="fas fa-cogs"></i> PROCESS FILES
+                        </button>
+                        <button class="action-btn" onclick="clearAllFiles()">
+                            <i class="fas fa-trash"></i> CLEAR ALL
+                        </button>
+                        <button class="action-btn" onclick="scanMemory()">
+                            <i class="fas fa-brain"></i> SCAN MEMORY
                         </button>
                     </div>
                 </div>
                 
-                <div class="quick-tools">
-                    <h3><i class="fas fa-tools"></i> QUICK TOOLS</h3>
-                    <div class="tools-grid">
-                        <button class="tool-btn" onclick="scanSocial()">
+                <div class="panel-section">
+                    <h3><i class="fas fa-crosshairs"></i> QUICK SEARCH</h3>
+                    
+                    <div class="search-input-group">
+                        <input type="text" id="quickSearch" placeholder="Enter name, phone, email...">
+                        <button class="search-btn" onclick="quickSearch()">
                             <i class="fas fa-search"></i>
-                            <span>Social Scan</span>
                         </button>
-                        <button class="tool-btn" onclick="scanBreaches()">
-                            <i class="fas fa-database"></i>
-                            <span>Breach Check</span>
-                        </button>
-                        <button class="tool-btn" onclick="geoLocate()">
+                    </div>
+                    
+                    <div class="search-types">
+                        <div class="search-type active" data-type="name">
+                            <i class="fas fa-user"></i>
+                            <span>Name</span>
+                        </div>
+                        <div class="search-type" data-type="phone">
+                            <i class="fas fa-phone"></i>
+                            <span>Phone</span>
+                        </div>
+                        <div class="search-type" data-type="email">
+                            <i class="fas fa-envelope"></i>
+                            <span>Email</span>
+                        </div>
+                        <div class="search-type" data-type="address">
                             <i class="fas fa-map-marker-alt"></i>
-                            <span>Geo Locate</span>
-                        </button>
-                        <button class="tool-btn" onclick="networkScan()">
-                            <i class="fas fa-network-wired"></i>
-                            <span>Network Scan</span>
-                        </button>
-                        <button class="tool-btn" onclick="phoneLookup()">
-                            <i class="fas fa-phone-alt"></i>
-                            <span>Phone Lookup</span>
-                        </button>
-                        <button class="tool-btn" onclick="generateReport()">
-                            <i class="fas fa-file-export"></i>
-                            <span>Export Report</span>
-                        </button>
+                            <span>Address</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Центральная панель с терминалом -->
+            <!-- Центральная панель -->
             <div class="center-panel">
                 <div class="terminal-container">
                     <div class="terminal-header">
@@ -117,94 +119,79 @@
                             <span>SYSTEM TERMINAL</span>
                         </div>
                         <div class="terminal-controls">
-                            <button onclick="clearTerminal()" title="Clear">
+                            <button onclick="clearTerminal()">
                                 <i class="fas fa-trash"></i>
                             </button>
-                            <button onclick="copyTerminal()" title="Copy">
+                            <button onclick="copyTerminal()">
                                 <i class="fas fa-copy"></i>
                             </button>
-                            <button onclick="toggleTerminal()" title="Maximize">
-                                <i class="fas fa-expand"></i>
+                            <button onclick="toggleAutoScroll()">
+                                <i class="fas fa-arrow-down" id="autoScrollIcon"></i>
                             </button>
                         </div>
                     </div>
+                    
                     <div class="terminal-body">
-                        <pre id="terminalOutput"><span class="prompt">$</span> System initialized... Type 'help' for commands</pre>
+                        <pre id="terminalOutput"><span class="prompt">root@cyber:~#</span> System initialized. Ready for operations.</pre>
                     </div>
-                    <div class="terminal-input">
-                        <span class="input-prompt">root@cyber:~#</span>
-                        <input type="text" id="terminalInput" placeholder="Enter command..." onkeypress="handleTerminalEnter(event)">
-                        <button onclick="executeCommand()">
-                            <i class="fas fa-play"></i>
-                        </button>
+                    
+                    <div class="terminal-stats">
+                        <div class="stat">
+                            <i class="fas fa-microchip"></i>
+                            <span>CPU: <span id="cpuLoad">2.4%</span></span>
+                        </div>
+                        <div class="stat">
+                            <i class="fas fa-memory"></i>
+                            <span>MEM: <span id="memUsage">127MB</span></span>
+                        </div>
+                        <div class="stat">
+                            <i class="fas fa-database"></i>
+                            <span>DATA: <span id="dataSize">0 KB</span></span>
+                        </div>
+                        <div class="stat">
+                            <i class="fas fa-bolt"></i>
+                            <span>SPEED: <span id="processSpeed">0ms</span></span>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="results-panel">
-                    <div class="results-tabs">
-                        <div class="tab active" data-tab="personal">Personal Data</div>
-                        <div class="tab" data-tab="social">Social Networks</div>
-                        <div class="tab" data-tab="contacts">Contacts</div>
-                        <div class="tab" data-tab="documents">Documents</div>
+                <div class="results-container">
+                    <div class="results-header">
+                        <h3><i class="fas fa-search"></i> SEARCH RESULTS</h3>
+                        <div class="results-controls">
+                            <button class="results-btn" onclick="exportResults()">
+                                <i class="fas fa-download"></i> EXPORT
+                            </button>
+                            <button class="results-btn" onclick="clearResults()">
+                                <i class="fas fa-eraser"></i> CLEAR
+                            </button>
+                        </div>
                     </div>
                     
-                    <div class="results-content">
-                        <div id="personal-tab" class="tab-content active">
-                            <div class="data-card">
-                                <h4><i class="fas fa-id-card"></i> PERSONAL INFORMATION</h4>
-                                <div class="data-grid" id="personalData">
-                                    <div class="data-item">
-                                        <span class="data-label">Full Name:</span>
-                                        <span class="data-value">-</span>
-                                    </div>
-                                    <div class="data-item">
-                                        <span class="data-label">Birth Date:</span>
-                                        <span class="data-value">-</span>
-                                    </div>
-                                    <div class="data-item">
-                                        <span class="data-label">Address:</span>
-                                        <span class="data-value">-</span>
-                                    </div>
-                                    <div class="data-item">
-                                        <span class="data-label">Passport:</span>
-                                        <span class="data-value">-</span>
-                                    </div>
-                                </div>
-                            </div>
+                    <div class="results-grid" id="resultsGrid">
+                        <div class="empty-results">
+                            <i class="fas fa-search"></i>
+                            <p>Search results will appear here</p>
+                            <small>Upload files and run search to see data</small>
                         </div>
-                        
-                        <div id="social-tab" class="tab-content">
-                            <div class="data-card">
-                                <h4><i class="fas fa-share-alt"></i> SOCIAL NETWORKS</h4>
-                                <div class="social-grid" id="socialData">
-                                    <div class="social-item empty">
-                                        <i class="fas fa-search"></i>
-                                        <p>Run scan to find social profiles</p>
-                                    </div>
-                                </div>
-                            </div>
+                    </div>
+                    
+                    <div class="results-stats">
+                        <div class="result-stat">
+                            <span class="stat-label">Total Matches:</span>
+                            <span class="stat-value" id="totalMatches">0</span>
                         </div>
-                        
-                        <div id="contacts-tab" class="tab-content">
-                            <div class="data-card">
-                                <h4><i class="fas fa-address-book"></i> CONTACTS & RELATIVES</h4>
-                                <div class="contacts-list" id="contactsData">
-                                    <div class="contact-item empty">
-                                        No contacts found
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="result-stat">
+                            <span class="stat-label">Files Processed:</span>
+                            <span class="stat-value" id="filesProcessed">0</span>
                         </div>
-                        
-                        <div id="documents-tab" class="tab-content">
-                            <div class="data-card">
-                                <h4><i class="fas fa-file-alt"></i> DOCUMENTS & FILES</h4>
-                                <div class="documents-list" id="documentsData">
-                                    <div class="document-item empty">
-                                        No documents found
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="result-stat">
+                            <span class="stat-label">Data Points:</span>
+                            <span class="stat-value" id="dataPoints">0</span>
+                        </div>
+                        <div class="result-stat">
+                            <span class="stat-label">Confidence:</span>
+                            <span class="stat-value" id="confidence">0%</span>
                         </div>
                     </div>
                 </div>
@@ -212,125 +199,140 @@
 
             <!-- Правая панель -->
             <div class="right-panel">
-                <div class="stats-panel">
-                    <h3><i class="fas fa-chart-line"></i> SCAN STATISTICS</h3>
-                    <div class="stats-grid">
-                        <div class="stat-item">
-                            <div class="stat-icon">
-                                <i class="fas fa-database"></i>
-                            </div>
-                            <div class="stat-info">
-                                <span class="stat-label">Database Size</span>
-                                <span class="stat-value" id="dbSize">2.7B records</span>
-                            </div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-icon">
-                                <i class="fas fa-search"></i>
-                            </div>
-                            <div class="stat-info">
-                                <span class="stat-label">Scans Today</span>
-                                <span class="stat-value" id="scanCount">0</span>
-                            </div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-icon">
-                                <i class="fas fa-clock"></i>
-                            </div>
-                            <div class="stat-info">
-                                <span class="stat-label">Response Time</span>
-                                <span class="stat-value">< 1.2s</span>
-                            </div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-icon">
-                                <i class="fas fa-check-circle"></i>
-                            </div>
-                            <div class="stat-info">
-                                <span class="stat-label">Success Rate</span>
-                                <span class="stat-value">98.7%</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="progress-panel">
-                    <h3><i class="fas fa-tasks"></i> SCAN PROGRESS</h3>
-                    <div class="progress-track">
-                        <div class="progress-step active">
-                            <div class="step-number">1</div>
-                            <span>Target Acquisition</span>
-                        </div>
-                        <div class="progress-step">
-                            <div class="step-number">2</div>
-                            <span>Database Query</span>
-                        </div>
-                        <div class="progress-step">
-                            <div class="step-number">3</div>
-                            <span>Network Analysis</span>
-                        </div>
-                        <div class="progress-step">
-                            <div class="step-number">4</div>
-                            <span>Data Aggregation</span>
-                        </div>
-                        <div class="progress-step">
-                            <div class="step-number">5</div>
-                            <span>Report Generation</span>
-                        </div>
+                <div class="panel-section">
+                    <h3><i class="fas fa-chart-bar"></i> DATA ANALYTICS</h3>
+                    
+                    <div class="analytics-chart">
+                        <canvas id="dataChart"></canvas>
                     </div>
                     
-                    <div class="progress-bar-container">
-                        <div class="progress-bar" id="mainProgressBar">
-                            <div class="progress-fill"></div>
+                    <div class="analytics-stats">
+                        <div class="analytic-item">
+                            <div class="analytic-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="analytic-info">
+                                <span class="analytic-label">Persons Found</span>
+                                <span class="analytic-value" id="personsFound">0</span>
+                            </div>
                         </div>
-                        <div class="progress-text" id="progressText">Ready</div>
+                        
+                        <div class="analytic-item">
+                            <div class="analytic-icon">
+                                <i class="fas fa-phone"></i>
+                            </div>
+                            <div class="analytic-info">
+                                <span class="analytic-label">Phone Numbers</span>
+                                <span class="analytic-value" id="phonesFound">0</span>
+                            </div>
+                        </div>
+                        
+                        <div class="analytic-item">
+                            <div class="analytic-icon">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <div class="analytic-info">
+                                <span class="analytic-label">Email Addresses</span>
+                                <span class="analytic-value" id="emailsFound">0</span>
+                            </div>
+                        </div>
+                        
+                        <div class="analytic-item">
+                            <div class="analytic-icon">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <div class="analytic-info">
+                                <span class="analytic-label">Locations</span>
+                                <span class="analytic-value" id="locationsFound">0</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="quick-actions">
-                    <h3><i class="fas fa-bolt"></i> QUICK ACTIONS</h3>
-                    <button class="action-btn danger" onclick="deepScan()">
-                        <i class="fas fa-skull-crossbones"></i>
-                        <span>DEEP SCAN</span>
-                    </button>
-                    <button class="action-btn warning" onclick="findRelatives()">
-                        <i class="fas fa-users"></i>
-                        <span>Find Relatives</span>
-                    </button>
-                    <button class="action-btn" onclick="checkPasswords()">
-                        <i class="fas fa-key"></i>
-                        <span>Password Audit</span>
-                    </button>
-                    <button class="action-btn" onclick="scanDocuments()">
-                        <i class="fas fa-file-invoice"></i>
-                        <span>Document Search</span>
-                    </button>
+                <div class="panel-section">
+                    <h3><i class="fas fa-cogs"></i> ADVANCED TOOLS</h3>
+                    
+                    <div class="tools-grid">
+                        <button class="tool-btn" onclick="deepAnalyze()">
+                            <i class="fas fa-search-plus"></i>
+                            <span>Deep Analyze</span>
+                        </button>
+                        
+                        <button class="tool-btn" onclick="findConnections()">
+                            <i class="fas fa-project-diagram"></i>
+                            <span>Find Connections</span>
+                        </button>
+                        
+                        <button class="tool-btn" onclick="extractPatterns()">
+                            <i class="fas fa-code-branch"></i>
+                            <span>Extract Patterns</span>
+                        </button>
+                        
+                        <button class="tool-btn" onclick="geolocateAll()">
+                            <i class="fas fa-map"></i>
+                            <span>Geolocate All</span>
+                        </button>
+                        
+                        <button class="tool-btn" onclick="socialGraph()">
+                            <i class="fas fa-share-alt"></i>
+                            <span>Social Graph</span>
+                        </button>
+                        
+                        <button class="tool-btn" onclick="timelineAnalysis()">
+                            <i class="fas fa-timeline"></i>
+                            <span>Timeline</span>
+                        </button>
+                    </div>
+                    
+                    <div class="processing-controls">
+                        <div class="control-group">
+                            <label>
+                                <input type="checkbox" id="autoProcess" checked>
+                                Auto-process new files
+                            </label>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label>Analysis Depth:</label>
+                            <select id="analysisDepth">
+                                <option value="1">Basic</option>
+                                <option value="2" selected>Standard</option>
+                                <option value="3">Deep</option>
+                                <option value="4">Maximum</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </main>
+        </div>
 
         <!-- Футер -->
         <footer class="cyber-footer">
             <div class="footer-info">
                 <div class="footer-item">
                     <i class="fas fa-server"></i>
-                    <span>Server: db-01.cyberscout.net</span>
+                    <span>Node: CYBER-ALPHA-01</span>
                 </div>
                 <div class="footer-item">
                     <i class="fas fa-shield-alt"></i>
-                    <span>Connection: Secure</span>
+                    <span>Encryption: AES-256</span>
                 </div>
                 <div class="footer-item">
-                    <i class="fas fa-database"></i>
-                    <span>Last Update: <span id="lastUpdate">Today 04:30</span></span>
+                    <i class="fas fa-bolt"></i>
+                    <span>Processing: <span id="processingPower">8 cores / 16GB</span></span>
+                </div>
+                <div class="footer-item">
+                    <i class="fas fa-sync-alt"></i>
+                    <span>Uptime: <span id="uptime">99.8%</span></span>
                 </div>
             </div>
-            <div class="copyright">
-                CYBER SCOUT v4.2 | Advanced Intelligence Platform
+            <div class="version">
+                CYBER SCOUT v5.0 | Universal Intelligence System | Process any file format
             </div>
         </footer>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

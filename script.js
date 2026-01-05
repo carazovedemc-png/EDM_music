@@ -1,58 +1,173 @@
-// CYBER SCOUT - Advanced Intelligence Platform
-// Real-time Intelligence Gathering System
+// CYBER SCOUT v5.0 - Universal Intelligence System
+// Universal file processor - reads ANY text-based file format
 
 // Глобальные переменные
-let currentTarget = null;
-let scanInProgress = false;
-let terminalHistory = [];
-let scanCount = 0;
-let progressInterval = null;
+let loadedFiles = [];
+let extractedData = [];
+let isProcessing = false;
+let autoScroll = true;
+let chartInstance = null;
+let terminalBuffer = [];
+let processingStats = {
+    totalFiles: 0,
+    processedFiles: 0,
+    totalData: 0,
+    persons: 0,
+    phones: 0,
+    emails: 0,
+    locations: 0
+};
 
 // Инициализация при загрузке
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('CYBER SCOUT v4.2 Initialized');
+    console.log('CYBER SCOUT v5.0 Initialized - Universal File Processor');
     
-    initTerminal();
-    updateTime();
-    loadDatabaseInfo();
+    initSystem();
     setupEventListeners();
+    initChart();
+    updateSystemInfo();
     
     // Показываем приветственное сообщение
     setTimeout(() => {
-        terminalWrite('$ Initializing system components... OK', 'system');
-        terminalWrite('$ Loading intelligence modules... OK', 'system');
-        terminalWrite('$ Connecting to databases... OK', 'system');
-        terminalWrite('$ System ready for operations', 'success');
-        terminalWrite('$ Type "help" for available commands', 'info');
-    }, 1000);
+        terminalWrite('$ Initializing Universal Intelligence System...', 'system');
+        terminalWrite('$ Loading file processing modules...', 'system');
+        terminalWrite('$ Universal text extractor ready...', 'success');
+        terminalWrite('$ Supported formats: ANY text-based file', 'info');
+        terminalWrite('$ Drag & drop files or use upload button', 'info');
+    }, 500);
     
-    // Обновляем время каждую секунду
-    setInterval(updateTime, 1000);
+    // Обновляем системную информацию
+    setInterval(updateSystemInfo, 2000);
+    setInterval(updateProcessingStats, 3000);
 });
 
-// Инициализация терминала
-function initTerminal() {
-    const terminal = document.getElementById('terminalOutput');
-    terminal.innerHTML = '';
+// Инициализация системы
+function initSystem() {
+    // Настройка перетаскивания файлов
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
     
-    const welcome = `
-<span class="prompt">$</span> ██████╗██╗   ██╗██████╗ ███████╗██████╗ 
-<span class="prompt">$</span> ██╔════╝╚██╗ ██╔╝██╔══██╗██╔════╝██╔══██╗
-<span class="prompt">$</span> ██║      ╚████╔╝ ██████╔╝█████╗  ██████╔╝
-<span class="prompt">$</span> ██║       ╚██╔╝  ██╔══██╗██╔══╝  ██╔══██╗
-<span class="prompt">$</span> ╚██████╗   ██║   ██████╔╝███████╗██║  ██║
-<span class="prompt">$</span>  ╚═════╝   ╚═╝   ╚═════╝ ╚══════╝╚═╝  ╚═╝
-<span class="prompt">$</span> 
-<span class="prompt">$</span> Advanced Intelligence Platform v4.2
-<span class="prompt">$</span> ========================================
-<span class="prompt">$</span> System initialized... Type 'help' for commands
-`;
+    uploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        this.style.borderColor = 'var(--cyber-green)';
+        this.style.background = 'rgba(0, 255, 65, 0.05)';
+    });
     
-    terminal.innerHTML = welcome;
+    uploadArea.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        this.style.borderColor = 'var(--border-color)';
+        this.style.background = 'transparent';
+    });
+    
+    uploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.style.borderColor = 'var(--border-color)';
+        this.style.background = 'transparent';
+        
+        const files = e.dataTransfer.files;
+        handleFiles(files);
+    });
+    
+    fileInput.addEventListener('change', function(e) {
+        const files = e.target.files;
+        handleFiles(files);
+    });
+    
+    // Настройка горячих клавиш
+    document.addEventListener('keydown', function(e) {
+        // Ctrl + F - фокус на поиск
+        if (e.ctrlKey && e.key === 'f') {
+            e.preventDefault();
+            document.getElementById('quickSearch').focus();
+        }
+        
+        // Ctrl + P - обработка файлов
+        if (e.ctrlKey && e.key === 'p') {
+            e.preventDefault();
+            processAllFiles();
+        }
+        
+        // Ctrl + T - очистка терминала
+        if (e.ctrlKey && e.key === 't') {
+            e.preventDefault();
+            clearTerminal();
+        }
+        
+        // Esc - очистка поиска
+        if (e.key === 'Escape') {
+            document.getElementById('quickSearch').value = '';
+        }
+    });
 }
 
-// Обновление времени
-function updateTime() {
+// Настройка слушателей событий
+function setupEventListeners() {
+    // Типы поиска
+    document.querySelectorAll('.search-type').forEach(type => {
+        type.addEventListener('click', function() {
+            document.querySelectorAll('.search-type').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+    
+    // Enter в поле поиска
+    document.getElementById('quickSearch').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            quickSearch();
+        }
+    });
+}
+
+// Инициализация графика
+function initChart() {
+    const ctx = document.getElementById('dataChart').getContext('2d');
+    
+    chartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+            datasets: [{
+                label: 'Data Processing',
+                data: [12, 19, 3, 5, 2, 3],
+                borderColor: '#00ff41',
+                backgroundColor: 'rgba(0, 255, 65, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    },
+                    ticks: {
+                        color: '#cccccc'
+                    }
+                },
+                y: {
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    },
+                    ticks: {
+                        color: '#cccccc'
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Обновление системной информации
+function updateSystemInfo() {
     const now = new Date();
     const timeStr = now.toLocaleTimeString('ru-RU', { 
         hour12: false,
@@ -61,106 +176,780 @@ function updateTime() {
         second: '2-digit'
     });
     document.getElementById('currentTime').textContent = timeStr;
-}
-
-// Загрузка информации о базе данных
-function loadDatabaseInfo() {
-    // Информация будет загружена из data.js
-    document.getElementById('dbSize').textContent = 'Loading...';
     
-    setTimeout(() => {
-        if (typeof CyberDatabase !== 'undefined') {
-            const totalRecords = CyberDatabase.users.length + 
-                               CyberDatabase.breaches.length + 
-                               CyberDatabase.phones.length;
-            document.getElementById('dbSize').textContent = `${totalRecords.toLocaleString()} records`;
-        } else {
-            document.getElementById('dbSize').textContent = '2.7B records';
-        }
-    }, 500);
+    // Случайные системные метрики (для эффекта реальности)
+    document.getElementById('cpuLoad').textContent = `${(Math.random() * 10 + 2).toFixed(1)}%`;
+    document.getElementById('memUsage').textContent = `${Math.floor(Math.random() * 100 + 100)}MB`;
+    document.getElementById('dataSize').textContent = `${(extractedData.length * 0.5).toFixed(1)} KB`;
+    document.getElementById('processSpeed').textContent = `${Math.floor(Math.random() * 50 + 10)}ms`;
+    document.getElementById('uptime').textContent = `${(99.5 + Math.random() * 0.5).toFixed(1)}%`;
 }
 
-// Настройка слушателей событий
-function setupEventListeners() {
-    // Переключение вкладок
-    document.querySelectorAll('.tab').forEach(tab => {
-        tab.addEventListener('click', function() {
-            const tabId = this.dataset.tab;
-            switchTab(tabId);
+// Обновление статистики обработки
+function updateProcessingStats() {
+    document.getElementById('personsFound').textContent = processingStats.persons;
+    document.getElementById('phonesFound').textContent = processingStats.phones;
+    document.getElementById('emailsFound').textContent = processingStats.emails;
+    document.getElementById('locationsFound').textContent = processingStats.locations;
+    
+    document.getElementById('totalMatches').textContent = extractedData.length;
+    document.getElementById('filesProcessed').textContent = `${processingStats.processedFiles}/${processingStats.totalFiles}`;
+    document.getElementById('dataPoints').textContent = processingStats.totalData;
+    document.getElementById('confidence').textContent = `${Math.min(100, Math.floor(processingStats.totalData / 10))}%`;
+    
+    // Обновление графика
+    if (chartInstance) {
+        const newData = chartInstance.data.datasets[0].data;
+        newData.push(Math.floor(Math.random() * 20 + 5));
+        if (newData.length > 10) newData.shift();
+        chartInstance.update('none');
+    }
+}
+
+// ================== ОБРАБОТКА ФАЙЛОВ ==================
+
+// Обработка загруженных файлов
+function handleFiles(files) {
+    if (!files || files.length === 0) return;
+    
+    terminalWrite(`Receiving ${files.length} file(s)...`, 'system');
+    
+    Array.from(files).forEach(file => {
+        addFileToList(file);
+        
+        // Автоматическая обработка если включена
+        if (document.getElementById('autoProcess').checked) {
+            processFile(file);
+        }
+    });
+    
+    updateFileCount();
+}
+
+// Добавление файла в список
+function addFileToList(file) {
+    // Проверяем, не загружен ли уже файл
+    const existingFile = loadedFiles.find(f => f.name === file.name && f.size === file.size);
+    if (existingFile) {
+        terminalWrite(`File already loaded: ${file.name}`, 'warning');
+        return;
+    }
+    
+    // Добавляем в массив
+    loadedFiles.push({
+        id: Date.now() + Math.random(),
+        file: file,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        processed: false,
+        data: null
+    });
+    
+    // Добавляем в интерфейс
+    const filesContainer = document.getElementById('filesContainer');
+    
+    // Удаляем сообщение "No files loaded" если оно есть
+    const emptyFiles = filesContainer.querySelector('.empty-files');
+    if (emptyFiles) {
+        emptyFiles.remove();
+    }
+    
+    // Создаем элемент файла
+    const fileItem = document.createElement('div');
+    fileItem.className = 'file-item';
+    fileItem.dataset.fileId = loadedFiles[loadedFiles.length - 1].id;
+    
+    const fileIcon = getFileIcon(file.name);
+    
+    fileItem.innerHTML = `
+        <div class="file-icon">
+            <i class="${fileIcon}"></i>
+        </div>
+        <div class="file-info">
+            <div class="file-name" title="${file.name}">${file.name}</div>
+            <div class="file-size">${formatFileSize(file.size)}</div>
+        </div>
+        <div class="file-actions">
+            <button class="file-action-btn" onclick="processSingleFile('${loadedFiles[loadedFiles.length - 1].id}')" title="Process">
+                <i class="fas fa-play"></i>
+            </button>
+            <button class="file-action-btn" onclick="removeFile('${loadedFiles[loadedFiles.length - 1].id}')" title="Remove">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    `;
+    
+    filesContainer.appendChild(fileItem);
+    
+    terminalWrite(`File added: ${file.name} (${formatFileSize(file.size)})`, 'info');
+}
+
+// Получение иконки для файла
+function getFileIcon(filename) {
+    const ext = filename.split('.').pop().toLowerCase();
+    
+    switch(ext) {
+        case 'txt': return 'fas fa-file-alt';
+        case 'csv': return 'fas fa-file-csv';
+        case 'json': return 'fas fa-file-code';
+        case 'xml': return 'fas fa-file-code';
+        case 'log': return 'fas fa-file-alt';
+        case 'doc':
+        case 'docx': return 'fas fa-file-word';
+        case 'pdf': return 'fas fa-file-pdf';
+        case 'rtf': return 'fas fa-file-alt';
+        default: return 'fas fa-file';
+    }
+}
+
+// Форматирование размера файла
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+// Обновление счетчика файлов
+function updateFileCount() {
+    document.getElementById('fileCount').textContent = `${loadedFiles.length} file(s)`;
+}
+
+// Удаление файла
+function removeFile(fileId) {
+    const index = loadedFiles.findIndex(f => f.id == fileId);
+    if (index !== -1) {
+        const fileName = loadedFiles[index].name;
+        loadedFiles.splice(index, 1);
+        
+        // Удаляем из интерфейса
+        const fileElement = document.querySelector(`.file-item[data-file-id="${fileId}"]`);
+        if (fileElement) {
+            fileElement.remove();
+        }
+        
+        // Если файлов не осталось, показываем сообщение
+        if (loadedFiles.length === 0) {
+            const filesContainer = document.getElementById('filesContainer');
+            filesContainer.innerHTML = `
+                <div class="empty-files">
+                    <i class="fas fa-file-alt"></i>
+                    <p>No files loaded</p>
+                </div>
+            `;
+        }
+        
+        terminalWrite(`File removed: ${fileName}`, 'warning');
+        updateFileCount();
+    }
+}
+
+// Очистка всех файлов
+function clearAllFiles() {
+    if (loadedFiles.length === 0) {
+        terminalWrite('No files to clear', 'warning');
+        return;
+    }
+    
+    if (confirm(`Clear all ${loadedFiles.length} files?`)) {
+        loadedFiles = [];
+        document.getElementById('filesContainer').innerHTML = `
+            <div class="empty-files">
+                <i class="fas fa-file-alt"></i>
+                <p>No files loaded</p>
+            </div>
+        `;
+        
+        terminalWrite('All files cleared from memory', 'system');
+        updateFileCount();
+    }
+}
+
+// ================== ПРОЦЕССИНГ ФАЙЛОВ ==================
+
+// Обработка одного файла
+function processSingleFile(fileId) {
+    const fileObj = loadedFiles.find(f => f.id == fileId);
+    if (!fileObj) return;
+    
+    processFile(fileObj.file);
+}
+
+// Обработка файла
+async function processFile(file) {
+    if (isProcessing) {
+        terminalWrite('Processing already in progress. Please wait.', 'warning');
+        return;
+    }
+    
+    isProcessing = true;
+    terminalWrite(`Processing file: ${file.name}`, 'system');
+    
+    // Обновляем статистику
+    processingStats.totalFiles++;
+    processingStats.processedFiles++;
+    
+    try {
+        // Читаем файл как текст
+        const text = await readFileAsText(file);
+        
+        // Извлекаем данные из текста
+        const extracted = extractDataFromText(text, file.name);
+        
+        // Сохраняем извлеченные данные
+        extractedData = extractedData.concat(extracted);
+        
+        // Помечаем файл как обработанный
+        const fileObj = loadedFiles.find(f => f.name === file.name);
+        if (fileObj) {
+            fileObj.processed = true;
+            fileObj.data = extracted;
+            
+            // Обновляем интерфейс
+            const fileElement = document.querySelector(`.file-item[data-file-id="${fileObj.id}"]`);
+            if (fileElement) {
+                fileElement.style.borderLeft = '3px solid var(--cyber-green)';
+            }
+        }
+        
+        // Обновляем статистику
+        processingStats.totalData += extracted.length;
+        processingStats.persons += extracted.filter(d => d.type === 'person').length;
+        processingStats.phones += extracted.filter(d => d.type === 'phone').length;
+        processingStats.emails += extracted.filter(d => d.type === 'email').length;
+        processingStats.locations += extracted.filter(d => d.type === 'location').length;
+        
+        terminalWrite(`✓ Extracted ${extracted.length} data points from ${file.name}`, 'success');
+        
+        // Автоматически показываем результаты если их мало
+        if (extractedData.length <= 10 && extractedData.length > 0) {
+            displayResults(extractedData);
+        }
+        
+    } catch (error) {
+        terminalWrite(`✗ Error processing ${file.name}: ${error.message}`, 'error');
+    } finally {
+        isProcessing = false;
+        updateProcessingStats();
+    }
+}
+
+// Обработка всех файлов
+async function processAllFiles() {
+    if (loadedFiles.length === 0) {
+        terminalWrite('No files to process. Upload files first.', 'error');
+        return;
+    }
+    
+    if (isProcessing) {
+        terminalWrite('Processing already in progress', 'warning');
+        return;
+    }
+    
+    terminalWrite('====== STARTING BATCH PROCESSING ======', 'system');
+    terminalWrite(`Processing ${loadedFiles.length} file(s)...`, 'info');
+    
+    isProcessing = true;
+    
+    // Сбрасываем статистику
+    extractedData = [];
+    processingStats = {
+        totalFiles: loadedFiles.length,
+        processedFiles: 0,
+        totalData: 0,
+        persons: 0,
+        phones: 0,
+        emails: 0,
+        locations: 0
+    };
+    
+    // Обрабатываем каждый файл
+    for (let i = 0; i < loadedFiles.length; i++) {
+        const fileObj = loadedFiles[i];
+        
+        terminalWrite(`[${i+1}/${loadedFiles.length}] Processing: ${fileObj.name}`, 'system');
+        
+        try {
+            const text = await readFileAsText(fileObj.file);
+            const extracted = extractDataFromText(text, fileObj.name);
+            
+            extractedData = extractedData.concat(extracted);
+            fileObj.processed = true;
+            fileObj.data = extracted;
+            
+            // Обновляем статистику
+            processingStats.processedFiles++;
+            processingStats.totalData += extracted.length;
+            processingStats.persons += extracted.filter(d => d.type === 'person').length;
+            processingStats.phones += extracted.filter(d => d.type === 'phone').length;
+            processingStats.emails += extracted.filter(d => d.type === 'email').length;
+            processingStats.locations += extracted.filter(d => d.type === 'location').length;
+            
+            terminalWrite(`  ✓ Found ${extracted.length} data points`, 'success');
+            
+            // Обновляем интерфейс
+            const fileElement = document.querySelector(`.file-item[data-file-id="${fileObj.id}"]`);
+            if (fileElement) {
+                fileElement.style.borderLeft = '3px solid var(--cyber-green)';
+            }
+            
+        } catch (error) {
+            terminalWrite(`  ✗ Error: ${error.message}`, 'error');
+        }
+        
+        // Искусственная задержка для эффекта обработки
+        await delay(300 + Math.random() * 700);
+    }
+    
+    terminalWrite('====== PROCESSING COMPLETE ======', 'system');
+    terminalWrite(`Total data points extracted: ${extractedData.length}`, 'success');
+    terminalWrite('Displaying results...', 'info');
+    
+    isProcessing = false;
+    
+    // Показываем результаты
+    displayResults(extractedData);
+    updateProcessingStats();
+}
+
+// Чтение файла как текст
+function readFileAsText(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            resolve(e.target.result);
+        };
+        
+        reader.onerror = function(e) {
+            reject(new Error('Failed to read file'));
+        };
+        
+        // Пробуем прочитать как текст
+        reader.readAsText(file, 'UTF-8');
+    });
+}
+
+// Извлечение данных из текста (УНИВЕРСАЛЬНЫЙ АЛГОРИТМ)
+function extractDataFromText(text, filename) {
+    const results = [];
+    
+    terminalWrite(`  Analyzing text from ${filename}...`, 'system');
+    
+    // Разбиваем текст на строки
+    const lines = text.split('\n');
+    
+    // Паттерны для поиска
+    const patterns = {
+        // Имена (русские и английские)
+        person: /\b([А-ЯЁ][а-яё]+(?:\s+[А-ЯЁ][а-яё]+){1,2})\b|\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2})\b/g,
+        
+        // Телефоны (международный и российский формат)
+        phone: /(\+7|8)[\s\-]?\(?\d{3}\)?[\s\-]?\d{3}[\s\-]?\d{2}[\s\-]?\d{2}|\+\d{1,3}[\s\-]?\(?\d{1,4}\)?[\s\-]?\d{1,4}[\s\-]?\d{1,4}[\s\-]?\d{1,4}/g,
+        
+        // Email адреса
+        email: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g,
+        
+        // Адреса (простой паттерн)
+        location: /\b(ул\.|улица|пр\.|проспект|д\.|дом|кв\.|квартира)\s+[А-Яа-яёЁ\w\s\-]+\b/g,
+        
+        // Даты
+        date: /\b\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4}\b|\b\d{4}[\.\/\-]\d{1,2}[\.\/\-]\d{1,2}\b/g,
+        
+        // Паспортные данные (российский формат)
+        passport: /\b\d{2}\s?\d{2}\s?\d{6}\b/g,
+        
+        // ИНН
+        inn: /\b\d{10,12}\b/g,
+        
+        // Кредитные карты (маскированный поиск)
+        card: /\b\d{4}[\s\-]?\d{4}[\s\-]?\d{4}[\s\-]?\d{4}\b/g,
+        
+        // Социальные сети
+        social: /(?:https?:\/\/)?(?:www\.)?(?:vk\.com|facebook\.com|instagram\.com|twitter\.com|t\.me|telegram\.me)\/[a-zA-Z0-9_\-\.]+/g
+    };
+    
+    // Поиск по каждому паттерну
+    for (const [type, pattern] of Object.entries(patterns)) {
+        const matches = text.match(pattern);
+        if (matches) {
+            matches.forEach(match => {
+                // Очищаем результат
+                const cleanMatch = match.trim();
+                
+                // Определяем уверенность на основе типа и контекста
+                let confidence = 70; // Базовая уверенность
+                
+                switch(type) {
+                    case 'person':
+                        if (cleanMatch.split(' ').length >= 2) confidence = 90;
+                        if (cleanMatch.includes('.')) confidence = 60; // Может быть инициалы
+                        break;
+                    case 'phone':
+                        if (cleanMatch.replace(/\D/g, '').length >= 10) confidence = 95;
+                        break;
+                    case 'email':
+                        if (cleanMatch.includes('@') && cleanMatch.includes('.')) confidence = 98;
+                        break;
+                    case 'location':
+                        if (cleanMatch.includes('ул.') || cleanMatch.includes('улица')) confidence = 85;
+                        break;
+                }
+                
+                // Добавляем результат если его еще нет
+                const exists = results.some(r => r.value === cleanMatch && r.type === type);
+                if (!exists && cleanMatch.length > 3) {
+                    results.push({
+                        id: Date.now() + Math.random(),
+                        type: type,
+                        value: cleanMatch,
+                        source: filename,
+                        confidence: confidence,
+                        timestamp: new Date().toISOString()
+                    });
+                }
+            });
+        }
+    }
+    
+    // Дополнительный анализ: поиск комбинаций (Имя + Телефон и т.д.)
+    lines.forEach((line, lineIndex) => {
+        if (line.trim().length < 10) return;
+        
+        // Поиск имени и телефона на одной строке
+        const nameMatch = line.match(patterns.person);
+        const phoneMatch = line.match(patterns.phone);
+        const emailMatch = line.match(patterns.email);
+        
+        if (nameMatch && (phoneMatch || emailMatch)) {
+            nameMatch.forEach(name => {
+                const personData = {
+                    id: Date.now() + Math.random(),
+                    type: 'person_combo',
+                    name: name.trim(),
+                    phones: phoneMatch ? phoneMatch.map(p => p.trim()) : [],
+                    emails: emailMatch ? emailMatch.map(e => e.trim()) : [],
+                    source: filename,
+                    line: lineIndex + 1,
+                    confidence: 95,
+                    timestamp: new Date().toISOString()
+                };
+                
+                results.push(personData);
+            });
+        }
+    });
+    
+    // Если найдено мало данных, используем более агрессивный поиск
+    if (results.length < 5) {
+        terminalWrite(`  Using advanced pattern matching...`, 'system');
+        
+        // Разбиваем текст на слова и ищем потенциальные данные
+        const words = text.split(/\s+/);
+        
+        words.forEach((word, index) => {
+            word = word.trim().replace(/[.,;:!?]/g, '');
+            
+            // Проверка на телефон (без формата)
+            if (word.replace(/\D/g, '').length >= 10 && word.replace(/\D/g, '').length <= 15) {
+                const phone = word.replace(/\D/g, '');
+                if (phone.startsWith('7') || phone.startsWith('8') || phone.startsWith('+')) {
+                    results.push({
+                        id: Date.now() + Math.random(),
+                        type: 'phone',
+                        value: phone,
+                        source: filename,
+                        confidence: 80,
+                        timestamp: new Date().toISOString()
+                    });
+                }
+            }
+            
+            // Проверка на email (простые паттерны)
+            if (word.includes('@') && word.includes('.') && word.length > 5) {
+                results.push({
+                    id: Date.now() + Math.random(),
+                    type: 'email',
+                    value: word,
+                    source: filename,
+                    confidence: 90,
+                    timestamp: new Date().toISOString()
+                });
+            }
         });
-    });
+    }
     
-    // Горячие клавиши
-    document.addEventListener('keydown', function(e) {
-        // Ctrl + Enter - запуск полного сканирования
-        if (e.ctrlKey && e.key === 'Enter') {
-            e.preventDefault();
-            startFullScan();
-        }
-        
-        // Ctrl + L - очистка терминала
-        if (e.ctrlKey && e.key === 'l') {
-            e.preventDefault();
-            clearTerminal();
-        }
-        
-        // Tab - автодополнение
-        if (e.key === 'Tab') {
-            e.preventDefault();
-            autoComplete();
-        }
-    });
-    
-    // Фокус на поле ввода терминала
-    document.getElementById('terminalInput').focus();
+    return results;
 }
 
-// Переключение вкладок
-function switchTab(tabId) {
-    // Обновление активной вкладки
-    document.querySelectorAll('.tab').forEach(tab => {
-        tab.classList.remove('active');
-    });
-    document.querySelector(`.tab[data-tab="${tabId}"]`).classList.add('active');
+// ================== ПОИСК И РЕЗУЛЬТАТЫ ==================
+
+// Быстрый поиск
+function quickSearch() {
+    const query = document.getElementById('quickSearch').value.trim();
+    const searchType = document.querySelector('.search-type.active').dataset.type;
     
-    // Показ соответствующего контента
-    document.querySelectorAll('.tab-content').forEach(content => {
-        content.classList.remove('active');
-    });
-    document.getElementById(`${tabId}-tab`).classList.add('active');
+    if (!query) {
+        terminalWrite('Enter search query first', 'warning');
+        return;
+    }
+    
+    if (extractedData.length === 0 && loadedFiles.length > 0) {
+        terminalWrite('No data extracted yet. Process files first.', 'warning');
+        return;
+    }
+    
+    if (extractedData.length === 0 && loadedFiles.length === 0) {
+        terminalWrite('Upload and process files first', 'error');
+        return;
+    }
+    
+    terminalWrite(`Searching for "${query}" (${searchType})...`, 'system');
+    
+    // Фильтрация данных
+    let filteredData = extractedData;
+    
+    if (searchType !== 'all') {
+        filteredData = extractedData.filter(item => {
+            // Для комбинированных типов проверяем все поля
+            if (item.type === 'person_combo') {
+                if (searchType === 'name') {
+                    return item.name.toLowerCase().includes(query.toLowerCase());
+                } else if (searchType === 'phone') {
+                    return item.phones.some(phone => 
+                        phone.toLowerCase().includes(query.toLowerCase())
+                    );
+                } else if (searchType === 'email') {
+                    return item.emails.some(email => 
+                        email.toLowerCase().includes(query.toLowerCase())
+                    );
+                }
+            }
+            
+            // Для обычных типов
+            return item.type === searchType && 
+                   item.value.toLowerCase().includes(query.toLowerCase());
+        });
+    } else {
+        // Поиск по всем полям
+        filteredData = extractedData.filter(item => {
+            if (item.type === 'person_combo') {
+                return item.name.toLowerCase().includes(query.toLowerCase()) ||
+                       item.phones.some(phone => phone.toLowerCase().includes(query.toLowerCase())) ||
+                       item.emails.some(email => email.toLowerCase().includes(query.toLowerCase()));
+            }
+            return item.value.toLowerCase().includes(query.toLowerCase());
+        });
+    }
+    
+    terminalWrite(`Found ${filteredData.length} matches`, 'success');
+    displayResults(filteredData);
 }
+
+// Отображение результатов
+function displayResults(data) {
+    const resultsGrid = document.getElementById('resultsGrid');
+    
+    if (data.length === 0) {
+        resultsGrid.innerHTML = `
+            <div class="empty-results">
+                <i class="fas fa-search"></i>
+                <p>No results found</p>
+                <small>Try different search criteria</small>
+            </div>
+        `;
+        return;
+    }
+    
+    // Очищаем предыдущие результаты
+    resultsGrid.innerHTML = '';
+    
+    // Отображаем первые 50 результатов
+    const displayData = data.slice(0, 50);
+    
+    displayData.forEach(item => {
+        const resultCard = createResultCard(item);
+        resultsGrid.appendChild(resultCard);
+    });
+    
+    // Если результатов больше 50, показываем сообщение
+    if (data.length > 50) {
+        const moreCard = document.createElement('div');
+        moreCard.className = 'result-card';
+        moreCard.style.gridColumn = '1 / -1';
+        moreCard.style.textAlign = 'center';
+        moreCard.style.padding = '20px';
+        moreCard.innerHTML = `
+            <i class="fas fa-ellipsis-h" style="color: var(--cyber-green); font-size: 1.5rem; margin-bottom: 10px;"></i>
+            <p>Showing 50 of ${data.length} results</p>
+            <small>Use specific search to narrow down results</small>
+        `;
+        resultsGrid.appendChild(moreCard);
+    }
+}
+
+// Создание карточки результата
+function createResultCard(item) {
+    const card = document.createElement('div');
+    card.className = 'result-card';
+    
+    let content = '';
+    
+    if (item.type === 'person_combo') {
+        // Комбинированная карточка для персоны
+        content = `
+            <div class="result-header">
+                <span class="result-type">PERSON</span>
+                <span class="result-confidence">${item.confidence}%</span>
+            </div>
+            <div class="result-content">
+                <div class="result-field">
+                    <span class="field-label">Name:</span>
+                    <span class="field-value">${item.name}</span>
+                </div>
+                ${item.phones.length > 0 ? `
+                <div class="result-field">
+                    <span class="field-label">Phones:</span>
+                    <span class="field-value">${item.phones.join(', ')}</span>
+                </div>
+                ` : ''}
+                ${item.emails.length > 0 ? `
+                <div class="result-field">
+                    <span class="field-label">Emails:</span>
+                    <span class="field-value">${item.emails.join(', ')}</span>
+                </div>
+                ` : ''}
+            </div>
+            <div class="result-footer">
+                <span>${item.source}</span>
+                <span>Line ${item.line}</span>
+            </div>
+        `;
+    } else {
+        // Обычная карточка
+        const typeLabels = {
+            'person': 'PERSON',
+            'phone': 'PHONE',
+            'email': 'EMAIL',
+            'location': 'ADDRESS',
+            'date': 'DATE',
+            'passport': 'PASSPORT',
+            'inn': 'INN',
+            'card': 'CARD',
+            'social': 'SOCIAL'
+        };
+        
+        content = `
+            <div class="result-header">
+                <span class="result-type">${typeLabels[item.type] || item.type.toUpperCase()}</span>
+                <span class="result-confidence">${item.confidence}%</span>
+            </div>
+            <div class="result-content">
+                <div class="result-field">
+                    <span class="field-label">Value:</span>
+                    <span class="field-value">${item.value}</span>
+                </div>
+            </div>
+            <div class="result-footer">
+                <span>${item.source}</span>
+                <span>${new Date(item.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+            </div>
+        `;
+    }
+    
+    card.innerHTML = content;
+    return card;
+}
+
+// Очистка результатов
+function clearResults() {
+    document.getElementById('resultsGrid').innerHTML = `
+        <div class="empty-results">
+            <i class="fas fa-search"></i>
+            <p>Search results will appear here</p>
+            <small>Upload files and run search to see data</small>
+        </div>
+    `;
+    
+    terminalWrite('Results cleared', 'system');
+}
+
+// Экспорт результатов
+function exportResults() {
+    if (extractedData.length === 0) {
+        terminalWrite('No data to export', 'warning');
+        return;
+    }
+    
+    terminalWrite('Exporting data...', 'system');
+    
+    // Формируем данные для экспорта
+    const exportData = {
+        timestamp: new Date().toISOString(),
+        totalRecords: extractedData.length,
+        filesProcessed: loadedFiles.filter(f => f.processed).length,
+        data: extractedData
+    };
+    
+    // Создаем файл для скачивания
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `cyber_scout_data_${Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    terminalWrite(`Data exported: ${extractedData.length} records`, 'success');
+}
+
+// ================== ТЕРМИНАЛ ==================
 
 // Запись в терминал
 function terminalWrite(message, type = 'normal') {
     const terminal = document.getElementById('terminalOutput');
-    const prompt = '<span class="prompt">$</span> ';
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     
-    let formattedMessage = message;
-    if (type === 'success') {
-        formattedMessage = `<span style="color: #00ff41;">${message}</span>`;
-    } else if (type === 'error') {
-        formattedMessage = `<span style="color: #ff003c;">${message}</span>`;
-    } else if (type === 'warning') {
-        formattedMessage = `<span style="color: #ffd300;">${message}</span>`;
-    } else if (type === 'info') {
-        formattedMessage = `<span style="color: #0088ff;">${message}</span>`;
-    } else if (type === 'system') {
-        formattedMessage = `<span style="color: #9d00ff;">${message}</span>`;
+    let formattedMessage = '';
+    
+    switch(type) {
+        case 'success':
+            formattedMessage = `<span style="color: #00ff41;">[${timeStr}] ${message}</span>`;
+            break;
+        case 'error':
+            formattedMessage = `<span style="color: #ff003c;">[${timeStr}] ${message}</span>`;
+            break;
+        case 'warning':
+            formattedMessage = `<span style="color: #ffd300;">[${timeStr}] ${message}</span>`;
+            break;
+        case 'info':
+            formattedMessage = `<span style="color: #0088ff;">[${timeStr}] ${message}</span>`;
+            break;
+        case 'system':
+            formattedMessage = `<span style="color: #9d00ff;">[${timeStr}] ${message}</span>`;
+            break;
+        default:
+            formattedMessage = `<span style="color: #cccccc;">[${timeStr}] ${message}</span>`;
     }
     
-    terminal.innerHTML += prompt + formattedMessage + '\n';
-    terminal.scrollTop = terminal.scrollHeight;
+    terminal.innerHTML += formattedMessage + '\n';
     
-    // Сохраняем в историю
-    terminalHistory.push(message);
-    if (terminalHistory.length > 1000) {
-        terminalHistory.shift();
+    // Автоматическая прокрутка
+    if (autoScroll) {
+        terminal.scrollTop = terminal.scrollHeight;
     }
 }
 
 // Очистка терминала
 function clearTerminal() {
-    document.getElementById('terminalOutput').innerHTML = '';
+    document.getElementById('terminalOutput').innerHTML = '<span class="prompt">root@cyber:~#</span> System initialized. Ready for operations.';
     terminalWrite('Terminal cleared', 'system');
 }
 
@@ -178,823 +967,375 @@ function copyTerminal() {
         });
 }
 
-// Переключение режима терминала
-function toggleTerminal() {
-    const terminal = document.querySelector('.terminal-container');
-    terminal.classList.toggle('maximized');
-}
-
-// Обработка нажатия Enter в терминале
-function handleTerminalEnter(event) {
-    if (event.key === 'Enter') {
-        executeCommand();
-    }
-}
-
-// Выполнение команды
-function executeCommand() {
-    const input = document.getElementById('terminalInput');
-    const command = input.value.trim();
+// Переключение автопрокрутки
+function toggleAutoScroll() {
+    autoScroll = !autoScroll;
+    const icon = document.getElementById('autoScrollIcon');
     
-    if (!command) return;
-    
-    // Отображаем команду в терминале
-    terminalWrite(`root@cyber:~# ${command}`, 'normal');
-    
-    // Обработка команд
-    processCommand(command.toLowerCase());
-    
-    // Очищаем поле ввода
-    input.value = '';
-    
-    // Возвращаем фокус
-    input.focus();
-}
-
-// Обработка команд
-function processCommand(command) {
-    const args = command.split(' ');
-    const cmd = args[0];
-    
-    switch(cmd) {
-        case 'help':
-            showHelp();
-            break;
-        case 'scan':
-            if (args[1]) {
-                startTargetScan(args[1]);
-            } else {
-                startFullScan();
-            }
-            break;
-        case 'clear':
-            clearTerminal();
-            break;
-        case 'status':
-            showStatus();
-            break;
-        case 'search':
-            if (args[1]) {
-                searchDatabase(args.slice(1).join(' '));
-            } else {
-                terminalWrite('Usage: search [query]', 'error');
-            }
-            break;
-        case 'dbinfo':
-            showDatabaseInfo();
-            break;
-        case 'export':
-            generateReport();
-            break;
-        case 'geo':
-            if (args[1]) {
-                geoLocateTarget(args[1]);
-            } else {
-                terminalWrite('Usage: geo [ip/phone]', 'error');
-            }
-            break;
-        case 'breach':
-            checkBreachCommand(args.slice(1).join(' '));
-            break;
-        case 'social':
-            scanSocial();
-            break;
-        case 'network':
-            networkScan();
-            break;
-        case 'relatives':
-            findRelatives();
-            break;
-        case 'passwords':
-            checkPasswords();
-            break;
-        case 'documents':
-            scanDocuments();
-            break;
-        default:
-            terminalWrite(`Command not found: ${cmd}`, 'error');
-            terminalWrite('Type "help" for available commands', 'info');
-    }
-}
-
-// Показать справку
-function showHelp() {
-    terminalWrite('Available commands:', 'info');
-    terminalWrite('  scan [target]      - Start intelligence scan', 'normal');
-    terminalWrite('  search [query]     - Search in database', 'normal');
-    terminalWrite('  breach [email/phone] - Check for data breaches', 'normal');
-    terminalWrite('  geo [ip/phone]     - Geolocation lookup', 'normal');
-    terminalWrite('  social             - Scan social networks', 'normal');
-    terminalWrite('  network            - Network analysis', 'normal');
-    terminalWrite('  relatives          - Find relatives', 'normal');
-    terminalWrite('  passwords          - Password audit', 'normal');
-    terminalWrite('  documents          - Document search', 'normal');
-    terminalWrite('  status             - System status', 'normal');
-    terminalWrite('  dbinfo             - Database information', 'normal');
-    terminalWrite('  export             - Generate report', 'normal');
-    terminalWrite('  clear              - Clear terminal', 'normal');
-    terminalWrite('  help               - Show this help', 'normal');
-}
-
-// Показать статус системы
-function showStatus() {
-    terminalWrite('System Status:', 'info');
-    terminalWrite(`  Database: ${document.getElementById('dbSize').textContent}`, 'normal');
-    terminalWrite(`  Scans Today: ${scanCount}`, 'normal');
-    terminalWrite('  Connection: Secure', 'success');
-    terminalWrite('  Response Time: < 1.2s', 'normal');
-    terminalWrite('  Uptime: 99.8%', 'success');
-}
-
-// Показать информацию о базе данных
-function showDatabaseInfo() {
-    if (typeof CyberDatabase !== 'undefined') {
-        terminalWrite('Database Information:', 'info');
-        terminalWrite(`  Users: ${CyberDatabase.users.length.toLocaleString()} records`, 'normal');
-        terminalWrite(`  Breaches: ${CyberDatabase.breaches.length.toLocaleString()} records`, 'normal');
-        terminalWrite(`  Phones: ${CyberDatabase.phones.length.toLocaleString()} records`, 'normal');
-        terminalWrite(`  Last Update: Today 04:30`, 'normal');
+    if (autoScroll) {
+        icon.className = 'fas fa-arrow-down';
+        terminalWrite('Auto-scroll enabled', 'info');
     } else {
-        terminalWrite('Database not loaded', 'error');
+        icon.className = 'fas fa-pause';
+        terminalWrite('Auto-scroll disabled', 'warning');
     }
 }
 
-// Поиск в базе данных
-function searchDatabase(query) {
-    if (!query || query.length < 2) {
-        terminalWrite('Query too short. Minimum 2 characters required.', 'error');
+// ================== ПРОДВИНУТЫЕ ИНСТРУМЕНТЫ ==================
+
+// Глубокий анализ
+function deepAnalyze() {
+    if (extractedData.length === 0) {
+        terminalWrite('No data for deep analysis. Process files first.', 'warning');
         return;
     }
     
-    terminalWrite(`Searching for "${query}"...`, 'system');
-    startProgress('Searching databases', 70);
+    terminalWrite('====== DEEP ANALYSIS INITIATED ======', 'system');
+    terminalWrite('Analyzing data patterns and connections...', 'system');
+    
+    const depth = parseInt(document.getElementById('analysisDepth').value);
+    
+    // Симуляция глубокого анализа
+    setTimeout(() => {
+        terminalWrite('Phase 1: Data correlation...', 'system');
+        
+        setTimeout(() => {
+            terminalWrite('Phase 2: Pattern recognition...', 'system');
+            
+            setTimeout(() => {
+                terminalWrite('Phase 3: Connection mapping...', 'system');
+                
+                setTimeout(() => {
+                    const foundConnections = Math.floor(Math.random() * 10) + 5;
+                    const patternsFound = Math.floor(Math.random() * 8) + 3;
+                    
+                    terminalWrite('Deep analysis complete:', 'success');
+                    terminalWrite(`  • Found ${foundConnections} connections`, 'info');
+                    terminalWrite(`  • Identified ${patternsFound} patterns`, 'info');
+                    terminalWrite(`  • Analysis depth: ${depth}/4`, 'info');
+                    terminalWrite('  • Report generated: deep_analysis_report.json', 'info');
+                    
+                }, 1000 + depth * 500);
+            }, 800 + depth * 400);
+        }, 600 + depth * 300);
+    }, 500);
+}
+
+// Поиск связей
+function findConnections() {
+    if (extractedData.length < 2) {
+        terminalWrite('Need at least 2 data points for connection analysis', 'warning');
+        return;
+    }
+    
+    terminalWrite('Finding connections between data points...', 'system');
+    
+    // Ищем персоналии для анализа связей
+    const persons = extractedData.filter(d => d.type === 'person' || d.type === 'person_combo');
+    
+    if (persons.length < 2) {
+        terminalWrite('Need at least 2 persons for connection analysis', 'warning');
+        return;
+    }
     
     setTimeout(() => {
-        let results = [];
+        const connections = [];
         
-        // Ищем в базе данных
-        if (typeof CyberDatabase !== 'undefined') {
-            // Поиск по пользователям
-            CyberDatabase.users.forEach(user => {
-                if (JSON.stringify(user).toLowerCase().includes(query.toLowerCase())) {
-                    results.push({ type: 'user', data: user });
+        // Создаем случайные связи между персонами
+        for (let i = 0; i < Math.min(persons.length, 5); i++) {
+            for (let j = i + 1; j < Math.min(persons.length, 5); j++) {
+                if (Math.random() > 0.5) {
+                    const connectionTypes = ['Family', 'Colleagues', 'Friends', 'Business', 'Unknown'];
+                    const type = connectionTypes[Math.floor(Math.random() * connectionTypes.length)];
+                    
+                    connections.push({
+                        from: persons[i].value || persons[i].name,
+                        to: persons[j].value || persons[j].name,
+                        type: type,
+                        strength: Math.floor(Math.random() * 70) + 30
+                    });
                 }
-            });
-            
-            // Поиск по утечкам
-            CyberDatabase.breaches.forEach(breach => {
-                if (JSON.stringify(breach).toLowerCase().includes(query.toLowerCase())) {
-                    results.push({ type: 'breach', data: breach });
-                }
-            });
-            
-            // Поиск по телефонам
-            CyberDatabase.phones.forEach(phone => {
-                if (JSON.stringify(phone).toLowerCase().includes(query.toLowerCase())) {
-                    results.push({ type: 'phone', data: phone });
-                }
-            });
-        }
-        
-        if (results.length > 0) {
-            stopProgress();
-            terminalWrite(`Found ${results.length} results:`, 'success');
-            
-            results.slice(0, 5).forEach(result => {
-                if (result.type === 'user') {
-                    terminalWrite(`  User: ${result.data.username} | ${result.data.email}`, 'normal');
-                } else if (result.type === 'breach') {
-                    terminalWrite(`  Breach: ${result.data.email} | ${result.data.source}`, 'warning');
-                } else if (result.type === 'phone') {
-                    terminalWrite(`  Phone: ${result.data.number} | ${result.data.owner}`, 'normal');
-                }
-            });
-            
-            if (results.length > 5) {
-                terminalWrite(`  ... and ${results.length - 5} more results`, 'info');
             }
-        } else {
-            stopProgress();
-            terminalWrite('No results found', 'warning');
         }
+        
+        terminalWrite(`Found ${connections.length} connections:`, 'success');
+        
+        connections.forEach(conn => {
+            terminalWrite(`  • ${conn.from} ↔ ${conn.to} (${conn.type}, ${conn.strength}%)`, 'info');
+        });
+        
     }, 1500);
 }
 
-// Проверка утечек
-function checkBreachCommand(query) {
-    if (!query) {
-        terminalWrite('Usage: breach [email/phone]', 'error');
+// Извлечение паттернов
+function extractPatterns() {
+    if (extractedData.length === 0) {
+        terminalWrite('No data for pattern extraction', 'warning');
         return;
     }
     
-    terminalWrite(`Checking breaches for: ${query}`, 'system');
-    startProgress('Querying breach databases', 80);
+    terminalWrite('Extracting data patterns...', 'system');
     
     setTimeout(() => {
-        let found = false;
-        
-        if (typeof CyberDatabase !== 'undefined') {
-            // Ищем в утечках
-            CyberDatabase.breaches.forEach(breach => {
-                if (breach.email === query || breach.phone === query) {
-                    found = true;
-                    terminalWrite(`FOUND in breach: ${breach.source}`, 'error');
-                    terminalWrite(`  Date: ${breach.date}`, 'normal');
-                    terminalWrite(`  Data: ${breach.data}`, 'normal');
-                }
-            });
-        }
-        
-        if (!found) {
-            terminalWrite('No breaches found', 'success');
-        }
-        
-        stopProgress();
-    }, 2000);
-}
-
-// Геолокация цели
-function geoLocateTarget(target) {
-    terminalWrite(`Geolocating: ${target}`, 'system');
-    startProgress('Tracking location', 60);
-    
-    setTimeout(() => {
-        // Генерируем случайные координаты
-        const cities = [
-            { city: 'Moscow', country: 'Russia', lat: '55.7558° N', lon: '37.6173° E', isp: 'Rostelecom' },
-            { city: 'Saint Petersburg', country: 'Russia', lat: '59.9343° N', lon: '30.3351° E', isp: 'ER-Telecom' },
-            { city: 'Kyiv', country: 'Ukraine', lat: '50.4501° N', lon: '30.5234° E', isp: 'Kyivstar' },
-            { city: 'Minsk', country: 'Belarus', lat: '53.9045° N', lon: '27.5615° E', isp: 'Beltelecom' },
-            { city: 'Astana', country: 'Kazakhstan', lat: '51.1694° N', lon: '71.4491° E', isp: 'Kazakhtelecom' }
+        const patterns = [
+            'Phone number sequences detected',
+            'Email domain patterns identified',
+            'Geographical clustering found',
+            'Temporal patterns recognized',
+            'Social network correlations established'
         ];
         
-        const location = cities[Math.floor(Math.random() * cities.length)];
+        terminalWrite('Pattern extraction complete:', 'success');
         
-        terminalWrite('Location found:', 'success');
-        terminalWrite(`  City: ${location.city}`, 'normal');
-        terminalWrite(`  Country: ${location.country}`, 'normal');
-        terminalWrite(`  Coordinates: ${location.lat}, ${location.lon}`, 'normal');
-        terminalWrite(`  ISP: ${location.isp}`, 'normal');
-        terminalWrite(`  Accuracy: ±50 meters`, 'info');
+        patterns.forEach(pattern => {
+            if (Math.random() > 0.3) {
+                terminalWrite(`  • ${pattern}`, 'info');
+            }
+        });
         
-        stopProgress();
+    }, 1200);
+}
+
+// Геолокация всех данных
+function geolocateAll() {
+    if (extractedData.length === 0) {
+        terminalWrite('No data for geolocation', 'warning');
+        return;
+    }
+    
+    terminalWrite('Performing geolocation analysis...', 'system');
+    
+    setTimeout(() => {
+        const cities = ['Moscow', 'Saint Petersburg', 'Kyiv', 'Minsk', 'Astana', 'Almaty', 'Tashkent'];
+        const locations = [];
+        
+        // Случайная геолокация для части данных
+        extractedData.slice(0, 10).forEach(item => {
+            if (Math.random() > 0.5) {
+                const city = cities[Math.floor(Math.random() * cities.length)];
+                const lat = 50 + Math.random() * 10;
+                const lon = 30 + Math.random() * 10;
+                
+                locations.push({
+                    data: item.value || item.name,
+                    location: city,
+                    coordinates: `${lat.toFixed(4)}° N, ${lon.toFixed(4)}° E`,
+                    accuracy: `${Math.floor(Math.random() * 200) + 50}m`
+                });
+            }
+        });
+        
+        if (locations.length > 0) {
+            terminalWrite(`Geolocated ${locations.length} data points:`, 'success');
+            
+            locations.slice(0, 5).forEach(loc => {
+                terminalWrite(`  • ${loc.data} → ${loc.location} (${loc.coordinates})`, 'info');
+            });
+            
+            if (locations.length > 5) {
+                terminalWrite(`  ... and ${locations.length - 5} more locations`, 'info');
+            }
+        } else {
+            terminalWrite('No geolocation data found', 'warning');
+        }
     }, 1800);
 }
 
-// ================== ОСНОВНЫЕ ФУНКЦИИ ==================
-
-// Запуск полного сканирования
-function startFullScan() {
-    if (scanInProgress) {
-        terminalWrite('Scan already in progress', 'warning');
-        return;
-    }
-    
-    // Получаем данные из полей ввода
-    const username = document.getElementById('inputUsername').value.trim();
-    const email = document.getElementById('inputEmail').value.trim();
-    const phone = document.getElementById('inputPhone').value.trim();
-    const telegram = document.getElementById('inputTelegram').value.trim();
-    const vk = document.getElementById('inputVK').value.trim();
-    
-    if (!username && !email && !phone && !telegram && !vk) {
-        terminalWrite('Please enter at least one search parameter', 'error');
-        return;
-    }
-    
-    // Устанавливаем цель
-    currentTarget = {
-        username: username || 'Unknown',
-        email: email || 'Unknown',
-        phone: phone || 'Unknown',
-        telegram: telegram || 'Unknown',
-        vk: vk || 'Unknown',
-        timestamp: new Date().toISOString()
-    };
-    
-    // Начинаем сканирование
-    scanInProgress = true;
-    scanCount++;
-    document.getElementById('scanCount').textContent = scanCount;
-    
-    terminalWrite('========== STARTING FULL INTELLIGENCE SCAN ==========', 'system');
-    terminalWrite(`Target: ${username || email || phone || telegram || vk}`, 'info');
-    terminalWrite(`Time: ${new Date().toLocaleTimeString()}`, 'info');
-    terminalWrite('====================================================', 'system');
-    
-    startProgress('Initializing scan', 100);
-    
-    // Симуляция процесса сканирования
-    simulateScanProcess();
-}
-
-// Симуляция процесса сканирования
-function simulateScanProcess() {
-    const steps = [
-        { delay: 500, message: 'Connecting to intelligence network...', progress: 10 },
-        { delay: 800, message: 'Querying user databases...', progress: 20 },
-        { delay: 1200, message: 'Searching social networks...', progress: 30 },
-        { delay: 900, message: 'Analyzing public records...', progress: 40 },
-        { delay: 1500, message: 'Checking breach databases...', progress: 50 },
-        { delay: 1100, message: 'Geolocation tracking...', progress: 60 },
-        { delay: 1300, message: 'Network analysis...', progress: 70 },
-        { delay: 1000, message: 'Aggregating results...', progress: 80 },
-        { delay: 1400, message: 'Generating report...', progress: 90 },
-        { delay: 500, message: 'Scan complete!', progress: 100 }
-    ];
-    
-    let currentStep = 0;
-    
-    function executeStep() {
-        if (currentStep >= steps.length) {
-            completeScan();
-            return;
-        }
-        
-        const step = steps[currentStep];
-        
-        setTimeout(() => {
-            terminalWrite(step.message, 'system');
-            updateProgress(step.progress);
-            currentStep++;
-            executeStep();
-        }, step.delay);
-    }
-    
-    executeStep();
-}
-
-// Завершение сканирования
-function completeScan() {
-    stopProgress();
-    scanInProgress = false;
-    
-    // Генерируем результаты
-    generateResults();
-    
-    terminalWrite('====================================================', 'system');
-    terminalWrite('SCAN COMPLETED SUCCESSFULLY', 'success');
-    terminalWrite('Results have been updated in the panels', 'info');
-    terminalWrite('Type "export" to generate full report', 'info');
-}
-
-// Генерация результатов
-function generateResults() {
-    if (!currentTarget) return;
-    
-    // Генерация персональных данных
-    generatePersonalData();
-    
-    // Генерация данных соцсетей
-    generateSocialData();
-    
-    // Генерация контактов
-    generateContactsData();
-    
-    // Генерация документов
-    generateDocumentsData();
-}
-
-// Генерация персональных данных
-function generatePersonalData() {
-    const data = [
-        { label: 'Full Name:', value: generateRandomName() },
-        { label: 'Birth Date:', value: `${Math.floor(Math.random() * 28) + 1}.${Math.floor(Math.random() * 12) + 1}.${1980 + Math.floor(Math.random() * 30)}` },
-        { label: 'Address:', value: generateRandomAddress() },
-        { label: 'Passport:', value: `${Math.floor(Math.random() * 90) + 10} ${Math.floor(Math.random() * 900000) + 100000}` },
-        { label: 'IPN:', value: `${Math.floor(Math.random() * 9000000000) + 1000000000}` },
-        { label: 'Phone:', value: currentTarget.phone !== 'Unknown' ? currentTarget.phone : generateRandomPhone() },
-        { label: 'Email:', value: currentTarget.email !== 'Unknown' ? currentTarget.email : generateRandomEmail() }
-    ];
-    
-    const container = document.getElementById('personalData');
-    container.innerHTML = '';
-    
-    data.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'data-item';
-        div.innerHTML = `
-            <span class="data-label">${item.label}</span>
-            <span class="data-value">${item.value}</span>
-        `;
-        container.appendChild(div);
-    });
-}
-
-// Генерация данных соцсетей
-function generateSocialData() {
-    const networks = [
-        { name: 'VKontakte', icon: 'fab fa-vk', found: Math.random() > 0.2 },
-        { name: 'Telegram', icon: 'fab fa-telegram', found: Math.random() > 0.1 },
-        { name: 'Instagram', icon: 'fab fa-instagram', found: Math.random() > 0.3 },
-        { name: 'Facebook', icon: 'fab fa-facebook', found: Math.random() > 0.4 },
-        { name: 'Twitter', icon: 'fab fa-twitter', found: Math.random() > 0.5 },
-        { name: 'Odnoklassniki', icon: 'fas fa-users', found: Math.random() > 0.6 },
-        { name: 'GitHub', icon: 'fab fa-github', found: Math.random() > 0.7 },
-        { name: 'LinkedIn', icon: 'fab fa-linkedin', found: Math.random() > 0.4 }
-    ];
-    
-    const container = document.getElementById('socialData');
-    container.innerHTML = '';
-    
-    networks.forEach(network => {
-        if (network.found) {
-            const div = document.createElement('div');
-            div.className = 'social-item';
-            div.innerHTML = `
-                <i class="${network.icon}"></i>
-                <span>${network.name}</span>
-                <small>Profile found</small>
-            `;
-            container.appendChild(div);
-        }
-    });
-    
-    if (container.children.length === 0) {
-        container.innerHTML = `
-            <div class="social-item empty">
-                <i class="fas fa-search"></i>
-                <p>No social profiles found</p>
-            </div>
-        `;
-    }
-}
-
-// Генерация контактов
-function generateContactsData() {
-    const contacts = [];
-    const count = Math.floor(Math.random() * 5) + 2;
-    
-    for (let i = 0; i < count; i++) {
-        contacts.push({
-            name: generateRandomName(),
-            relation: ['Relative', 'Friend', 'Colleague', 'Neighbor'][Math.floor(Math.random() * 4)],
-            phone: generateRandomPhone()
-        });
-    }
-    
-    const container = document.getElementById('contactsData');
-    container.innerHTML = '';
-    
-    contacts.forEach(contact => {
-        const div = document.createElement('div');
-        div.className = 'contact-item';
-        div.innerHTML = `
-            <strong>${contact.name}</strong>
-            <div>${contact.relation} • ${contact.phone}</div>
-        `;
-        container.appendChild(div);
-    });
-}
-
-// Генерация документов
-function generateDocumentsData() {
-    const documents = [];
-    
-    if (Math.random() > 0.3) documents.push('Passport scan.pdf');
-    if (Math.random() > 0.4) documents.push('Driver license.jpg');
-    if (Math.random() > 0.5) documents.push('Utility bill.docx');
-    if (Math.random() > 0.6) documents.push('Bank statement.pdf');
-    if (Math.random() > 0.7) documents.push('Employment contract.pdf');
-    
-    const container = document.getElementById('documentsData');
-    container.innerHTML = '';
-    
-    if (documents.length > 0) {
-        documents.forEach(doc => {
-            const div = document.createElement('div');
-            div.className = 'document-item';
-            div.innerHTML = `
-                <i class="fas fa-file-pdf"></i>
-                <span>${doc}</span>
-                <small>${Math.floor(Math.random() * 2) + 1} MB</small>
-            `;
-            container.appendChild(div);
-        });
-    } else {
-        container.innerHTML = `
-            <div class="document-item empty">
-                No documents found
-            </div>
-        `;
-    }
-}
-
-// ================== БЫСТРЫЕ ФУНКЦИИ ==================
-
-// Сканирование соцсетей
-function scanSocial() {
-    terminalWrite('Starting social network scan...', 'system');
-    startProgress('Scanning social networks', 60);
+// Социальный граф
+function socialGraph() {
+    terminalWrite('Building social connection graph...', 'system');
     
     setTimeout(() => {
-        terminalWrite('Scanning VKontakte... Found profile', 'success');
-        terminalWrite('Scanning Telegram... Found account', 'success');
-        terminalWrite('Scanning Instagram... Profile private', 'warning');
-        terminalWrite('Scanning Facebook... Found 3 accounts', 'success');
-        terminalWrite('Scanning Odnoklassniki... Found profile', 'success');
+        const graphData = {
+            nodes: Math.floor(Math.random() * 20) + 10,
+            edges: Math.floor(Math.random() * 50) + 20,
+            clusters: Math.floor(Math.random() * 5) + 1
+        };
         
-        stopProgress();
-        terminalWrite('Social scan completed', 'info');
+        terminalWrite('Social graph generated:', 'success');
+        terminalWrite(`  • Nodes: ${graphData.nodes}`, 'info');
+        terminalWrite(`  • Connections: ${graphData.edges}`, 'info');
+        terminalWrite(`  • Clusters: ${graphData.clusters}`, 'info');
+        terminalWrite('  • Visualization ready in graph viewer', 'info');
         
-        // Обновляем вкладку соцсетей
-        switchTab('social');
     }, 2000);
 }
 
-// Проверка утечек
-function scanBreaches() {
-    const email = document.getElementById('inputEmail').value.trim();
-    const phone = document.getElementById('inputPhone').value.trim();
-    
-    if (!email && !phone) {
-        terminalWrite('Please enter email or phone for breach check', 'error');
+// Анализ временной линии
+function timelineAnalysis() {
+    if (extractedData.length === 0) {
+        terminalWrite('No data for timeline analysis', 'warning');
         return;
     }
     
-    terminalWrite(`Checking breaches for ${email || phone}...`, 'system');
-    startProgress('Querying breach databases', 70);
+    terminalWrite('Creating timeline from extracted data...', 'system');
     
     setTimeout(() => {
-        if (Math.random() > 0.4) {
-            const breaches = ['Collection #1', 'AntiPublic', 'VK 2021', 'Facebook 2019'];
-            const foundBreaches = breaches.slice(0, Math.floor(Math.random() * 3) + 1);
-            
-            terminalWrite('BREACHES FOUND:', 'error');
-            foundBreaches.forEach(breach => {
-                terminalWrite(`  • ${breach} (${2018 + Math.floor(Math.random() * 5)}-${String(Math.floor(Math.random() * 12) + 1).padStart(2, '0')}-${String(Math.floor(Math.random() * 28) + 1).padStart(2, '0')})`, 'warning');
-            });
-        } else {
-            terminalWrite('No breaches found', 'success');
-        }
+        const events = [];
+        const dates = ['2023-01-15', '2023-03-22', '2023-05-10', '2023-07-18', '2023-09-05', '2023-11-30'];
         
-        stopProgress();
-    }, 1800);
-}
-
-// Геолокация
-function geoLocate() {
-    const phone = document.getElementById('inputPhone').value.trim();
-    const ip = generateRandomIP();
-    
-    terminalWrite(`Geolocating ${phone || ip}...`, 'system');
-    startProgress('Tracking location', 65);
-    
-    setTimeout(() => {
-        const cities = ['Moscow', 'Saint Petersburg', 'Kyiv', 'Minsk', 'Astana'];
-        const city = cities[Math.floor(Math.random() * cities.length)];
+        dates.forEach(date => {
+            if (Math.random() > 0.4) {
+                events.push({
+                    date: date,
+                    event: `Data point activity detected`,
+                    confidence: Math.floor(Math.random() * 30) + 70
+                });
+            }
+        });
         
-        terminalWrite('Location identified:', 'success');
-        terminalWrite(`  City: ${city}`, 'normal');
-        terminalWrite(`  Coordinates: ${55 + Math.random() * 5}° N, ${35 + Math.random() * 10}° E`, 'normal');
-        terminalWrite(`  Accuracy: ±${Math.floor(Math.random() * 100) + 20} meters`, 'info');
+        terminalWrite('Timeline analysis complete:', 'success');
         
-        stopProgress();
+        events.forEach(event => {
+            terminalWrite(`  • ${event.date}: ${event.event} (${event.confidence}%)`, 'info');
+        });
+        
     }, 1600);
 }
 
-// Сетевой анализ
-function networkScan() {
-    terminalWrite('Starting network analysis...', 'system');
-    startProgress('Scanning network', 75);
+// Сканирование памяти
+function scanMemory() {
+    terminalWrite('Scanning system memory for residual data...', 'system');
     
     setTimeout(() => {
-        terminalWrite('Analyzing IP addresses...', 'system');
-        terminalWrite('Scanning open ports...', 'system');
-        terminalWrite('Checking for vulnerabilities...', 'system');
+        const found = Math.floor(Math.random() * 15) + 5;
         
-        const ports = [21, 22, 23, 25, 53, 80, 110, 143, 443, 445, 993, 995, 3306, 3389];
-        const openPorts = ports.filter(() => Math.random() > 0.6);
+        terminalWrite('Memory scan complete:', 'success');
+        terminalWrite(`  • Found ${found} residual data fragments`, 'info');
+        terminalWrite(`  • Recovered ${Math.floor(found * 0.7)} data points`, 'info');
+        terminalWrite(`  • Memory integrity: ${Math.floor(Math.random() * 20) + 80}%`, 'info');
         
-        if (openPorts.length > 0) {
-            terminalWrite(`Open ports found: ${openPorts.join(', ')}`, 'warning');
-        } else {
-            terminalWrite('No open ports found', 'success');
+        // Добавляем "найденные" данные
+        if (found > 0) {
+            for (let i = 0; i < Math.min(found, 5); i++) {
+                const fakeData = generateFakeData();
+                extractedData.push(fakeData);
+                processingStats.totalData++;
+            }
+            
+            updateProcessingStats();
+            terminalWrite('New data points added to database', 'info');
         }
         
-        if (Math.random() > 0.7) {
-            terminalWrite('VULNERABILITY DETECTED: CVE-2024-12345', 'error');
-        }
-        
-        stopProgress();
     }, 2200);
-}
-
-// Поиск родственников
-function findRelatives() {
-    terminalWrite('Searching for relatives...', 'system');
-    startProgress('Analyzing family connections', 55);
-    
-    setTimeout(() => {
-        const relatives = [];
-        const count = Math.floor(Math.random() * 4) + 1;
-        
-        for (let i = 0; i < count; i++) {
-            relatives.push({
-                name: generateRandomName(),
-                relation: ['Mother', 'Father', 'Sister', 'Brother', 'Wife', 'Husband'][Math.floor(Math.random() * 6)],
-                age: 25 + Math.floor(Math.random() * 50)
-            });
-        }
-        
-        terminalWrite('Relatives found:', 'success');
-        relatives.forEach(relative => {
-            terminalWrite(`  • ${relative.name} (${relative.relation}, ${relative.age} years)`, 'normal');
-        });
-        
-        stopProgress();
-        
-        // Обновляем вкладку контактов
-        switchTab('contacts');
-    }, 1900);
-}
-
-// Проверка паролей
-function checkPasswords() {
-    terminalWrite('Starting password audit...', 'system');
-    startProgress('Checking password security', 70);
-    
-    setTimeout(() => {
-        terminalWrite('Querying password databases...', 'system');
-        terminalWrite('Analyzing password strength...', 'system');
-        
-        if (Math.random() > 0.5) {
-            terminalWrite('WEAK PASSWORDS FOUND:', 'error');
-            terminalWrite('  • "password123" - Found in 3 breaches', 'warning');
-            terminalWrite('  • "qwerty123" - Found in 2 breaches', 'warning');
-            terminalWrite('  • "admin123" - Found in 1 breach', 'warning');
-        } else {
-            terminalWrite('No weak passwords found', 'success');
-        }
-        
-        stopProgress();
-    }, 2100);
-}
-
-// Поиск документов
-function scanDocuments() {
-    terminalWrite('Searching for documents...', 'system');
-    startProgress('Scanning document databases', 60);
-    
-    setTimeout(() => {
-        const docs = [];
-        if (Math.random() > 0.3) docs.push('Passport');
-        if (Math.random() > 0.4) docs.push('Driver License');
-        if (Math.random() > 0.5) docs.push('Utility Bill');
-        if (Math.random() > 0.6) docs.push('Bank Statement');
-        
-        if (docs.length > 0) {
-            terminalWrite('Documents found:', 'success');
-            docs.forEach(doc => {
-                terminalWrite(`  • ${doc} (${Math.floor(Math.random() * 2) + 1} MB)`, 'normal');
-            });
-        } else {
-            terminalWrite('No documents found', 'info');
-        }
-        
-        stopProgress();
-        
-        // Обновляем вкладку документов
-        switchTab('documents');
-    }, 1700);
-}
-
-// Глубокое сканирование
-function deepScan() {
-    terminalWrite('========== DEEP SCAN INITIATED ==========', 'system');
-    terminalWrite('Warning: This scan uses advanced techniques', 'warning');
-    terminalWrite('=========================================', 'system');
-    
-    startFullScan();
-}
-
-// Генерация отчета
-function generateReport() {
-    if (!currentTarget) {
-        terminalWrite('No target data available. Run scan first.', 'error');
-        return;
-    }
-    
-    terminalWrite('Generating intelligence report...', 'system');
-    startProgress('Compiling report', 85);
-    
-    setTimeout(() => {
-        const reportId = `REPORT-${Date.now().toString(36).toUpperCase()}`;
-        
-        terminalWrite('Report generated successfully:', 'success');
-        terminalWrite(`  Report ID: ${reportId}`, 'normal');
-        terminalWrite(`  File: intelligence_report_${reportId}.pdf`, 'normal');
-        terminalWrite(`  Size: ${Math.floor(Math.random() * 5) + 2} MB`, 'normal');
-        terminalWrite('  Download link: [CLICK TO DOWNLOAD]', 'info');
-        
-        // Создаем ссылку для скачивания
-        const blob = new Blob([`Intelligence Report ${reportId}\n\nTarget: ${JSON.stringify(currentTarget, null, 2)}`], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `intelligence_report_${reportId}.txt`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        
-        stopProgress();
-    }, 2500);
-}
-
-// Очистка полей ввода
-function clearInputs() {
-    document.getElementById('inputUsername').value = '';
-    document.getElementById('inputEmail').value = '';
-    document.getElementById('inputPhone').value = '';
-    document.getElementById('inputTelegram').value = '';
-    document.getElementById('inputVK').value = '';
-    
-    terminalWrite('Input fields cleared', 'system');
 }
 
 // ================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==================
 
-// Запуск прогресс-бара
-function startProgress(message, maxProgress = 100) {
-    stopProgress();
+// Задержка
+function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// Генерация тестовых данных
+function generateFakeData() {
+    const types = ['person', 'phone', 'email', 'location'];
+    const type = types[Math.floor(Math.random() * types.length)];
     
-    document.getElementById('progressText').textContent = message;
-    document.querySelector('.progress-fill').style.width = '0%';
+    const data = {
+        person: ['Иван Иванов', 'Петр Петров', 'Сергей Сергеев', 'Анна Сидорова', 'Мария Петрова'],
+        phone: ['+79161234567', '+79269876543', '+79031234567', '+79105556677', '+79264443322'],
+        email: ['test@mail.ru', 'user@gmail.com', 'admin@yandex.ru', 'info@domain.com', 'support@company.ru'],
+        location: ['Москва, ул. Ленина, д. 1', 'Санкт-Петербург, Невский пр., д. 10', 'Киев, ул. Крещатик, д. 25']
+    };
     
-    let progress = 0;
-    progressInterval = setInterval(() => {
-        progress += Math.random() * 3;
-        if (progress > maxProgress) progress = maxProgress;
+    return {
+        id: Date.now() + Math.random(),
+        type: type,
+        value: data[type][Math.floor(Math.random() * data[type].length)],
+        source: 'memory_scan',
+        confidence: Math.floor(Math.random() * 20) + 80,
+        timestamp: new Date().toISOString()
+    };
+}
+
+// Экспорт всех данных
+function exportAllData() {
+    if (extractedData.length === 0) {
+        terminalWrite('No data to export', 'warning');
+        return;
+    }
+    
+    const exportObj = {
+        metadata: {
+            exportDate: new Date().toISOString(),
+            system: 'CYBER SCOUT v5.0',
+            totalRecords: extractedData.length,
+            filesProcessed: loadedFiles.filter(f => f.processed).length
+        },
+        files: loadedFiles.map(f => ({
+            name: f.name,
+            size: f.size,
+            processed: f.processed,
+            dataPoints: f.data ? f.data.length : 0
+        })),
+        data: extractedData,
+        statistics: processingStats
+    };
+    
+    const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `cyber_scout_full_export_${Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    terminalWrite(`Full export complete: ${extractedData.length} records`, 'success');
+}
+
+// Очистка всей системы
+function resetSystem() {
+    if (confirm('Reset entire system? All data will be lost.')) {
+        loadedFiles = [];
+        extractedData = [];
+        processingStats = {
+            totalFiles: 0,
+            processedFiles: 0,
+            totalData: 0,
+            persons: 0,
+            phones: 0,
+            emails: 0,
+            locations: 0
+        };
         
-        document.querySelector('.progress-fill').style.width = progress + '%';
+        document.getElementById('filesContainer').innerHTML = `
+            <div class="empty-files">
+                <i class="fas fa-file-alt"></i>
+                <p>No files loaded</p>
+            </div>
+        `;
         
-        if (progress >= maxProgress) {
-            clearInterval(progressInterval);
+        clearResults();
+        clearTerminal();
+        updateFileCount();
+        updateProcessingStats();
+        
+        terminalWrite('System reset complete', 'system');
+    }
+}
+
+// Информация о системе
+function showSystemInfo() {
+    terminalWrite('====== SYSTEM INFORMATION ======', 'system');
+    terminalWrite(`Version: CYBER SCOUT v5.0`, 'info');
+    terminalWrite(`Files loaded: ${loadedFiles.length}`, 'info');
+    terminalWrite(`Data points: ${extractedData.length}`, 'info');
+    terminalWrite(`Memory usage: ${(performance.memory ? (performance.memory.usedJSHeapSize / 1024 / 1024).toFixed(2) : 'N/A')} MB`, 'info');
+    terminalWrite(`User agent: ${navigator.userAgent.substring(0, 50)}...`, 'info');
+    terminalWrite('================================', 'system');
+}
+
+// Запуск всех функций при полной загрузке
+window.onload = function() {
+    // Автоматическое тестирование системы
+    setTimeout(() => {
+        if (loadedFiles.length === 0) {
+            terminalWrite('Ready to process any text-based files', 'success');
+            terminalWrite('Drag & drop files or click "Browse Files"', 'info');
+            terminalWrite('Supports: .txt, .csv, .json, .xml, .log, .doc, .pdf, .rtf', 'info');
         }
-    }, 100);
-}
-
-// Обновление прогресса
-function updateProgress(value) {
-    document.querySelector('.progress-fill').style.width = value + '%';
-    document.getElementById('progressText').textContent = `${value}% complete`;
-}
-
-// Остановка прогресс-бара
-function stopProgress() {
-    if (progressInterval) {
-        clearInterval(progressInterval);
-        progressInterval = null;
-    }
-    document.getElementById('progressText').textContent = 'Ready';
-}
-
-// Генерация случайного имени
-function generateRandomName() {
-    const firstNames = ['Ivan', 'Sergey', 'Alexey', 'Dmitry', 'Andrey', 'Mikhail', 'Vladimir', 'Nikolay'];
-    const lastNames = ['Ivanov', 'Petrov', 'Sidorov', 'Smirnov', 'Kuznetsov', 'Popov', 'Volkov', 'Kozlov'];
-    return `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`;
-}
-
-// Генерация случайного адреса
-function generateRandomAddress() {
-    const streets = ['Lenina', 'Gagarina', 'Pushkina', 'Lermontova', 'Sovetskaya', 'Kirova', 'Mira', 'Pobedy'];
-    const cities = ['Moscow', 'Saint Petersburg', 'Novosibirsk', 'Yekaterinburg', 'Kazan', 'Nizhny Novgorod'];
-    return `${Math.floor(Math.random() * 100) + 1} ${streets[Math.floor(Math.random() * streets.length)]} St., ${cities[Math.floor(Math.random() * cities.length)]}`;
-}
-
-// Генерация случайного телефона
-function generateRandomPhone() {
-    return `+7${Math.floor(Math.random() * 9000000000) + 1000000000}`;
-}
-
-// Генерация случайного email
-function generateRandomEmail() {
-    const domains = ['gmail.com', 'mail.ru', 'yandex.ru', 'rambler.ru', 'hotmail.com'];
-    const name = ['ivanov', 'petrov', 'sidorov', 'smith', 'johnson'][Math.floor(Math.random() * 5)];
-    const year = Math.floor(Math.random() * 30) + 80;
-    return `${name}${year}@${domains[Math.floor(Math.random() * domains.length)]}`;
-}
-
-// Генерация случайного IP
-function generateRandomIP() {
-    return `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`;
-}
-
-// Автодополнение
-function autoComplete() {
-    const input = document.getElementById('terminalInput');
-    const value = input.value.toLowerCase();
-    
-    const commands = ['help', 'scan', 'search', 'breach', 'geo', 'social', 'network', 'relatives', 'passwords', 'documents', 'status', 'dbinfo', 'export', 'clear'];
-    
-    const matches = commands.filter(cmd => cmd.startsWith(value));
-    
-    if (matches.length === 1) {
-        input.value = matches[0];
-    } else if (matches.length > 1) {
-        terminalWrite('Possible completions:', 'info');
-        matches.forEach(cmd => terminalWrite(`  ${cmd}`, 'normal'));
-    }
-}
+    }, 2000);
+};
