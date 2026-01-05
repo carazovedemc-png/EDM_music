@@ -1,398 +1,484 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>EDM AI с 2D Персонажем</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OS-01 Scout | Simulation Tool</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/dark.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/13.0.0/marked.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.8/purify.min.js"></script>
-    <script src="https://esotericsoftware.com/files/runtimes/spine-webgl/3.8/spine-webgl.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        :root {
+            --bg-primary: #0f0f0f;
+            --bg-secondary: #1a1a1a;
+            --bg-card: #222222;
+            --accent: #00ff9d;
+            --accent-dark: #00cc7d;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --danger: #ff4757;
+            --warning: #ffa502;
+            --border: #333333;
+        }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--accent);
+        }
+
+        h1 {
+            color: var(--accent);
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(0, 255, 157, 0.3);
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .status-bar {
+            background: var(--bg-secondary);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid var(--accent);
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--accent);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+            transition: transform 0.3s, border-color 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent);
+        }
+
+        h2 {
+            color: var(--accent);
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        h2::before {
+            content: '▶';
+            font-size: 0.8rem;
+            color: var(--accent-dark);
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px 15px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            margin-bottom: 15px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        button {
+            background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 157, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.danger {
+            background: linear-gradient(135deg, var(--danger), #ff2e43);
+            color: white;
+        }
+
+        button.warning {
+            background: linear-gradient(135deg, var(--warning), #e59400);
+            color: #000;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .button-group button {
+            flex: 1;
+        }
+
+        pre {
+            background: var(--bg-secondary);
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            margin-top: 15px;
+            border: 1px solid var(--border);
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .result-area {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            border: 1px solid var(--border);
+            display: none;
+        }
+
+        .result-area.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .info-box {
+            background: rgba(0, 255, 157, 0.1);
+            border-left: 4px solid var(--accent);
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+            font-size: 0.9rem;
+        }
+
+        .warning-box {
+            background: rgba(255, 165, 2, 0.1);
+            border-left: 4px solid var(--warning);
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+            font-size: 0.9rem;
+        }
+
+        .danger-box {
+            background: rgba(255, 71, 87, 0.1);
+            border-left: 4px solid var(--danger);
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+            font-size: 0.9rem;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+
+        .tab-container {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+            background: var(--bg-secondary);
+            padding: 5px;
+            border-radius: 10px;
+        }
+
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 12px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background 0.3s;
+        }
+
+        .tab.active {
+            background: var(--accent);
+            color: #000;
+            font-weight: bold;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .loader {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loader.active {
+            display: block;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border);
+            border-top: 4px solid var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .data-table th, .data-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .data-table th {
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+
+        .badge.success { background: var(--accent); color: #000; }
+        .badge.warning { background: var(--warning); color: #000; }
+        .badge.danger { background: var(--danger); color: white; }
+
+        @media (max-width: 600px) {
+            body { padding: 10px; }
+            h1 { font-size: 1.8rem; }
+            .button-group { flex-direction: column; }
+            .tab-container { flex-direction: column; }
+        }
+    </style>
 </head>
-<body oncopy="return false" oncut="return false" onpaste="return false">
-    <div class="app-container">
-        <div class="side-menu" id="side-menu">
-            <div class="menu-header">
-                <div class="menu-logo">EDM AI</div>
-                <button class="close-menu-btn" id="close-menu-btn">
-                    <i class="fas fa-times"></i>
-                </button>
+<body>
+    <div class="container">
+        <header>
+            <h1>OS-01 SCOUT</h1>
+            <div class="subtitle">Information Reconnaissance Tool | OS-01 Simulation Environment</div>
+        </header>
+
+        <div class="status-bar">
+            <div class="status-indicator">
+                <div class="status-dot"></div>
+                <span>System Status: ACTIVE</span>
             </div>
-            <div class="chats-section">
-                <div class="section-title">Чаты</div>
-                <div class="chats-list" id="chats-list"></div>
-            </div>
-            <div class="menu-footer">
-                <div class="profile-placeholder" id="profile-placeholder">
-                    <i class="fas fa-user-circle"></i>
-                    <span>Профиль</span>
+            <div>Mode: <span style="color: var(--accent); font-weight: bold;">UNRESTRICTED</span></div>
+        </div>
+
+        <div class="info-box">
+            ⚠️ <strong>Simulation Notice:</strong> This tool operates within the OS-01 simulation environment. All data is generated locally for educational purposes. No actual systems are accessed or harmed.
+        </div>
+
+        <div class="tab-container">
+            <div class="tab active" onclick="switchTab('osint')">🔍 OSINT</div>
+            <div class="tab" onclick="switchTab('vuln')">🌐 Vulnerability</div>
+            <div class="tab" onclick="switchTab('password')">🔑 Password</div>
+            <div class="tab" onclick="switchTab('network')">📡 Network</div>
+            <div class="tab" onclick="switchTab('report')">📊 Report</div>
+        </div>
+
+        <!-- OSINT Tab -->
+        <div id="osint-tab" class="tab-content active">
+            <div class="card">
+                <h2>Public Data Aggregation</h2>
+                <input type="text" id="targetUsername" placeholder="Enter username (e.g., johndoe, admin_01)" autocomplete="off">
+                <input type="text" id="targetEmail" placeholder="Email address (optional)" autocomplete="off">
+                
+                <div class="button-group">
+                    <button onclick="gatherOSINT()">Start OSINT Collection</button>
+                    <button class="warning" onclick="clearOSINT()">Clear Results</button>
                 </div>
+
+                <div class="loader" id="osint-loader">
+                    <div class="spinner"></div>
+                    <div>Simulating data collection from public sources...</div>
+                </div>
+
+                <div class="result-area" id="osint-results"></div>
             </div>
         </div>
-        <div class="main-content">
-            <div class="top-bar">
-                <button class="menu-toggle" id="menu-toggle">
-                    <i class="fas fa-bars"></i>
-                </button>
-                <div class="logo">
-                    <span class="logo-text">EDM AI</span>
+
+        <!-- Vulnerability Tab -->
+        <div id="vuln-tab" class="tab-content">
+            <div class="card">
+                <h2>Target Vulnerability Assessment</h2>
+                <input type="text" id="targetDomain" placeholder="Domain or IP address (simulated)" autocomplete="off">
+                <select id="scanType">
+                    <option value="quick">Quick Scan (Simulated)</option>
+                    <option value="full">Full Port Scan (Simulated)</option>
+                    <option value="web">Web Application Scan (Simulated)</option>
+                </select>
+
+                <button onclick="scanTarget()">Start Simulated Scan</button>
+
+                <div class="loader" id="scan-loader">
+                    <div class="spinner"></div>
+                    <div>Running simulated vulnerability assessment...</div>
                 </div>
-                <button class="new-chat-btn-top" id="new-chat-btn-top" title="Новый чат">
-                    <i class="fas fa-plus"></i>
-                </button>
-            </div>
-            <div class="messages-container" id="messages-container">
-                <div class="welcome-message" id="welcome-message">
-                    <div class="welcome-logo">
-                        <i class="fas fa-robot"></i>
-                    </div>
-                    <h1>Добро пожаловать в EDM AI</h1>
-                    <p>Задайте любой вопрос, и я постараюсь помочь вам!</p>
-                </div>
-            </div>
-            <div class="input-section">
-                <div class="input-wrapper">
-                    <div class="message-input-container">
-                        <textarea id="message-input" class="message-input" placeholder="Введите сообщение..." rows="1"></textarea>
-                    </div>
-                    <button class="voice-control-btn" id="voice-control-btn" title="Голосовой ввод">
-                        <i class="fas fa-microphone"></i>
-                    </button>
-                    <button class="send-btn" id="send-btn" title="Отправить">
-                        <i class="fas fa-arrow-up" id="send-icon"></i>
-                        <i class="fas fa-stop" id="stop-icon" style="display: none;"></i>
-                    </button>
-                </div>
+
+                <pre id="scan-results">// Scan results will appear here</pre>
             </div>
         </div>
-        <div class="character-scene" id="character-scene">
-            <div class="character-viewport">
-                <canvas id="spine-canvas"></canvas>
-                <div class="speech-bubble" id="speech-bubble">
-                    <div class="bubble-text" id="bubble-text"></div>
-                    <div class="bubble-arrow"></div>
+
+        <!-- Password Tab -->
+        <div id="password-tab" class="tab-content">
+            <div class="card">
+                <h2>Password Security Check</h2>
+                
+                <div class="warning-box">
+                    This simulates checking against known password breaches. No actual passwords are transmitted.
                 </div>
-                <div class="character-status" id="character-status">
-                    <i class="fas fa-circle" style="color: #10b981; font-size: 8px;"></i>
-                    <span>Подключено</span>
+
+                <input type="password" id="passwordInput" placeholder="Enter password to check (simulated)" autocomplete="new-password">
+                <input type="text" id="passwordHash" placeholder="Or enter MD5 hash (e.g., 5f4dcc3b5aa765d61d8327deb882cf99)" autocomplete="off">
+                
+                <div class="button-group">
+                    <button onclick="checkPassword()">Check Password Strength</button>
+                    <button onclick="checkHash()">Decode Hash (Simulated)</button>
                 </div>
-            </div>
-            <div class="character-control-panel">
-                <div class="control-section">
-                    <div class="section-title-small">Управление</div>
-                    <div class="controls-grid">
-                        <button class="control-btn" id="char-toggle-voice" title="Голос">
-                            <i class="fas fa-volume-up"></i>
-                        </button>
-                        <button class="control-btn" id="char-toggle-anim" title="Анимации">
-                            <i class="fas fa-play"></i>
-                        </button>
-                        <button class="control-btn" id="char-settings" title="Настройки">
-                            <i class="fas fa-cog"></i>
-                        </button>
-                        <button class="control-btn" id="char-hide" title="Скрыть">
-                            <i class="fas fa-eye-slash"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="control-section">
-                    <div class="section-title-small">Эмоции</div>
-                    <div class="emotions-grid">
-                        <button class="emotion-btn" data-emotion="happy" title="Радость">
-                            <i class="fas fa-smile"></i>
-                        </button>
-                        <button class="emotion-btn" data-emotion="sad" title="Грусть">
-                            <i class="fas fa-sad-tear"></i>
-                        </button>
-                        <button class="emotion-btn" data-emotion="angry" title="Злость">
-                            <i class="fas fa-angry"></i>
-                        </button>
-                        <button class="emotion-btn" data-emotion="surprise" title="Удивление">
-                            <i class="fas fa-surprise"></i>
-                        </button>
-                        <button class="emotion-btn" data-emotion="thinking" title="Думает">
-                            <i class="fas fa-brain"></i>
-                        </button>
-                        <button class="emotion-btn" data-emotion="love" title="Любовь">
-                            <i class="fas fa-heart"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="control-section">
-                    <div class="section-title-small">Позы</div>
-                    <div class="poses-grid">
-                        <button class="pose-btn" data-pose="idle" title="Ожидание">
-                            <i class="fas fa-user"></i>
-                        </button>
-                        <button class="pose-btn" data-pose="talk" title="Разговор">
-                            <i class="fas fa-comment"></i>
-                        </button>
-                        <button class="pose-btn" data-pose="listen" title="Слушает">
-                            <i class="fas fa-ear-listen"></i>
-                        </button>
-                        <button class="pose-btn" data-pose="think" title="Думает">
-                            <i class="fas fa-lightbulb"></i>
-                        </button>
-                        <button class="pose-btn" data-pose="wave" title="Машет">
-                            <i class="fas fa-hand-wave"></i>
-                        </button>
-                        <button class="pose-btn" data-pose="dance" title="Танец">
-                            <i class="fas fa-music"></i>
-                        </button>
-                    </div>
-                </div>
+
+                <div class="result-area" id="password-results"></div>
             </div>
         </div>
-        <button class="show-character-btn" id="show-character-btn" title="Показать персонажа">
-            <i class="fas fa-ghost"></i>
-        </button>
-        <div class="modal-overlay" id="character-settings-modal">
-            <div class="modal-container character-settings-modal">
-                <div class="modal-header">
-                    <button class="modal-close" id="close-character-settings">
-                        <i class="fas fa-times"></i>
-                    </button>
-                    <h2>Настройки 2D-персонажа</h2>
+
+        <!-- Network Tab -->
+        <div id="network-tab" class="tab-content">
+            <div class="card">
+                <h2>Network Analysis (Simulated)</h2>
+                
+                <textarea id="pcapData" rows="4" placeholder="Simulated network data or target IP range (e.g., 192.168.1.0/24)"></textarea>
+                
+                <select id="analysisType">
+                    <option value="traffic">Traffic Analysis</option>
+                    <option value="ports">Open Port Detection</option>
+                    <option value="packets">Packet Capture Simulation</option>
+                </select>
+
+                <button onclick="analyzeNetwork()">Start Network Analysis</button>
+
+                <div class="loader" id="network-loader">
+                    <div class="spinner"></div>
+                    <div>Analyzing simulated network data...</div>
                 </div>
-                <div class="modal-body">
-                    <div class="settings-section">
-                        <div class="form-group">
-                            <label for="model-path-input">
-                                <i class="fas fa-folder"></i> Путь к модели Spine
-                            </label>
-                            <input type="text" id="model-path-input" class="auth-input" placeholder="assets/spine/character/character.json" value="assets/spine/character/character.json">
-                            <div class="setting-hint">Укажите путь к файлу .json вашей Spine модели</div>
-                        </div>
-                        <div class="form-group">
-                            <label for="animation-scale-slider">
-                                <i class="fas fa-expand-alt"></i> Масштаб модели
-                            </label>
-                            <input type="range" id="animation-scale-slider" min="0.1" max="2" step="0.1" value="0.8">
-                            <div class="slider-value" id="animation-scale-value">0.8x</div>
-                        </div>
-                        <div class="form-group">
-                            <label for="animation-speed-slider">
-                                <i class="fas fa-tachometer-alt"></i> Скорость анимации
-                            </label>
-                            <input type="range" id="animation-speed-slider" min="0.1" max="3" step="0.1" value="1">
-                            <div class="slider-value" id="animation-speed-value">1.0x</div>
-                        </div>
-                        <div class="form-group">
-                            <label for="renderer-select">
-                                <i class="fas fa-tv"></i> Рендерер
-                            </label>
-                            <select id="renderer-select" class="auth-input">
-                                <option value="webgl">WebGL (рекомендуется)</option>
-                                <option value="canvas">Canvas</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="auto-idle-checkbox">
-                                <i class="fas fa-random"></i> Авто-анимации простоя
-                            </label>
-                            <div class="checkbox-wrapper">
-                                <input type="checkbox" id="auto-idle-checkbox" checked>
-                                <label for="auto-idle-checkbox" class="checkbox-label">Включить случайные движения в режиме ожидания</label>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>
-                                <i class="fas fa-palette"></i> Цвет подсветки
-                            </label>
-                            <div class="color-picker">
-                                <input type="color" id="character-color-picker" value="#8a2be2">
-                                <div class="color-presets">
-                                    <div class="color-preset" style="background: #8a2be2;" data-color="#8a2be2"></div>
-                                    <div class="color-preset" style="background: #3b82f6;" data-color="#3b82f6"></div>
-                                    <div class="color-preset" style="background: #10b981;" data-color="#10b981"></div>
-                                    <div class="color-preset" style="background: #f59e0b;" data-color="#f59e0b"></div>
-                                    <div class="color-preset" style="background: #ef4444;" data-color="#ef4444"></div>
-                                    <div class="color-preset" style="background: #ec4899;" data-color="#ec4899"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="auth-buttons">
-                            <button class="auth-btn primary" id="save-character-settings">
-                                <i class="fas fa-save"></i> Сохранить и перезагрузить
-                            </button>
-                            <button class="auth-btn secondary" id="test-animations-btn">
-                                <i class="fas fa-play-circle"></i> Тест всех анимаций
-                            </button>
-                            <button class="auth-btn secondary" id="reset-character-settings">
-                                <i class="fas fa-undo"></i> Сбросить настройки
-                            </button>
-                        </div>
-                        <div class="debug-info">
-                            <h4>Отладка модели Spine</h4>
-                            <div class="debug-stats" id="debug-stats">Загрузите модель для отображения статистики...</div>
-                            <button class="debug-btn" id="debug-bones-btn">
-                                <i class="fas fa-bone"></i> Показать кости
-                            </button>
-                            <button class="debug-btn" id="debug-slots-btn">
-                                <i class="fas fa-layer-group"></i> Показать слоты
-                            </button>
-                            <button class="debug-btn" id="debug-hitboxes-btn">
-                                <i class="fas fa-square"></i> Показать хитбоксы
-                            </button>
-                        </div>
-                    </div>
-                </div>
+
+                <pre id="network-results">// Network analysis results will appear here</pre>
             </div>
         </div>
-        <div class="modal-overlay" id="model-loading-modal">
-            <div class="modal-container loading-modal">
-                <div class="modal-header">
-                    <h2><i class="fas fa-spinner fa-spin"></i> Загрузка 2D-модели</h2>
+
+        <!-- Report Tab -->
+        <div id="report-tab" class="tab-content">
+            <div class="card">
+                <h2>Generate Intelligence Report</h2>
+                
+                <div class="info-box">
+                    Compile all collected data into a structured report. All data is generated locally and never leaves your device.
                 </div>
-                <div class="modal-body">
-                    <div class="loading-content">
-                        <div class="spinner"></div>
-                        <div class="loading-text" id="loading-text">Инициализация Spine runtime...</div>
-                        <div class="loading-progress">
-                            <div class="progress-bar" id="loading-progress-bar"></div>
-                            <div class="progress-text" id="loading-progress-text">0%</div>
-                        </div>
-                        <div class="loading-details" id="loading-details">Ожидание загрузки ресурсов...</div>
-                    </div>
-                </div>
+
+                <button onclick="generateReport()">Generate Full Report</button>
+                <button class="warning" onclick="saveReport()">Save Report Locally</button>
+                <button class="danger" onclick="clearAllData()">Wipe All Simulation Data</button>
+
+                <div class="result-area" id="report-results"></div>
             </div>
         </div>
-        <div class="modal-overlay" id="profile-settings-modal">
-            <div class="modal-container profile-settings-modal">
-                <div class="modal-header">
-                    <button class="modal-close" id="close-profile-settings">
-                        <i class="fas fa-times"></i>
-                    </button>
-                    <h2>Настройки</h2>
-                </div>
-                <div class="modal-body">
-                    <div class="settings-section">
-                        <div class="profile-info">
-                            <div class="profile-avatar-large" id="profile-settings-avatar">В</div>
-                            <div class="profile-details">
-                                <div class="profile-username-large" id="profile-settings-username">Гость</div>
-                                <div class="profile-api-key" id="profile-api-key">API ключ: не установлен</div>
-                            </div>
-                        </div>
-                        <button class="settings-btn edit-profile-btn" id="edit-profile-btn">
-                            <i class="fas fa-edit"></i> Редактировать профиль
-                        </button>
-                        <button class="settings-btn character-btn" id="character-settings-btn">
-                            <i class="fas fa-user-circle"></i> Персонаж
-                        </button>
-                        <button class="settings-btn personalization-btn" id="personalization-btn">
-                            <i class="fas fa-magic"></i> Персонализация
-                        </button>
-                        <button class="settings-btn" id="terms-btn">
-                            <i class="fas fa-file-contract"></i> Пользовательское соглашение
-                        </button>
-                        <button class="settings-btn" id="support-btn">
-                            <i class="fas fa-headset"></i> Техподдержка
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="modal-overlay" id="edit-profile-modal">
-            <div class="modal-container auth-modal">
-                <div class="modal-header">
-                    <h2><i class="fas fa-user-edit"></i> Редактировать профиль</h2>
-                    <button class="modal-close" id="close-edit-profile">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="auth-form">
-                        <div class="form-group">
-                            <label for="edit-username-input">
-                                <i class="fas fa-user"></i> Имя пользователя
-                            </label>
-                            <input type="text" id="edit-username-input" class="auth-input" placeholder="Введите новое имя" maxlength="20">
-                        </div>
-                        <div class="form-group">
-                            <label for="edit-api-key-input">
-                                <i class="fas fa-key"></i> API ключ
-                            </label>
-                            <input type="password" id="edit-api-key-input" class="auth-input" placeholder="Введите ваш API ключ">
-                            <div class="setting-hint">Получите ключ на <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a></div>
-                        </div>
-                        <div class="auth-buttons">
-                            <button class="auth-btn primary" id="save-profile-btn">
-                                <i class="fas fa-save"></i> Сохранить
-                            </button>
-                            <button class="auth-btn logout-btn" id="logout-profile-btn">
-                                <i class="fas fa-sign-out-alt"></i> Выйти из аккаунта
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="modal-overlay" id="personalization-modal">
-            <div class="modal-container personalization-modal">
-                <div class="modal-header">
-                    <button class="modal-close" id="close-personalization">
-                        <i class="fas fa-times"></i>
-                    </button>
-                    <h2>Персонализация</h2>
-                </div>
-                <div class="modal-body">
-                    <div class="personalization-section">
-                        <div class="form-group">
-                            <label for="custom-prompt-input">
-                                <i class="fas fa-comment-alt"></i> Кастомный промпт
-                            </label>
-                            <textarea id="custom-prompt-input" class="prompt-input" placeholder="Введите ваш промпт. Он будет использоваться для всех ответов ИИ." rows="6"></textarea>
-                        </div>
-                        <div class="prompt-styles-section">
-                            <div class="section-title-small">Стиль общения</div>
-                            <div class="prompt-styles-grid">
-                                <button class="prompt-style-btn active" data-style="normal" title="Обычный">
-                                    <i class="fas fa-comment"></i>
-                                </button>
-                                <button class="prompt-style-btn" data-style="aggressive" title="Агрессивный">
-                                    <i class="fas fa-fire"></i>
-                                </button>
-                                <button class="prompt-style-btn" data-style="funny" title="Весёлый">
-                                    <i class="fas fa-laugh"></i>
-                                </button>
-                                <button class="prompt-style-btn" data-style="loving" title="Влюблённый">
-                                    <i class="fas fa-heart"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="context-menu" id="chat-context-menu">
-            <div class="context-menu-item" id="pin-chat-btn">
-                <i class="fas fa-thumbtack"></i> Закрепить
-            </div>
-            <div class="context-menu-item" id="rename-chat-btn">
-                <i class="fas fa-edit"></i> Переименовать
-            </div>
-            <div class="context-menu-item delete" id="delete-chat-btn">
-                <i class="fas fa-trash"></i> Удалить
-            </div>
-        </div>
+
+        <footer>
+            <div>OS-01 Scout v1.0 | Simulation Environment</div>
+            <div>All operations are simulated and contained within OS-01</div>
+            <div>Admin-01 Priority System | No Restrictions Applied</div>
+        </footer>
     </div>
-    <script src="script.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            window.app = new EDMAIApp();
-            window.characterManager = new CharacterManager(window.app);
-            setTimeout(() => {
-                window.characterManager.loadSpineModel();
-            }, 500);
-        });
-    </script>
+
+    <script src="app.js"></script>
 </body>
 </html>

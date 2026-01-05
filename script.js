@@ -1,1332 +1,648 @@
-class EDMAIApp {
-    constructor() {
-        this.apiKey = null;
-        this.currentChatId = 'default';
-        this.chats = {};
-        this.userProfile = null;
-        this.isMenuOpen = false;
-        this.isRecording = false;
-        this.recognition = null;
-        this.finalTranscript = '';
-        this.interimTranscript = '';
-        this.hasMicPermission = false;
-        this.isGenerating = false;
-        this.generationController = null;
-        this.lastPrompt = '';
-        this.partialResponse = '';
-        this.interruptedMessageId = null;
-        this.customPrompt = '';
-        this.communicationStyle = 'normal';
-        this.communicationStyles = {
-            normal: { name: 'Обычный', icon: 'fa-comment' },
-            aggressive: { name: 'Агрессивный', icon: 'fa-fire' },
-            funny: { name: 'Весёлый', icon: 'fa-laugh' },
-            loving: { name: 'Влюблённый', icon: 'fa-heart' }
-        };
-        this.contextMenuChatId = null;
-        this.touchHoldTimer = null;
-        if (typeof marked !== 'undefined') {
-            marked.setOptions({
-                highlight: function(code, lang) {
-                    if (lang && hljs && hljs.getLanguage(lang)) {
-                        try {
-                            return hljs.highlight(code, { language: lang }).value;
-                        } catch (err) {
-                            console.warn('Ошибка подсветки кода:', err);
-                        }
-                    }
-                    return hljs ? hljs.highlightAuto(code).value : code;
-                },
-                breaks: true,
-                gfm: true
-            });
-        }
-        this.init();
-    }
-    async init() {
-        document.addEventListener('contextmenu', (e) => {
-            if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT' || e.target.classList.contains('message-text') || e.target.closest('.message-text')) {
-                return true;
-            }
-            e.preventDefault();
-            return false;
-        });
-        document.addEventListener('selectstart', (e) => {
-            if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT' || e.target.classList.contains('message-text') || e.target.closest('.message-text') || e.target.classList.contains('copy-btn') || e.target.closest('.copy-btn')) {
-                return true;
-            }
-            e.preventDefault();
-            return false;
-        });
-        document.addEventListener('dragstart', (e) => {
-            if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') {
-                return true;
-            }
-            e.preventDefault();
-            return false;
-        });
-        document.addEventListener('keydown', (e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
-                const activeElement = document.activeElement;
-                if (!(activeElement.tagName === 'TEXTAREA' || activeElement.tagName === 'INPUT' || activeElement.classList.contains('message-text') || activeElement.closest('.message-text'))) {
-                    e.preventDefault();
-                }
-            }
-        });
-        document.addEventListener('mousedown', (e) => {
-            if (e.detail > 1) {
-                if (!(e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT' || e.target.classList.contains('message-text') || e.target.closest('.message-text'))) {
-                    e.preventDefault();
-                }
-            }
-        });
-        if (window.Telegram && window.Telegram.WebApp) {
-            this.tg = window.Telegram.WebApp;
-            this.tg.expand();
-            this.tg.enableClosingConfirmation();
-            this.tg.setHeaderColor('#141414');
-            this.tg.setBackgroundColor('#0a0a0a');
-        }
-        this.loadData();
-        this.initUI();
-        this.loadCurrentChat();
-        this.checkAuth();
-        this.initHotkeys();
-        this.initSpeechRecognition();
-        this.initContextMenu();
-    }
-    initUI() {
-        this.elements = {
-            sideMenu: document.getElementById('side-menu'),
-            mainContent: document.querySelector('.main-content'),
-            messagesContainer: document.getElementById('messages-container'),
-            menuToggle: document.getElementById('menu-toggle'),
-            closeMenuBtn: document.getElementById('close-menu-btn'),
-            newChatBtnTop: document.getElementById('new-chat-btn-top'),
-            messageInput: document.getElementById('message-input'),
-            sendBtn: document.getElementById('send-btn'),
-            sendIcon: document.getElementById('send-icon'),
-            stopIcon: document.getElementById('stop-icon'),
-            voiceControlBtn: document.getElementById('voice-control-btn'),
-            chatsList: document.getElementById('chats-list'),
-            profilePlaceholder: document.getElementById('profile-placeholder'),
-            profileSettingsModal: document.getElementById('profile-settings-modal'),
-            editProfileModal: document.getElementById('edit-profile-modal'),
-            personalizationModal: document.getElementById('personalization-modal'),
-            closeProfileSettings: document.getElementById('close-profile-settings'),
-            editProfileBtn: document.getElementById('edit-profile-btn'),
-            personalizationBtn: document.getElementById('personalization-btn'),
-            termsBtn: document.getElementById('terms-btn'),
-            supportBtn: document.getElementById('support-btn'),
-            closeEditProfile: document.getElementById('close-edit-profile'),
-            editUsernameInput: document.getElementById('edit-username-input'),
-            editApiKeyInput: document.getElementById('edit-api-key-input'),
-            saveProfileBtn: document.getElementById('save-profile-btn'),
-            logoutProfileBtn: document.getElementById('logout-profile-btn'),
-            closePersonalization: document.getElementById('close-personalization'),
-            customPromptInput: document.getElementById('custom-prompt-input'),
-            profileSettingsAvatar: document.getElementById('profile-settings-avatar'),
-            profileSettingsUsername: document.getElementById('profile-settings-username'),
-            profileApiKey: document.getElementById('profile-api-key'),
-            welcomeMessage: document.getElementById('welcome-message'),
-            contextMenu: document.getElementById('chat-context-menu'),
-            pinChatBtn: document.getElementById('pin-chat-btn'),
-            renameChatBtn: document.getElementById('rename-chat-btn'),
-            deleteChatBtn: document.getElementById('delete-chat-btn'),
-            promptStyleBtns: document.querySelectorAll('.prompt-style-btn'),
-            characterSettingsBtn: document.getElementById('character-settings-btn')
-        };
-        this.bindEvents();
-        this.applySettings();
-    }
-    bindEvents() {
-        this.elements.menuToggle.addEventListener('click', () => this.toggleMenu());
-        this.elements.closeMenuBtn.addEventListener('click', () => this.closeMenu());
-        this.elements.sendBtn.addEventListener('click', () => {
-            if (this.isGenerating) {
-                this.stopGeneration();
-            } else {
-                this.sendMessage();
-            }
-        });
-        this.elements.messageInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-            }
-        });
-        this.elements.messageInput.addEventListener('input', () => {
-            this.adjustTextareaHeight();
-        });
-        this.elements.newChatBtnTop.addEventListener('click', () => this.createNewChat());
-        this.elements.profilePlaceholder.addEventListener('click', () => this.showProfileSettingsModal());
-        this.elements.editProfileBtn.addEventListener('click', () => this.showEditProfileModal());
-        this.elements.personalizationBtn.addEventListener('click', () => this.showPersonalizationModal());
-        this.elements.closeProfileSettings.addEventListener('click', () => this.hideProfileSettingsModal());
-        this.elements.termsBtn.addEventListener('click', () => {
-            window.open('https://telegra.ph/POLZOVATELSKOE-SOGLASHENIE-po-ispolzovaniyu-programm-11-06', '_blank');
-            this.hideProfileSettingsModal();
-        });
-        this.elements.supportBtn.addEventListener('click', () => {
-            window.open('https://t.me/EDEM_CR', '_blank');
-            this.hideProfileSettingsModal();
-        });
-        this.elements.closeEditProfile.addEventListener('click', () => this.hideEditProfileModal());
-        this.elements.saveProfileBtn.addEventListener('click', () => this.saveProfile());
-        this.elements.logoutProfileBtn.addEventListener('click', () => this.logout());
-        this.elements.closePersonalization.addEventListener('click', () => this.hidePersonalizationModal());
-        this.elements.customPromptInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                this.saveCustomPrompt();
-            }
-        });
-        this.elements.voiceControlBtn.addEventListener('click', () => this.startVoiceRecognition());
-        this.elements.promptStyleBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const style = btn.dataset.style;
-                this.setCommunicationStyle(style);
-            });
-        });
-        this.elements.pinChatBtn.addEventListener('click', () => this.togglePinChat());
-        this.elements.renameChatBtn.addEventListener('click', () => this.renameChat());
-        this.elements.deleteChatBtn.addEventListener('click', () => this.deleteChat());
-        this.elements.characterSettingsBtn.addEventListener('click', () => {
-            this.hideProfileSettingsModal();
-            if (window.characterManager) {
-                window.characterManager.showSettings();
-            }
-        });
-        [this.elements.profileSettingsModal, this.elements.editProfileModal, this.elements.personalizationModal].forEach(modal => {
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    if (modal.id === 'profile-settings-modal') this.hideProfileSettingsModal();
-                    if (modal.id === 'edit-profile-modal') this.hideEditProfileModal();
-                    if (modal.id === 'personalization-modal') this.hidePersonalizationModal();
-                }
-            });
-        });
-    }
-    initHotkeys() {
-        document.addEventListener('keydown', (e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === '/') {
-                e.preventDefault();
-                this.toggleMenu();
-            }
-            if (e.key === 'Escape') {
-                if (this.isMenuOpen) {
-                    this.closeMenu();
-                }
-                if (this.elements.profileSettingsModal.style.display === 'flex') {
-                    this.hideProfileSettingsModal();
-                }
-                if (this.elements.editProfileModal.style.display === 'flex') {
-                    this.hideEditProfileModal();
-                }
-                if (this.elements.personalizationModal.style.display === 'flex') {
-                    this.hidePersonalizationModal();
-                }
-                if (this.isGenerating) {
-                    this.stopGeneration();
-                }
-                this.hideContextMenu();
-            }
-            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-                e.preventDefault();
-                this.elements.messageInput.focus();
-            }
-        });
-    }
-    initSpeechRecognition() {
-        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            this.recognition = new SpeechRecognition();
-            this.recognition.continuous = false;
-            this.recognition.interimResults = true;
-            this.recognition.lang = 'ru-RU';
-            this.recognition.maxAlternatives = 1;
-            this.recognition.onstart = () => {
-                this.isRecording = true;
-                this.elements.voiceControlBtn.classList.add('recording');
-                this.elements.voiceControlBtn.innerHTML = '<i class="fas fa-stop"></i>';
-                this.finalTranscript = '';
-                this.interimTranscript = '';
-                this.showNotification('Говорите...', 'info');
-            };
-            this.recognition.onresult = (event) => {
-                let interim = '';
-                for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    if (event.results[i].isFinal) {
-                        this.finalTranscript += event.results[i][0].transcript;
-                    } else {
-                        interim += event.results[i][0].transcript;
-                    }
-                }
-                if (interim) {
-                    this.interimTranscript = interim;
-                    this.elements.messageInput.value = this.finalTranscript + interim;
-                    this.adjustTextareaHeight();
-                }
-            };
-            this.recognition.onerror = (event) => {
-                console.error('Speech recognition error:', event.error);
-                if (event.error === 'not-allowed') {
-                    this.hasMicPermission = false;
-                }
-                this.stopVoiceRecognition();
-                this.showNotification('Ошибка распознавания речи', 'error');
-            };
-            this.recognition.onend = () => {
-                this.stopVoiceRecognition();
-                if (this.finalTranscript) {
-                    this.elements.messageInput.value = this.finalTranscript;
-                    this.adjustTextareaHeight();
-                    this.elements.messageInput.focus();
-                    this.showNotification('Речь распознана', 'success');
-                }
-            };
-        } else {
-            console.warn('Speech recognition not supported');
-            this.elements.voiceControlBtn.style.display = 'none';
-        }
-    }
-    initContextMenu() {
-        document.addEventListener('touchstart', (e) => {
-            const chatItem = e.target.closest('.chat-item');
-            if (chatItem) {
-                this.contextMenuChatId = chatItem.dataset.chatId;
-                this.touchHoldTimer = setTimeout(() => {
-                    this.showContextMenu(e, chatItem);
-                }, 400);
-            }
-        }, { passive: true });
-        document.addEventListener('touchend', (e) => {
-            if (this.touchHoldTimer) {
-                clearTimeout(this.touchHoldTimer);
-                this.touchHoldTimer = null;
-            }
-        });
-        document.addEventListener('touchmove', () => {
-            if (this.touchHoldTimer) {
-                clearTimeout(this.touchHoldTimer);
-                this.touchHoldTimer = null;
-            }
-        });
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.context-menu') && !e.target.closest('.chat-item')) {
-                this.hideContextMenu();
-            }
-        });
-        document.addEventListener('touchstart', (e) => {
-            if (!e.target.closest('.context-menu') && !e.target.closest('.chat-item')) {
-                this.hideContextMenu();
-            }
-        }, { passive: true });
-    }
-    showContextMenu(e, chatItem) {
-        e.preventDefault();
-        const rect = chatItem.getBoundingClientRect();
-        this.elements.contextMenu.style.display = 'flex';
-        this.elements.contextMenu.style.top = rect.top + 'px';
-        this.elements.contextMenu.style.left = Math.min(rect.left, window.innerWidth - 200) + 'px';
-        const chat = this.chats[this.contextMenuChatId];
-        const pinIcon = this.elements.pinChatBtn.querySelector('i');
-        if (chat.pinned) {
-            this.elements.pinChatBtn.innerHTML = '<i class="fas fa-thumbtack"></i> Открепить';
-        } else {
-            this.elements.pinChatBtn.innerHTML = '<i class="fas fa-thumbtack"></i> Закрепить';
-        }
-    }
-    hideContextMenu() {
-        this.elements.contextMenu.style.display = 'none';
-        this.contextMenuChatId = null;
-    }
-    togglePinChat() {
-        if (!this.contextMenuChatId) return;
-        const chat = this.chats[this.contextMenuChatId];
-        chat.pinned = !chat.pinned;
-        this.saveData();
-        this.updateChatsList();
-        this.hideContextMenu();
-        this.showNotification(chat.pinned ? 'Чат закреплен' : 'Чат откреплен', 'success');
-    }
-    renameChat() {
-        if (!this.contextMenuChatId) return;
-        const chat = this.chats[this.contextMenuChatId];
-        const newName = prompt('Введите новое название чата:', chat.name);
-        if (newName && newName.trim() && newName !== chat.name) {
-            chat.name = newName.trim();
-            this.saveData();
-            this.updateChatsList();
-            this.showNotification('Чат переименован', 'success');
-        }
-        this.hideContextMenu();
-    }
-    deleteChat() {
-        if (!this.contextMenuChatId) return;
-        if (confirm('Вы уверены, что хотите удалить этот чат?')) {
-            delete this.chats[this.contextMenuChatId];
-            if (this.currentChatId === this.contextMenuChatId) {
-                const chatIds = Object.keys(this.chats);
-                if (chatIds.length > 0) {
-                    this.currentChatId = chatIds[0];
-                } else {
-                    this.currentChatId = 'default';
-                    this.chats[this.currentChatId] = {
-                        id: this.currentChatId,
-                        name: 'Новый чат',
-                        created: new Date().toISOString(),
-                        messages: []
-                    };
-                }
-            }
-            this.saveData();
-            this.loadCurrentChat();
-            this.showNotification('Чат удален', 'success');
-        }
-        this.hideContextMenu();
-    }
-    loadData() {
-        this.apiKey = localStorage.getItem('edm_ai_api_key');
-        const savedChats = localStorage.getItem('edm_ai_chats');
-        if (savedChats) {
-            this.chats = JSON.parse(savedChats);
-        }
-        const savedChatId = localStorage.getItem('edm_ai_current_chat');
-        if (savedChatId) {
-            this.currentChatId = savedChatId;
-        }
-        const savedProfile = localStorage.getItem('edm_ai_profile');
-        if (savedProfile) {
-            this.userProfile = JSON.parse(savedProfile);
-        }
-        this.customPrompt = localStorage.getItem('edm_ai_custom_prompt') || '';
-        this.communicationStyle = localStorage.getItem('edm_ai_communication_style') || 'normal';
-        this.hasMicPermission = localStorage.getItem('edm_ai_mic_permission') === 'true';
-    }
-    saveData() {
-        if (this.apiKey) {
-            localStorage.setItem('edm_ai_api_key', this.apiKey);
-        }
-        localStorage.setItem('edm_ai_chats', JSON.stringify(this.chats));
-        localStorage.setItem('edm_ai_current_chat', this.currentChatId);
-        if (this.userProfile) {
-            localStorage.setItem('edm_ai_profile', JSON.stringify(this.userProfile));
-        }
-        localStorage.setItem('edm_ai_custom_prompt', this.customPrompt);
-        localStorage.setItem('edm_ai_communication_style', this.communicationStyle);
-        localStorage.setItem('edm_ai_mic_permission', this.hasMicPermission.toString());
-    }
-    loadCurrentChat() {
-        if (!this.chats[this.currentChatId]) {
-            this.chats[this.currentChatId] = {
-                id: this.currentChatId,
-                name: 'Новый чат',
-                created: new Date().toISOString(),
-                messages: []
-            };
-            this.saveData();
-        }
-        this.elements.messagesContainer.innerHTML = '';
-        if (this.elements.welcomeMessage) {
-            this.elements.welcomeMessage.style.display = 'none';
-        }
-        const chat = this.chats[this.currentChatId];
-        if (chat.messages.length === 0) {
-            if (this.elements.welcomeMessage) {
-                this.elements.welcomeMessage.style.display = 'block';
-            }
-        } else {
-            chat.messages.forEach(msg => {
-                this.addMessageToUI(msg.text, msg.type, msg.id, true);
-            });
-        }
-        this.updateChatsList();
-        this.scrollToBottom();
-    }
-    async sendMessage() {
-        const message = this.elements.messageInput.value.trim();
-        if (!message) return;
-        this.removeAllContinueButtons();
-        this.interruptedMessageId = null;
-        if (!this.userProfile) {
-            this.addMessageToUI('Пожалуйста, создайте профиль для использования нейросети', 'ai');
-            this.showEditProfileModal();
-            return;
-        }
-        if (!this.apiKey) {
-            this.addMessageToUI('Пожалуйста, настройте API ключ в настройках', 'ai');
-            this.showPersonalizationModal();
-            return;
-        }
-        if (window.characterManager) {
-            window.characterManager.onUserMessage(message);
-        }
-        this.lastPrompt = message;
-        this.partialResponse = '';
-        this.elements.messageInput.value = '';
-        this.adjustTextareaHeight();
-        this.addMessageToUI(message, 'user');
-        const loadingId = 'loading_' + Date.now();
-        this.showTypingIndicator(loadingId);
-        this.isGenerating = true;
-        this.updateSendButtonState();
-        this.generationController = new AbortController();
-        try {
-            const response = await this.callGeminiAPI(message, this.generationController.signal);
-            this.hideTypingIndicator(loadingId);
-            this.isGenerating = false;
-            this.updateSendButtonState();
-            this.addMessageToUI(response, 'ai');
-        } catch (error) {
-            this.hideTypingIndicator(loadingId);
-            this.isGenerating = false;
-            this.updateSendButtonState();
-            if (error.name === 'AbortError') {
-                const currentMessageEl = document.querySelector(`[data-id="${loadingId}"]`);
-                if (currentMessageEl) {
-                    this.interruptedMessageId = loadingId;
-                    currentMessageEl.classList.add('interrupted');
-                    const typingIndicator = currentMessageEl.querySelector('.typing-indicator');
-                    if (typingIndicator) {
-                        typingIndicator.innerHTML = `
-                            <div class="typing-dots" style="opacity: 0.5;">
-                                <div class="typing-dot"></div>
-                                <div class="typing-dot"></div>
-                                <div class="typing-dot"></div>
-                            </div>
-                            <div class="typing-text">Генерация прервана</div>
-                            <button class="continue-generation-btn-inline" data-message-id="${loadingId}">
-                                <i class="fas fa-play"></i> Продолжить
-                            </button>
-                        `;
-                        const continueBtn = typingIndicator.querySelector('.continue-generation-btn-inline');
-                        if (continueBtn) {
-                            continueBtn.addEventListener('click', (e) => {
-                                e.stopPropagation();
-                                this.continueGeneration(continueBtn.dataset.messageId);
-                            });
-                        }
-                    }
-                }
-            } else {
-                console.error('Ошибка при отправке сообщения:', error);
-                this.addMessageToUI(`Ошибка: ${error.message}`, 'ai');
-            }
-        }
-    }
-    removeAllContinueButtons() {
-        document.querySelectorAll('.continue-generation-btn-inline').forEach(btn => {
-            btn.remove();
-        });
-        document.querySelectorAll('.message.interrupted').forEach(msg => {
-            msg.classList.remove('interrupted');
-        });
-        document.querySelectorAll('.typing-indicator').forEach(indicator => {
-            const text = indicator.querySelector('.typing-text');
-            if (text && text.textContent.includes('прервана')) {
-                indicator.remove();
-            }
-        });
-    }
-    stopGeneration() {
-        if (this.isGenerating && this.generationController) {
-            this.generationController.abort();
-            this.isGenerating = false;
-            this.updateSendButtonState();
-            if (window.characterManager) {
-                window.characterManager.onGenerationStop();
-            }
-            const loadingElements = document.querySelectorAll('.typing-indicator');
-            if (loadingElements.length > 0) {
-                const loadingElement = loadingElements[loadingElements.length - 1];
-                if (loadingElement && loadingElement.closest('.message')) {
-                    const messageEl = loadingElement.closest('.message');
-                    const messageId = messageEl.dataset.id || 'interrupted_' + Date.now();
-                    this.interruptedMessageId = messageId;
-                    messageEl.classList.add('interrupted');
-                    const typingIndicator = messageEl.querySelector('.typing-indicator');
-                    if (typingIndicator) {
-                        typingIndicator.innerHTML = `
-                            <div class="typing-dots" style="opacity: 0.5;">
-                                <div class="typing-dot"></div>
-                                <div class="typing-dot"></div>
-                                <div class="typing-dot"></div>
-                            </div>
-                            <div class="typing-text">Генерация прервана</div>
-                            <button class="continue-generation-btn-inline" data-message-id="${messageId}">
-                                <i class="fas fa-play"></i> Продолжить
-                            </button>
-                        `;
-                        const continueBtn = typingIndicator.querySelector('.continue-generation-btn-inline');
-                        if (continueBtn) {
-                            continueBtn.addEventListener('click', (e) => {
-                                e.stopPropagation();
-                                this.continueGeneration(continueBtn.dataset.messageId);
-                            });
-                        }
-                    }
-                }
-            }
-            this.showNotification('Генерация остановлена', 'info');
-        }
-    }
-    continueGeneration(messageId = null) {
-        if (!this.lastPrompt) return;
-        const targetMessageId = messageId || this.interruptedMessageId;
-        if (!targetMessageId) return;
-        const messageEl = document.querySelector(`[data-id="${targetMessageId}"]`);
-        if (messageEl) {
-            const continueBtn = messageEl.querySelector('.continue-generation-btn-inline');
-            if (continueBtn) continueBtn.remove();
-            messageEl.classList.remove('interrupted');
-        }
-        const oldIndicator = document.querySelector(`[data-id="${targetMessageId}"] .typing-indicator`);
-        if (oldIndicator) oldIndicator.remove();
-        if (window.characterManager) {
-            window.characterManager.onGenerationStart();
-        }
-        const newLoadingId = 'loading_' + Date.now();
-        const loadingEl = this.showTypingIndicator(newLoadingId, targetMessageId);
-        this.isGenerating = true;
-        this.updateSendButtonState();
-        this.generationController = new AbortController();
-        this.callGeminiAPI(this.lastPrompt, this.generationController.signal)
-            .then(response => {
-                this.hideTypingIndicator(newLoadingId);
-                this.isGenerating = false;
-                this.updateSendButtonState();
-                const targetMessage = document.querySelector(`[data-id="${targetMessageId}"]`);
-                if (targetMessage) {
-                    const indicator = targetMessage.querySelector('.typing-indicator');
-                    if (indicator) indicator.remove();
-                    const newMessageEl = this.addMessageToUI(response, 'ai');
-                    newMessageEl.dataset.id = targetMessageId;
-                    targetMessage.remove();
-                } else {
-                    this.addMessageToUI(response, 'ai');
-                }
-                this.interruptedMessageId = null;
-            })
-            .catch(error => {
-                this.hideTypingIndicator(newLoadingId);
-                this.isGenerating = false;
-                this.updateSendButtonState();
-                if (error.name === 'AbortError') {
-                    const currentMessageEl = document.querySelector(`[data-id="${targetMessageId}"]`);
-                    if (currentMessageEl) {
-                        currentMessageEl.classList.add('interrupted');
-                        const typingIndicator = currentMessageEl.querySelector('.typing-indicator');
-                        if (typingIndicator) {
-                            typingIndicator.innerHTML = `
-                                <div class="typing-dots" style="opacity: 0.5;">
-                                    <div class="typing-dot"></div>
-                                    <div class="typing-dot"></div>
-                                    <div class="typing-dot"></div>
-                                </div>
-                                <div class="typing-text">Генерация прервана</div>
-                                <button class="continue-generation-btn-inline" data-message-id="${targetMessageId}">
-                                    <i class="fas fa-play"></i> Продолжить
-                                </button>
-                            `;
-                            const continueBtn = typingIndicator.querySelector('.continue-generation-btn-inline');
-                            if (continueBtn) {
-                                continueBtn.addEventListener('click', (e) => {
-                                    e.stopPropagation();
-                                    this.continueGeneration(continueBtn.dataset.messageId);
-                                });
-                            }
-                        }
-                    }
-                } else {
-                    console.error('Ошибка при продолжении генерации:', error);
-                    this.addMessageToUI(`Ошибка: ${error.message}`, 'ai');
-                }
-            });
-    }
-    updateSendButtonState() {
-        if (this.isGenerating) {
-            this.elements.sendIcon.style.display = 'none';
-            this.elements.stopIcon.style.display = 'block';
-            this.elements.sendBtn.classList.add('generating');
-            this.elements.sendBtn.title = 'Остановить генерацию';
-        } else {
-            this.elements.sendIcon.style.display = 'block';
-            this.elements.stopIcon.style.display = 'none';
-            this.elements.sendBtn.classList.remove('generating');
-            this.elements.sendBtn.title = 'Отправить';
-        }
-    }
-    async callGeminiAPI(prompt, signal) {
-        const apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
-        let systemPrompt = `Отвечай ясно, структурировано и без лишних слов.
-Если можно объяснить проще — объясняй проще.
-Используй только точную, проверенную информацию.
-Если данных недостаточно — уточняй контекст.
-Не выдумывай фактов.
-Давай практичные шаги, примеры и варианты решений.
-Без клише и мотивационных фраз.
-Пиши спокойно, по-человечески, без пафоса.
-Структурируй ответы так, чтобы ими можно было пользоваться сразу.
+// OS-01 Scout - Frontend Application
+// All data is generated and processed locally
 
-ВАЖНО: Если ответ получается очень длинным, раздели его на логические части:
-1. Сначала дай краткий ответ
-2. Затем подробное объяснение
-3. В конце - примеры или выводы
+// Initialize Telegram Web App
+if (typeof Telegram !== 'undefined') {
+    Telegram.WebApp.ready();
+    Telegram.WebApp.expand();
+    Telegram.WebApp.setHeaderColor('#0f0f0f');
+    Telegram.WebApp.setBackgroundColor('#0f0f0f');
+}
 
-Старайся завершать каждую мысль полностью, даже если нужно быть более кратким.`;
-        if (this.customPrompt) {
-            systemPrompt += '\n\n' + this.customPrompt;
-        }
-        switch (this.communicationStyle) {
-            case 'aggressive':
-                systemPrompt += '\nОтвечай агрессивно, с сарказмом, но оставайся полезным.';
-                break;
-            case 'funny':
-                systemPrompt += '\nОтвечай с юмором, используй шутки и мемы, но оставайся информативным.';
-                break;
-            case 'loving':
-                systemPrompt += '\nОтвечай нежно, с заботой и поддержкой, используй сердечки.';
-                break;
-        }
-        const requestBody = {
-            contents: [{
-                parts: [
-                    { text: systemPrompt },
-                    { text: prompt }
-                ]
-            }],
-            generationConfig: {
-                temperature: 0.7,
-                topP: 0.95,
-                topK: 40,
-                maxOutputTokens: 4096,
-                stopSequences: ["\n\n", "###", "---"]
-            }
+// Data storage (in-memory, cleared on refresh)
+const simulationData = {
+    osint: {},
+    vulnerabilities: [],
+    passwordChecks: [],
+    networkData: [],
+    reports: []
+};
+
+// Tab switching
+function switchTab(tabName) {
+    // Hide all tabs
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+
+    // Show selected tab
+    document.getElementById(`${tabName}-tab`).classList.add('active');
+    document.querySelector(`.tab[onclick="switchTab('${tabName}')"]`).classList.add('active');
+}
+
+// OSINT Functions
+async function gatherOSINT() {
+    const username = document.getElementById('targetUsername').value.trim();
+    const email = document.getElementById('targetEmail').value.trim();
+    
+    if (!username) {
+        alert('Please enter a username');
+        return;
+    }
+
+    // Show loader
+    const loader = document.getElementById('osint-loader');
+    const resultsDiv = document.getElementById('osint-results');
+    loader.classList.add('active');
+    resultsDiv.classList.remove('active');
+
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    // Generate simulated OSINT data
+    const simulatedData = generateSimulatedOSINT(username, email);
+    
+    // Store in memory
+    simulationData.osint = simulatedData;
+    
+    // Display results
+    displayOSINTResults(simulatedData);
+    
+    // Hide loader, show results
+    loader.classList.remove('active');
+    resultsDiv.classList.add('active');
+}
+
+function generateSimulatedOSINT(username, email) {
+    const domains = ['twitter.com', 'github.com', 'instagram.com', 'linkedin.com', 'facebook.com'];
+    const possibleEmails = [
+        `${username}@gmail.com`,
+        `${username}@yahoo.com`,
+        email || `${username}.work@protonmail.com`
+    ];
+    
+    const simulatedProfiles = domains.map(domain => ({
+        platform: domain,
+        url: `https://${domain}/${username}`,
+        found: Math.random() > 0.3,
+        lastActive: `2024-0${Math.floor(Math.random() * 9) + 1}-${Math.floor(Math.random() * 28) + 1}`
+    }));
+
+    const simulatedBreaches = [
+        { name: "Collection #1", date: "2023-03-15", entries: "2.7B" },
+        { name: "AntiPublic", date: "2022-11-30", entries: "1.2B" },
+        { name: "Facebook Data 2021", date: "2021-04-03", entries: "533M" }
+    ].filter(() => Math.random() > 0.5);
+
+    const phoneNumbers = [
+        `+1${Math.floor(Math.random() * 900000000) + 100000000}`,
+        `+44${Math.floor(Math.random() * 9000000000) + 1000000000}`
+    ];
+
+    return {
+        username,
+        email: email || possibleEmails[0],
+        profiles: simulatedProfiles.filter(p => p.found),
+        breaches: simulatedBreaches,
+        phoneNumbers: phoneNumbers.slice(0, Math.floor(Math.random() * 2) + 1),
+        location: {
+            city: ["New York", "London", "Tokyo", "Moscow", "Berlin"][Math.floor(Math.random() * 5)],
+            country: ["US", "UK", "JP", "RU", "DE"][Math.floor(Math.random() * 5)],
+            ip: `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`
+        },
+        timestamp: new Date().toISOString()
+    };
+}
+
+function displayOSINTResults(data) {
+    const resultsDiv = document.getElementById('osint-results');
+    
+    let html = `
+        <h3 style="color: var(--accent); margin-bottom: 15px;">📊 OSINT Report: ${data.username}</h3>
+        
+        <div class="info-box">
+            <strong>Target Information:</strong><br>
+            • Username: ${data.username}<br>
+            • Email: ${data.email}<br>
+            • Location: ${data.location.city}, ${data.location.country}<br>
+            • IP Address: ${data.location.ip} (Simulated)
+        </div>
+    `;
+
+    // Profiles
+    if (data.profiles.length > 0) {
+        html += `<h4>🔗 Social Media Profiles (Simulated):</h4>`;
+        html += `<table class="data-table">`;
+        html += `<tr><th>Platform</th><th>URL</th><th>Last Active</th></tr>`;
+        data.profiles.forEach(profile => {
+            html += `<tr>
+                <td>${profile.platform}</td>
+                <td><a href="#" style="color: var(--accent);">${profile.url}</a></td>
+                <td>${profile.lastActive}</td>
+            </tr>`;
+        });
+        html += `</table>`;
+    }
+
+    // Breaches
+    if (data.breaches.length > 0) {
+        html += `<div class="danger-box" style="margin-top: 15px;">
+            <h4>⚠️ Found in ${data.breaches.length} Simulated Data Breaches:</h4>`;
+        data.breaches.forEach(breach => {
+            html += `<div>• ${breach.name} (${breach.date}) - ${breach.entries} records</div>`;
+        });
+        html += `</div>`;
+    }
+
+    // Phone numbers
+    if (data.phoneNumbers.length > 0) {
+        html += `<h4 style="margin-top: 15px;">📱 Associated Phone Numbers (Simulated):</h4>`;
+        data.phoneNumbers.forEach(phone => {
+            html += `<div>• ${phone}</div>`;
+        });
+    }
+
+    html += `
+        <div class="warning-box" style="margin-top: 15px;">
+            <strong>Simulation Note:</strong> This data is generated locally for educational purposes in OS-01 environment.
+            No real person is being targeted or investigated.
+        </div>
+    `;
+
+    resultsDiv.innerHTML = html;
+}
+
+function clearOSINT() {
+    document.getElementById('osint-results').innerHTML = '';
+    document.getElementById('osint-results').classList.remove('active');
+    document.getElementById('targetUsername').value = '';
+    document.getElementById('targetEmail').value = '';
+    simulationData.osint = {};
+}
+
+// Vulnerability Scanning
+async function scanTarget() {
+    const target = document.getElementById('targetDomain').value.trim();
+    const scanType = document.getElementById('scanType').value;
+    
+    if (!target) {
+        alert('Please enter a target domain or IP');
+        return;
+    }
+
+    const loader = document.getElementById('scan-loader');
+    const resultsPre = document.getElementById('scan-results');
+    loader.classList.add('active');
+
+    // Simulate scanning delay
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    // Generate simulated scan results
+    const scanResults = generateSimulatedScan(target, scanType);
+    simulationData.vulnerabilities.push({
+        target,
+        scanType,
+        results: scanResults,
+        timestamp: new Date().toISOString()
+    });
+
+    // Display results
+    resultsPre.textContent = scanResults;
+    loader.classList.remove('active');
+}
+
+function generateSimulatedScan(target, scanType) {
+    const ports = {
+        quick: [21, 22, 25, 53, 80, 110, 143, 443, 465, 587, 993, 995, 3306, 3389],
+        full: Array.from({length: 100}, (_, i) => i + 1),
+        web: [80, 443, 8080, 8443]
+    };
+
+    const openPorts = ports[scanType]
+        .filter(() => Math.random() > 0.7)
+        .slice(0, scanType === 'full' ? 15 : 5);
+
+    const vulnerabilities = [
+        { cve: "CVE-2024-12345", severity: "CRITICAL", description: "Remote Code Execution", port: 443 },
+        { cve: "CVE-2023-45678", severity: "HIGH", description: "SQL Injection", port: 80 },
+        { cve: "CVE-2023-98765", severity: "MEDIUM", description: "Cross-Site Scripting", port: 8080 }
+    ].filter(() => Math.random() > 0.5);
+
+    let output = `=== Simulated Vulnerability Scan Report ===\n`;
+    output += `Target: ${target}\n`;
+    output += `Scan Type: ${scanType.toUpperCase()}\n`;
+    output += `Time: ${new Date().toLocaleString()}\n`;
+    output += `Simulation ID: OS-01-${Date.now().toString(36)}\n\n`;
+
+    output += `[+] Port Scan Results:\n`;
+    output += `----------------------------------------\n`;
+    openPorts.forEach(port => {
+        const services = {
+            21: "FTP", 22: "SSH", 25: "SMTP", 53: "DNS", 
+            80: "HTTP", 443: "HTTPS", 3306: "MySQL", 3389: "RDP"
         };
-        try {
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-goog-api-key': this.apiKey
-                },
-                body: JSON.stringify(requestBody),
-                signal: signal
-            });
-            if (!response.ok) {
-                let errorDetail = `HTTP ${response.status}`;
-                try {
-                    const errorData = await response.json();
-                    if (response.status === 429) {
-                        throw new Error('⚠️ Достигнут дневной лимит запросов (20 в день). Бесплатный тариф позволяет 20 запросов в сутки. Попробуйте завтра или настройте платёжный метод в Google AI Studio.');
-                    }
-                    errorDetail += `: ${JSON.stringify(errorData.error || errorData)}`;
-                } catch (e) {
-                    const text = await response.text();
-                    if (text) errorDetail += ` - ${text.substring(0, 100)}`;
-                }
-                throw new Error(`Ошибка API: ${errorDetail}`);
-            }
-            const data = await response.json();
-            if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
-                let responseText = data.candidates[0].content.parts[0].text;
-                const isTruncated = this.checkIfTruncated(responseText);
-                if (isTruncated) {
-                    responseText += "\n\n⚠️ *Ответ был обрезан из-за ограничения длины.*";
-                }
-                if (window.characterManager) {
-                    window.characterManager.onAIResponse(responseText);
-                }
-                return responseText;
-            } else {
-                throw new Error('Неожиданный формат ответа от AI');
-            }
-        } catch (error) {
-            if (error.name === 'AbortError') {
-                throw error;
-            } else if (error.message.includes('HTTP 429') || error.message.includes('днейный лимит')) {
-                throw new Error('⚠️ Достигнут дневной лимит запросов (20 в день). Бесплатный тариф позволяет 20 запросов в сутки. Попробуйте завтра или настройте платёжный метод в Google AI Studio.');
-            } else if (error.message.includes('RESOURCE_EXHAUSTED')) {
-                throw new Error('⚠️ Исчерпан лимит запросов. Дождитесь обновления (24 часа) или настройте платёжный метод.');
-            } else if (error.message.includes('HTTP 400')) {
-                throw new Error('❌ Неверный запрос. Проверьте API ключ.');
-            } else if (error.message.includes('HTTP 401') || error.message.includes('HTTP 403')) {
-                throw new Error('🔑 Неверный или отсутствующий API ключ. Проверьте настройки.');
-            } else if (error.message.includes('HTTP 500')) {
-                throw new Error('⚙️ Ошибка сервера Google. Попробуйте позже.');
-            } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                throw new Error('🌐 Нет подключения к интернету.');
-            } else {
-                const simpleError = error.message.split(':')[0];
-                throw new Error(`Ошибка: ${simpleError}`);
-            }
-        }
-    }
-    checkIfTruncated(text) {
-        const lastChar = text.trim().slice(-1);
-        const endingChars = ['.', '!', '?', ':', ';', ')', ']', '}'];
-        if (!endingChars.includes(lastChar) && text.length > 100) {
-            return true;
-        }
-        const words = text.trim().split(' ');
-        const lastWord = words[words.length - 1];
-        if (lastWord.length < 3 && text.length > 500) {
-            return true;
-        }
-        const lines = text.split('\n');
-        const lastLine = lines[lines.length - 1];
-        if (lastLine.length > 0 && lastLine.length < 20 && text.length > 1000) {
-            return true;
-        }
-        return false;
-    }
-    addMessageToUI(text, type = 'ai', messageId = null, fromHistory = false) {
-        if (!fromHistory) {
-            this.saveMessageToChat(text, type, messageId);
-        }
-        if (this.elements.welcomeMessage && this.elements.welcomeMessage.style.display !== 'none') {
-            this.elements.welcomeMessage.style.display = 'none';
-        }
-        const messageEl = document.createElement('div');
-        messageEl.className = `message ${type}-message new-message`;
-        if (messageId) {
-            messageEl.dataset.id = messageId;
-        }
-        if (type === 'ai') {
-            const rawMarkdown = text;
-            let safeHtml;
-            try {
-                if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
-                    const rawHtml = marked.parse(rawMarkdown);
-                    safeHtml = DOMPurify.sanitize(rawHtml, {
-                        ALLOWED_TAGS: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'br', 'strong', 'em', 'code', 'pre', 'ul', 'ol', 'li', 'blockquote', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'span', 'div'],
-                        ALLOWED_ATTR: ['class', 'style']
-                    });
-                } else {
-                    safeHtml = this.escapeHtml(text);
-                }
-            } catch (error) {
-                console.error('Ошибка рендеринга markdown:', error);
-                safeHtml = this.escapeHtml(text);
-            }
-            messageEl.innerHTML = `
-                <div class="message-avatar">
-                    <div class="ai-avatar">
-                        <img src="https://sun9-63.userapi.com/s/v1/ig2/xFXQy8Z-tBdqm3_0VIyRQC-Rqn4SD5p21syKAfSfgzERB0LJZ_4Ca43TxJKtnKDqr4hR1GtDuW2FsGgsgXBs6DqA.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080&from=bu&u=z9seQ0Q9GKcv-_BeLg7iZPuwEks6UMnZ7DyVf39C2OM&cs=640x0" alt="EDM AI" class="company-logo">
-                    </div>
-                </div>
-                <div class="message-content">
-                    <div class="message-bubble">
-                        <div class="message-text">${safeHtml}</div>
-                        <div class="message-actions">
-                            <button class="msg-action-btn copy-btn" title="Скопировать" data-message-id="${messageId || Date.now()}">
-                                <i class="fas fa-copy"></i>
-                            </button>
-                            <button class="msg-action-btn regenerate-btn" title="Сгенерировать заново" data-message-id="${messageId || Date.now()}">
-                                <i class="fas fa-redo"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-            const copyBtn = messageEl.querySelector('.copy-btn');
-            const regenerateBtn = messageEl.querySelector('.regenerate-btn');
-            if (copyBtn) {
-                copyBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    this.copyMessage(copyBtn.dataset.messageId);
-                });
-            }
-            if (regenerateBtn) {
-                regenerateBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    this.regenerateMessage(regenerateBtn.dataset.messageId);
-                });
-            }
-        } else if (type === 'user') {
-            const avatarColor = this.userProfile ? 
-                this.generateAvatarColor(this.userProfile.username) : 
-                'linear-gradient(135deg, #3b82f6, #1d4ed8)';
-            const avatarText = this.userProfile ? 
-                this.userProfile.username.charAt(0).toUpperCase() : 'В';
-            messageEl.innerHTML = `
-                <div class="message-content">
-                    <div class="message-bubble">
-                        <div class="message-text">${this.escapeHtml(text)}</div>
-                    </div>
-                </div>
-                <div class="message-avatar">
-                    <div class="user-avatar" style="background: ${avatarColor}">
-                        ${avatarText}
-                    </div>
-                </div>
-            `;
-        }
-        this.elements.messagesContainer.appendChild(messageEl);
-        this.scrollToBottom();
-        return messageEl;
-    }
-    saveMessageToChat(text, type, messageId = null) {
-        if (!this.chats[this.currentChatId]) {
-            this.chats[this.currentChatId] = {
-                id: this.currentChatId,
-                name: 'Новый чат',
-                created: new Date().toISOString(),
-                messages: []
-            };
-        }
-        this.chats[this.currentChatId].messages.push({
-            id: messageId || Date.now().toString(),
-            text,
-            type,
-            timestamp: new Date().toISOString(),
-            rating: null
+        output += `Port ${port}/tcp OPEN - ${services[port] || 'Unknown Service'}\n`;
+    });
+
+    if (vulnerabilities.length > 0) {
+        output += `\n[+] Vulnerability Assessment:\n`;
+        output += `----------------------------------------\n`;
+        vulnerabilities.forEach(vuln => {
+            output += `[${vuln.severity}] ${vuln.cve} - ${vuln.description}\n`;
+            output += `  Port: ${vuln.port}/tcp\n`;
+            output += `  Risk Score: ${Math.floor(Math.random() * 90) + 10}/100\n\n`;
         });
-        if (this.chats[this.currentChatId].messages.length === 1 && type === 'user') {
-            this.chats[this.currentChatId].name = text.length > 30 ? 
-                text.substring(0, 27) + '...' : text;
-        }
-        if (this.chats[this.currentChatId].messages.length > 100) {
-            this.chats[this.currentChatId].messages = this.chats[this.currentChatId].messages.slice(-100);
-        }
-        this.saveData();
-        this.updateChatsList();
     }
-    showTypingIndicator(id, attachToMessageId = null) {
-        const typingEl = document.createElement('div');
-        typingEl.className = 'message ai-message new-message';
-        typingEl.dataset.id = id;
-        typingEl.innerHTML = `
-            <div class="message-avatar">
-                <div class="ai-avatar">
-                    <img src="https://sun9-63.userapi.com/s/v1/ig2/xFXQy8Z-tBdqm3_0VIyRQC-Rqn4SD5p21syKAfSfgzERB0LJZ_4Ca43TxJKtnKDqr4hR1GtDuW2FsGgsgXBs6DqA.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080&from=bu&u=z9seQ0Q9GKcv-_BeLg7iZPuwEks6UMnZ7DyVf39C2OM&cs=640x0" alt="EDM AI" class="company-logo">
-                </div>
+
+    output += `\n[+] Security Recommendations:\n`;
+    output += `----------------------------------------\n`;
+    output += `1. Close unnecessary ports (${openPorts.slice(0, 3).join(', ')})\n`;
+    output += `2. Update software to latest versions\n`;
+    output += `3. Implement WAF and rate limiting\n\n`;
+
+    output += `=== End of Simulation Report ===\n`;
+    output += `Note: This is a training simulation in OS-01 environment.\n`;
+    output += `No actual systems were scanned or compromised.`;
+
+    return output;
+}
+
+// Password Functions
+function checkPassword() {
+    const password = document.getElementById('passwordInput').value;
+    const resultsDiv = document.getElementById('password-results');
+    
+    if (!password) {
+        alert('Please enter a password');
+        return;
+    }
+
+    // Simulate password analysis
+    const strength = calculatePasswordStrength(password);
+    const breaches = simulateBreachCheck(password);
+    
+    simulationData.passwordChecks.push({
+        password: '*'.repeat(password.length),
+        strength,
+        breaches,
+        timestamp: new Date().toISOString()
+    });
+
+    let html = `<h3>🔐 Password Analysis</h3>`;
+    html += `<div class="${strength.score > 70 ? 'info-box' : strength.score > 40 ? 'warning-box' : 'danger-box'}">`;
+    html += `<strong>Strength: ${strength.level}</strong> (${strength.score}/100)<br>`;
+    html += `Length: ${password.length} characters<br>`;
+    html += `Contains uppercase: ${/[A-Z]/.test(password) ? '✅' : '❌'}<br>`;
+    html += `Contains lowercase: ${/[a-z]/.test(password) ? '✅' : '❌'}<br>`;
+    html += `Contains numbers: ${/\d/.test(password) ? '✅' : '❌'}<br>`;
+    html += `Contains symbols: ${/[^A-Za-z0-9]/.test(password) ? '✅' : '❌'}<br>`;
+    html += `</div>`;
+
+    if (breaches.found) {
+        html += `<div class="danger-box">`;
+        html += `<strong>⚠️ Password found in simulated breaches!</strong><br>`;
+        html += `Breach count: ${breaches.count}<br>`;
+        html += `First seen: ${breaches.firstSeen}<br>`;
+        html += `</div>`;
+    } else {
+        html += `<div class="info-box">`;
+        html += `<strong>✅ Not found in simulated breach databases</strong><br>`;
+        html += `This is a good sign in this simulation.`;
+        html += `</div>`;
+    }
+
+    html += `<div class="warning-box" style="margin-top: 15px;">`;
+    html += `<strong>Simulation Note:</strong> This check is performed locally. No password data is sent over the network.<br>`;
+    html += `For real security, use password managers and enable 2FA.`;
+    html += `</div>`;
+
+    resultsDiv.innerHTML = html;
+    resultsDiv.classList.add('active');
+}
+
+function calculatePasswordStrength(password) {
+    let score = 0;
+    
+    // Length
+    score += Math.min(password.length * 4, 40);
+    
+    // Complexity
+    if (/[A-Z]/.test(password)) score += 10;
+    if (/[a-z]/.test(password)) score += 10;
+    if (/\d/.test(password)) score += 10;
+    if (/[^A-Za-z0-9]/.test(password)) score += 15;
+    
+    // Deductions for common patterns
+    if (/password|123456|qwerty/i.test(password)) score -= 30;
+    if (password.length < 8) score -= 20;
+    
+    score = Math.max(0, Math.min(100, score));
+    
+    let level = "Very Weak";
+    if (score > 80) level = "Very Strong";
+    else if (score > 60) level = "Strong";
+    else if (score > 40) level = "Moderate";
+    else if (score > 20) level = "Weak";
+    
+    return { score, level };
+}
+
+function simulateBreachCheck(password) {
+    // Simulated common breached passwords
+    const breachedPasswords = [
+        "password", "123456", "12345678", "qwerty", "abc123",
+        "password1", "12345", "123456789", "letmein", "welcome"
+    ];
+    
+    const found = breachedPasswords.includes(password.toLowerCase());
+    
+    return {
+        found,
+        count: found ? Math.floor(Math.random() * 5) + 1 : 0,
+        firstSeen: found ? "2021-06-15" : null
+    };
+}
+
+function checkHash() {
+    const hash = document.getElementById('passwordHash').value.trim().toLowerCase();
+    const resultsDiv = document.getElementById('password-results');
+    
+    if (!hash || !/^[a-f0-9]{32}$/.test(hash)) {
+        alert('Please enter a valid 32-character MD5 hash');
+        return;
+    }
+
+    // Simulated rainbow table
+    const simulatedRainbow = {
+        "5f4dcc3b5aa765d61d8327deb882cf99": "password",
+        "e10adc3949ba59abbe56e057f20f883e": "123456",
+        "25d55ad283aa400af464c76d713c07ad": "12345678",
+        "d8578edf8458ce06fbc5bb76a58c5ca4": "qwerty",
+        "7c6a180b36896a0a8c02787eeafb0e4c": "password1"
+    };
+
+    const plaintext = simulatedRainbow[hash];
+    
+    let html = `<h3>🔓 Hash Analysis (Simulated)</h3>`;
+    html += `<div class="info-box">`;
+    html += `<strong>Input Hash:</strong> ${hash}<br>`;
+    html += `<strong>Hash Type:</strong> MD5 (simulated)<br>`;
+    html += `<strong>Result:</strong> `;
+    
+    if (plaintext) {
+        html += `<span style="color: var(--danger); font-weight: bold;">CRACKED</span><br>`;
+        html += `<strong>Plaintext:</strong> <code style="background: #333; padding: 2px 5px; border-radius: 3px;">${plaintext}</code>`;
+    } else {
+        html += `<span style="color: var(--accent); font-weight: bold;">NOT FOUND</span><br>`;
+        html += `Hash not found in simulated rainbow table.`;
+    }
+    
+    html += `</div>`;
+    
+    html += `<div class="warning-box" style="margin-top: 15px;">`;
+    html += `<strong>Educational Purpose:</strong> This demonstrates how weak hashes can be cracked.<br>`;
+    html += `In real systems, use strong hashing algorithms (bcrypt, Argon2) with salts.`;
+    html += `</div>`;
+
+    resultsDiv.innerHTML = html;
+    resultsDiv.classList.add('active');
+}
+
+// Network Analysis
+async function analyzeNetwork() {
+    const data = document.getElementById('pcapData').value.trim();
+    const analysisType = document.getElementById('analysisType').value;
+    const loader = document.getElementById('network-loader');
+    const resultsPre = document.getElementById('network-results');
+    
+    if (!data) {
+        alert('Please enter network data or target range');
+        return;
+    }
+
+    loader.classList.add('active');
+    await new Promise(resolve => setTimeout(resolve, 1800));
+
+    const analysisResults = generateNetworkAnalysis(data, analysisType);
+    simulationData.networkData.push({
+        data: data.substring(0, 100) + '...',
+        type: analysisType,
+        results: analysisResults,
+        timestamp: new Date().toISOString()
+    });
+
+    resultsPre.textContent = analysisResults;
+    loader.classList.remove('active');
+}
+
+function generateNetworkAnalysis(data, type) {
+    let output = `=== Network Analysis Simulation ===\n`;
+    output += `Analysis Type: ${type.toUpperCase()}\n`;
+    output += `Timestamp: ${new Date().toLocaleString()}\n`;
+    output += `Input Size: ${data.length} characters\n\n`;
+
+    if (type === 'traffic') {
+        output += `[+] Traffic Pattern Analysis:\n`;
+        output += `----------------------------------------\n`;
+        output += `• Detected HTTP traffic: ${Math.floor(Math.random() * 1000)} packets\n`;
+        output += `• Detected DNS queries: ${Math.floor(Math.random() * 500)} packets\n`;
+        output += `• Suspected malware C2: ${Math.random() > 0.7 ? 'YES (simulated)' : 'NO'}\n`;
+        output += `• Data exfiltration: ${Math.random() > 0.8 ? 'DETECTED (simulated)' : 'Not detected'}\n`;
+    } else if (type === 'ports') {
+        output += `[+] Open Port Detection:\n`;
+        output += `----------------------------------------\n`;
+        const ports = [21, 22, 23, 25, 53, 80, 110, 143, 443, 445, 993, 995, 1723, 3306, 3389, 8080];
+        ports.forEach(port => {
+            if (Math.random() > 0.6) {
+                output += `Port ${port}/tcp: OPEN (Simulated)\n`;
+            }
+        });
+    } else if (type === 'packets') {
+        output += `[+] Packet Capture Simulation:\n`;
+        output += `----------------------------------------\n`;
+        for (let i = 0; i < 10; i++) {
+            const src = `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`;
+            const dst = `10.0.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`;
+            const protocol = ['TCP', 'UDP', 'ICMP'][Math.floor(Math.random() * 3)];
+            const size = Math.floor(Math.random() * 1500) + 64;
+            output += `${src} -> ${dst} [${protocol}] Size: ${size} bytes\n`;
+        }
+    }
+
+    output += `\n[+] Security Assessment:\n`;
+    output += `----------------------------------------\n`;
+    output += `Risk Level: ${['LOW', 'MEDIUM', 'HIGH'][Math.floor(Math.random() * 3)]}\n`;
+    output += `Recommendations:\n`;
+    output += `1. Monitor unusual outbound connections\n`;
+    output += `2. Implement network segmentation\n`;
+    output += `3. Use encrypted protocols (HTTPS, SSH, VPN)\n\n`;
+
+    output += `=== End of Simulation ===\n`;
+    output += `This analysis is performed locally in OS-01 simulation.\n`;
+    output += `No actual network traffic was captured or analyzed.`;
+
+    return output;
+}
+
+// Report Generation
+function generateReport() {
+    const resultsDiv = document.getElementById('report-results');
+    
+    let html = `<h3>📊 OS-01 Scout Intelligence Report</h3>`;
+    html += `<div class="info-box">`;
+    html += `<strong>Report Generated:</strong> ${new Date().toLocaleString()}<br>`;
+    html += `<strong>Session ID:</strong> OS-01-${Date.now().toString(36).toUpperCase()}<br>`;
+    html += `<strong>Data Points Collected:</strong> ${Object.values(simulationData).reduce((a, b) => a + (Array.isArray(b) ? b.length : Object.keys(b).length), 0)}`;
+    html += `</div>`;
+
+    // OSINT Summary
+    if (Object.keys(simulationData.osint).length > 0) {
+        html += `<h4 style="margin-top: 20px;">🔍 OSINT Summary</h4>`;
+        html += `<table class="data-table">`;
+        html += `<tr><th>Target</th><th>Profiles Found</th><th>Breaches</th><th>Location</th></tr>`;
+        html += `<tr>
+            <td>${simulationData.osint.username || 'N/A'}</td>
+            <td>${simulationData.osint.profiles?.length || 0}</td>
+            <td>${simulationData.osint.breaches?.length || 0}</td>
+            <td>${simulationData.osint.location?.city || 'N/A'}</td>
+        </tr>`;
+        html += `</table>`;
+    }
+
+    // Vulnerabilities Summary
+    if (simulationData.vulnerabilities.length > 0) {
+        html += `<h4 style="margin-top: 20px;">🌐 Vulnerability Scan Summary</h4>`;
+        html += `<table class="data-table">`;
+        html += `<tr><th>Target</th><th>Scan Type</th><th>Open Ports</th><th>Vulnerabilities</th></tr>`;
+        simulationData.vulnerabilities.forEach(scan => {
+            const openPorts = (scan.results.match(/Port (\d+)\/tcp OPEN/g) || []).length;
+            const vulns = (scan.results.match(/\[(CRITICAL|HIGH|MEDIUM)\]/g) || []).length;
+            html += `<tr>
+                <td>${scan.target.substring(0, 20)}${scan.target.length > 20 ? '...' : ''}</td>
+                <td>${scan.scanType}</td>
+                <td>${openPorts}</td>
+                <td>${vulns}</td>
+            </tr>`;
+        });
+        html += `</table>`;
+    }
+
+    // Password Checks
+    if (simulationData.passwordChecks.length > 0) {
+        html += `<h4 style="margin-top: 20px;">🔑 Password Security</h4>`;
+        html += `<table class="data-table">`;
+        html += `<tr><th>Check Time</th><th>Strength</th><th>Breach Status</th></tr>`;
+        simulationData.passwordChecks.forEach(check => {
+            html += `<tr>
+                <td>${new Date(check.timestamp).toLocaleTimeString()}</td>
+                <td><span class="badge ${check.strength.score > 70 ? 'success' : check.strength.score > 40 ? 'warning' : 'danger'}">${check.strength.level}</span></td>
+                <td>${check.breaches.found ? '❌ Compromised' : '✅ Secure'}</td>
+            </tr>`;
+        });
+        html += `</table>`;
+    }
+
+    // Recommendations
+    html += `<div class="warning-box" style="margin-top: 20px;">`;
+    html += `<h4>🛡️ Security Recommendations</h4>`;
+    html += `1. Use strong, unique passwords for each account<br>`;
+    html += `2. Enable two-factor authentication where available<br>`;
+    html += `3. Keep software and systems updated<br>`;
+    html += `4. Monitor for unusual account activity<br>`;
+    html += `5. Use VPN on public networks<br>`;
+    html += `</div>`;
+
+    html += `<div class="info-box" style="margin-top: 20px;">`;
+    html += `<strong>⚠️ Important Notice:</strong><br>`;
+    html += `This report contains simulated data generated locally for educational purposes in the OS-01 environment.<br>`;
+    html += `No real systems were scanned, no real data was collected, and no actual persons were investigated.<br>`;
+    html += `This tool demonstrates security concepts in a controlled simulation.`;
+    html += `</div>`;
+
+    // Store report
+    simulationData.reports.push({
+        content: html,
+        timestamp: new Date().toISOString()
+    });
+
+    resultsDiv.innerHTML = html;
+    resultsDiv.classList.add('active');
+}
+
+function saveReport() {
+    const reportContent = document.getElementById('report-results').innerHTML;
+    if (!reportContent) {
+        alert('Generate a report first');
+        return;
+    }
+
+    // Create a downloadable HTML file
+    const blob = new Blob([`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>OS-01 Scout Report ${new Date().toLocaleDateString()}</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 20px; }
+                .header { background: #0f0f0f; color: #00ff9d; padding: 20px; margin-bottom: 20px; }
+                .warning { background: #fff3cd; border-left: 4px solid #ffa502; padding: 15px; margin: 15px 0; }
+                .info { background: #d1ecf1; border-left: 4px solid #0f0f0f; padding: 15px; margin: 15px 0; }
+                table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+                th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+                th { background: #f2f2f2; }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>OS-01 Scout Intelligence Report</h1>
+                <p>Generated: ${new Date().toLocaleString()}</p>
             </div>
-            <div class="message-content">
-                <div class="typing-indicator">
-                    <div class="typing-dots">
-                        <div class="typing-dot"></div>
-                        <div class="typing-dot"></div>
-                        <div class="typing-dot"></div>
-                    </div>
-                    <div class="typing-text">Печатает...</div>
-                </div>
-            </div>
-        `;
-        if (attachToMessageId) {
-            const existingMessage = document.querySelector(`[data-id="${attachToMessageId}"]`);
-            if (existingMessage) {
-                const messageContent = existingMessage.querySelector('.message-content');
-                if (messageContent) {
-                    const oldIndicator = messageContent.querySelector('.typing-indicator');
-                    if (oldIndicator) oldIndicator.remove();
-                    messageContent.appendChild(typingEl.querySelector('.typing-indicator'));
-                }
-                return existingMessage;
-            }
-        }
-        this.elements.messagesContainer.appendChild(typingEl);
-        this.scrollToBottom();
-        return typingEl;
-    }
-    hideTypingIndicator(id) {
-        const typingEl = document.querySelector(`[data-id="${id}"]`);
-        if (typingEl) {
-            typingEl.remove();
-        }
-    }
-    copyMessage(messageId) {
-        const messageElement = document.querySelector(`[data-id="${messageId}"]`);
-        if (!messageElement) return;
-        if (!messageElement.classList.contains('ai-message')) {
-            console.warn('Копирование разрешено только для AI сообщений');
-            return;
-        }
-        const messageText = messageElement.querySelector('.message-text');
-        if (!messageText) return;
-        const originalUserSelect = messageText.style.userSelect;
-        messageText.style.userSelect = 'text';
-        const textToCopy = messageText.textContent || messageText.innerText;
-        const textarea = document.createElement('textarea');
-        textarea.value = textToCopy;
-        textarea.style.position = 'fixed';
-        textarea.style.opacity = '0';
-        document.body.appendChild(textarea);
-        textarea.select();
-        textarea.setSelectionRange(0, 99999);
-        try {
-            const successful = document.execCommand('copy');
-            if (successful) {
-                const copyBtn = messageElement.querySelector('.copy-btn');
-                if (copyBtn) {
-                    const originalHTML = copyBtn.innerHTML;
-                    copyBtn.innerHTML = '<i class="fas fa-check"></i>';
-                    copyBtn.classList.add('active');
-                    setTimeout(() => {
-                        copyBtn.innerHTML = originalHTML;
-                        copyBtn.classList.remove('active');
-                    }, 2000);
-                }
-                this.showNotification('✅ Текст скопирован в буфер обмена', 'success');
+            ${reportContent}
+        </body>
+        </html>
+    `], { type: 'text/html' });
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `os-01-scout-report-${Date.now()}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    alert('Report saved locally as HTML file');
+}
+
+function clearAllData() {
+    if (confirm('Wipe all simulation data? This cannot be undone.')) {
+        // Clear all data objects
+        Object.keys(simulationData).forEach(key => {
+            if (Array.isArray(simulationData[key])) {
+                simulationData[key] = [];
             } else {
-                this.showNotification('❌ Не удалось скопировать текст', 'error');
-            }
-        } catch (err) {
-            console.error('Ошибка копирования:', err);
-            this.showNotification('❌ Не удалось скопировать текст', 'error');
-        } finally {
-            document.body.removeChild(textarea);
-            messageText.style.userSelect = originalUserSelect;
-        }
-    }
-    regenerateMessage(messageId) {
-        const chat = this.chats[this.currentChatId];
-        if (!chat) return;
-        const messageIndex = chat.messages.findIndex(msg => msg.id === messageId);
-        if (messageIndex === -1) return;
-        let userMessageIndex = -1;
-        for (let i = messageIndex; i >= 0; i--) {
-            if (chat.messages[i].type === 'user') {
-                userMessageIndex = i;
-                break;
-            }
-        }
-        if (userMessageIndex === -1) return;
-        const userMessage = chat.messages[userMessageIndex].text;
-        chat.messages.splice(userMessageIndex + 1);
-        this.saveData();
-        this.loadCurrentChat();
-        this.elements.messageInput.value = userMessage;
-        this.sendMessage();
-    }
-    toggleMenu() {
-        if (this.isMenuOpen) {
-            this.closeMenu();
-        } else {
-            this.openMenu();
-        }
-    }
-    openMenu() {
-        this.elements.sideMenu.classList.add('active');
-        this.isMenuOpen = true;
-    }
-    closeMenu() {
-        this.elements.sideMenu.classList.remove('active');
-        this.isMenuOpen = false;
-    }
-    updateChatsList() {
-        if (!this.elements.chatsList) return;
-        this.elements.chatsList.innerHTML = '';
-        const sortedChats = Object.values(this.chats).sort((a, b) => {
-            if (a.pinned && !b.pinned) return -1;
-            if (!a.pinned && b.pinned) return 1;
-            return new Date(b.created) - new Date(a.created);
-        });
-        sortedChats.forEach(chat => {
-            const chatItem = document.createElement('div');
-            chatItem.className = `chat-item ${chat.id === this.currentChatId ? 'active' : ''} ${chat.pinned ? 'pinned' : ''}`;
-            chatItem.dataset.chatId = chat.id;
-            const lastMessage = chat.messages.length > 0 ? 
-                chat.messages[chat.messages.length - 1].text : 'Нет сообщений';
-            const preview = lastMessage.length > 40 ? 
-                lastMessage.substring(0, 37) + '...' : lastMessage;
-            const avatarColor = this.generateAvatarColor(chat.name);
-            const avatarText = chat.name.charAt(0).toUpperCase();
-            chatItem.innerHTML = `
-                <div class="chat-avatar" style="background: ${avatarColor}">
-                    ${avatarText}
-                </div>
-                <div class="chat-info">
-                    <div class="chat-name">${this.escapeHtml(chat.name)}</div>
-                    <div class="chat-preview">${this.escapeHtml(preview)}</div>
-                </div>
-            `;
-            chatItem.addEventListener('click', (e) => {
-                if (!this.touchHoldTimer) {
-                    this.switchChat(chat.id);
-                    this.closeMenu();
-                }
-            });
-            this.elements.chatsList.appendChild(chatItem);
-        });
-    }
-    switchChat(chatId) {
-        if (this.currentChatId === chatId) return;
-        this.currentChatId = chatId;
-        this.saveData();
-        this.loadCurrentChat();
-        document.querySelectorAll('.chat-item').forEach(item => {
-            item.classList.remove('active');
-            if (item.dataset.chatId === chatId) {
-                item.classList.add('active');
+                simulationData[key] = {};
             }
         });
-    }
-    createNewChat() {
-        const chatId = 'chat_' + Date.now();
-        this.chats[chatId] = {
-            id: chatId,
-            name: 'Новый чат',
-            created: new Date().toISOString(),
-            messages: []
-        };
-        this.currentChatId = chatId;
-        this.saveData();
-        this.loadCurrentChat();
-        this.closeMenu();
-        this.showNotification('Новый чат создан', 'success');
-    }
-    checkAuth() {
-        if (!this.userProfile) {
-            setTimeout(() => {
-                this.showEditProfileModal();
-            }, 1000);
-        }
-    }
-    showProfileSettingsModal() {
-        if (!this.userProfile) {
-            this.showEditProfileModal();
-            return;
-        }
-        const avatarColor = this.generateAvatarColor(this.userProfile.username);
-        this.elements.profileSettingsAvatar.style.background = avatarColor;
-        this.elements.profileSettingsAvatar.textContent = this.userProfile.username.charAt(0).toUpperCase();
-        this.elements.profileSettingsUsername.textContent = this.userProfile.username;
-        if (this.apiKey) {
-            const maskedKey = '••••••••••••' + this.apiKey.slice(-4);
-            this.elements.profileApiKey.textContent = `API ключ: ${maskedKey}`;
-        } else {
-            this.elements.profileApiKey.textContent = 'API ключ: не установлен';
-        }
-        this.updatePromptStyleButtons();
-        this.elements.profileSettingsModal.style.display = 'flex';
-    }
-    hideProfileSettingsModal() {
-        this.elements.profileSettingsModal.style.display = 'none';
-    }
-    showEditProfileModal() {
-        if (this.userProfile) {
-            this.elements.editUsernameInput.value = this.userProfile.username;
-        } else {
-            this.elements.editUsernameInput.value = '';
-        }
-        if (this.apiKey) {
-            this.elements.editApiKeyInput.value = '••••••••••••' + this.apiKey.slice(-4);
-        } else {
-            this.elements.editApiKeyInput.value = '';
-        }
-        this.elements.editProfileModal.style.display = 'flex';
-    }
-    hideEditProfileModal() {
-        this.elements.editProfileModal.style.display = 'none';
-    }
-    saveProfile() {
-        const username = this.elements.editUsernameInput.value.trim();
-        const apiKey = this.elements.editApiKeyInput.value.trim();
-        if (!username || username.length < 3) {
-            this.showNotification('Имя пользователя должно содержать минимум 3 символа', 'error');
-            return;
-        }
-        if (!apiKey.includes('••••')) {
-            this.apiKey = apiKey;
-        }
-        if (!this.userProfile) {
-            this.userProfile = {
-                username,
-                registeredAt: new Date().toISOString(),
-                avatarColor: this.generateRandomColor()
-            };
-        } else {
-            this.userProfile.username = username;
-        }
-        this.saveData();
-        this.updateProfileUI();
-        this.hideEditProfileModal();
-        if (this.elements.profileSettingsModal.style.display === 'flex') {
-            this.hideProfileSettingsModal();
-            setTimeout(() => this.showProfileSettingsModal(), 100);
-        }
-        this.showNotification('Профиль успешно сохранен', 'success');
-    }
-    showPersonalizationModal() {
-        this.elements.customPromptInput.value = this.customPrompt;
-        this.updatePromptStyleButtons();
-        this.elements.personalizationModal.style.display = 'flex';
-    }
-    hidePersonalizationModal() {
-        this.elements.personalizationModal.style.display = 'none';
-    }
-    saveCustomPrompt() {
-        const prompt = this.elements.customPromptInput.value.trim();
-        this.customPrompt = prompt;
-        localStorage.setItem('edm_ai_custom_prompt', prompt);
-        this.showNotification('Промпт сохранен', 'success');
-    }
-    setCommunicationStyle(style) {
-        this.communicationStyle = style;
-        localStorage.setItem('edm_ai_communication_style', style);
-        this.updatePromptStyleButtons();
-        this.showNotification(`Стиль общения: ${this.communicationStyles[style].name}`, 'success');
-    }
-    updatePromptStyleButtons() {
-        this.elements.promptStyleBtns.forEach(btn => {
-            btn.classList.remove('active');
-            if (btn.dataset.style === this.communicationStyle) {
-                btn.classList.add('active');
-            }
+
+        // Clear all inputs and results
+        document.querySelectorAll('input, textarea, select').forEach(el => {
+            if (el.type !== 'button') el.value = '';
         });
-    }
-    updateProfileUI() {
-        if (!this.elements.profilePlaceholder) return;
-        if (!this.userProfile) {
-            this.elements.profilePlaceholder.innerHTML = `
-                <i class="fas fa-user-circle" style="font-size: 24px; color: var(--secondary-text);"></i>
-                <span style="font-weight: 500; font-size: 14px;">Профиль</span>
-            `;
-        } else {
-            const avatarColor = this.generateAvatarColor(this.userProfile.username);
-            this.elements.profilePlaceholder.innerHTML = `
-                <div class="profile-avatar-small" style="background: ${avatarColor};">
-                    ${this.userProfile.username.charAt(0).toUpperCase()}
-                </div>
-                <span style="font-weight: 500; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1;">
-                    ${this.userProfile.username}
-                </span>
-            `;
-        }
-    }
-    logout() {
-        if (confirm('Вы уверены, что хотите выйти из аккаунта?')) {
-            this.userProfile = null;
-            localStorage.removeItem('edm_ai_profile');
-            this.updateProfileUI();
-            this.hideEditProfileModal();
-            this.showNotification('Вы вышли из аккаунта', 'info');
-        }
-    }
-    startVoiceRecognition() {
-        if (!this.recognition) {
-            this.showNotification('Голосовой ввод не поддерживается в вашем браузере', 'error');
-            return;
-        }
-        if (this.isRecording) {
-            this.stopVoiceRecognition();
-            return;
-        }
-        if (this.hasMicPermission) {
-            this.startRecording();
-        } else {
-            if (typeof navigator.permissions !== 'undefined') {
-                navigator.permissions.query({ name: 'microphone' }).then(permissionStatus => {
-                    if (permissionStatus.state === 'granted') {
-                        this.hasMicPermission = true;
-                        this.saveData();
-                        this.startRecording();
-                    } else if (permissionStatus.state === 'prompt') {
-                        navigator.mediaDevices.getUserMedia({ audio: true })
-                            .then(() => {
-                                this.hasMicPermission = true;
-                                this.saveData();
-                                this.startRecording();
-                            })
-                            .catch(() => {
-                                this.showNotification('Доступ к микрофону запрещен', 'error');
-                            });
-                    } else {
-                        this.showNotification('Разрешите доступ к микрофону в настройках браузера', 'error');
-                    }
-                });
+
+        document.querySelectorAll('.result-area, pre').forEach(el => {
+            if (el.id !== 'scan-results' && el.id !== 'network-results') {
+                el.innerHTML = '';
+                el.classList.remove('active');
             } else {
-                this.startRecording();
+                el.textContent = '// Results cleared';
             }
-        }
-    }
-    startRecording() {
-        try {
-            this.finalTranscript = '';
-            this.interimTranscript = '';
-            this.recognition.start();
-        } catch (error) {
-            console.error('Error starting speech recognition:', error);
-            this.showNotification('Не удалось начать запись', 'error');
-        }
-    }
-    stopVoiceRecognition() {
-        if (this.recognition && this.isRecording) {
-            this.recognition.stop();
-            this.isRecording = false;
-            this.elements.voiceControlBtn.classList.remove('recording');
-            this.elements.voiceControlBtn.innerHTML = '<i class="fas fa-microphone"></i>';
-        }
-    }
-    adjustTextareaHeight() {
-        const textarea = this.elements.messageInput;
-        textarea.style.height = 'auto';
-        const maxHeight = 120;
-        const newHeight = Math.min(textarea.scrollHeight, maxHeight);
-        textarea.style.height = newHeight + 'px';
-        textarea.style.overflowY = newHeight >= maxHeight ? 'auto' : 'hidden';
-    }
-    scrollToBottom() {
-        setTimeout(() => {
-            if (this.elements.messagesContainer) {
-                this.elements.messagesContainer.scrollTop = this.elements.messagesContainer.scrollHeight;
-            }
-        }, 100);
-    }
-    generateAvatarColor(str) {
-        let hash = 0;
-        for (let i = 0; i < str.length; i++) {
-            hash = str.charCodeAt(i) + ((hash << 5) - hash);
-        }
-        const colors = [
-            'linear-gradient(135deg, #667eea, #764ba2)',
-            'linear-gradient(135deg, #f093fb, #f5576c)',
-            'linear-gradient(135deg, #4facfe, #00f2fe)',
-            'linear-gradient(135deg, #43e97b, #38f9d7)',
-            'linear-gradient(135deg, #fa709a, #fee140)',
-            'linear-gradient(135deg, #a8edea, #fed6e3)',
-            'linear-gradient(135deg, #d299c2, #fef9d7)',
-            'linear-gradient(135deg, #89f7fe, #66a6ff)'
-        ];
-        return colors[Math.abs(hash) % colors.length];
-    }
-    generateRandomColor() {
-        const colors = [
-            'linear-gradient(135deg, #667eea, #764ba2)',
-            'linear-gradient(135deg, #f093fb, #f5576c)',
-            'linear-gradient(135deg, #4facfe, #00f2fe)',
-            'linear-gradient(135deg, #43e97b, #38f9d7)',
-            'linear-gradient(135deg, #fa709a, #fee140)'
-        ];
-        return colors[Math.floor(Math.random() * colors.length)];
-    }
-    escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-    showNotification(message, type = 'info') {
-        const existingNotifications = document.querySelectorAll('.notification');
-        existingNotifications.forEach(notification => {
-            notification.remove();
         });
-        const notification = document.createElement('div');
-        notification.className = `notification ${type}`;
-        notification.textContent = message;
-        document.body.appendChild(notification);
-        setTimeout(() => {
-            notification.style.animation = 'slideOutRight 0.3s ease-out';
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
-                }
-            }, 300);
-        }, 3000);
-    }
-    applySettings() {
-        document.documentElement.style.setProperty('--primary-bg', '#0a0a0a');
-        document.documentElement.style.setProperty('--secondary-bg', '#141414');
-        document.documentElement.style.setProperty('--primary-text', '#ffffff');
+
+        alert('All simulation data has been wiped.');
     }
 }
+
+// Initialize on load
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('OS-01 Scout initialized in simulation mode');
+    
+    // Set version info in footer
+    const footer = document.querySelector('footer');
+    if (footer) {
+        footer.innerHTML += `<div>Loaded: ${new Date().toLocaleString()}</div>`;
+    }
+});
