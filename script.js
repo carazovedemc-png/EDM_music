@@ -18,8 +18,8 @@ document.addEventListener('DOMContentLoaded', function() {
         showMessage('Система: Правая кнопка мыши отключена', 'error');
     });
     
-    // Загрузка базы данных
-    loadDatabase();
+    // Загрузка базы данных ТОЛЬКО из файла
+    loadDatabaseFromFile();
     
     // Анимация логотипа
     animateLogo();
@@ -50,16 +50,33 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    function loadDatabase() {
+    function loadDatabaseFromFile() {
+        // Пытаемся загрузить из файла data.txt
         fetch('data.txt')
-            .then(response => response.text())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Файл data.txt не найден');
+                }
+                return response.text();
+            })
             .then(data => {
+                if (!data.trim()) {
+                    throw new Error('Файл data.txt пуст');
+                }
+                
                 database = parseDatabase(data);
-                showMessage('База данных загружена: ' + database.length + ' записей', 'success');
+                
+                if (database.length === 0) {
+                    throw new Error('Нет записей в data.txt или неверный формат');
+                }
+                
+                showMessage('База данных загружена из data.txt: ' + database.length + ' записей', 'success');
             })
             .catch(error => {
-                showMessage('Ошибка загрузки базы данных. Используется демо-база.', 'error');
-                loadDemoDatabase();
+                showMessage('ОШИБКА: ' + error.message, 'error');
+                showMessage('Загрузите файл data.txt с базой данных в формате:', 'error');
+                showMessage('ФИО | Телефон | Telegram | VK | Адрес | Дополнительно', 'error');
+                showMessage('Пример: Иванов Иван Иванович | +79161234567 | @ivanov | id123456 | Москва | IP: 192.168.1.1', 'error');
             });
     }
     
@@ -68,31 +85,24 @@ document.addEventListener('DOMContentLoaded', function() {
         const records = [];
         
         lines.forEach(line => {
-            if (line.trim()) {
-                const parts = line.split('|');
+            const trimmedLine = line.trim();
+            if (trimmedLine && !trimmedLine.startsWith('//') && !trimmedLine.startsWith('#') && !trimmedLine.startsWith('<!--')) {
+                const parts = trimmedLine.split('|').map(part => part.trim());
+                
                 if (parts.length >= 5) {
                     records.push({
-                        name: parts[0].trim(),
-                        phone: parts[1].trim(),
-                        telegram: parts[2].trim(),
-                        vk: parts[3].trim(),
-                        address: parts[4].trim(),
-                        other: parts.slice(5).join('|').trim()
+                        name: parts[0],
+                        phone: parts[1],
+                        telegram: parts[2],
+                        vk: parts[3],
+                        address: parts[4],
+                        other: parts.slice(5).join(' | ')
                     });
                 }
             }
         });
         
         return records;
-    }
-    
-    function loadDemoDatabase() {
-        database = [
-            {name: "Иванов Иван Иванович", phone: "+79161234567", telegram: "@ivanov", vk: "id123456", address: "Москва, ул. Ленина 1", other: "Дата рождения: 15.03.1990"},
-            {name: "Петров Петр Петрович", phone: "+79269876543", telegram: "@petrov", vk: "id654321", address: "Санкт-Петербург, Невский пр. 10", other: "Email: petr@gmail.com"},
-            {name: "Сидорова Анна Сергеевна", phone: "+79031234567", telegram: "@sidorova", vk: "id789012", address: "Казань, ул. Баумана 5", other: "ИНН: 123456789012"},
-            {name: "Смирнов Алексей", phone: "+79105556677", telegram: "@smirnov", vk: "id345678", address: "Новосибирск, ул. Кирова 20", other: "Работа: ООО Технологии"}
-        ];
     }
     
     function processCommand(command) {
@@ -125,6 +135,10 @@ document.addEventListener('DOMContentLoaded', function() {
     function handleMainMenu(command) {
         switch(command) {
             case '1':
+                if (database.length === 0) {
+                    showMessage('База данных не загружена! Загрузите файл data.txt', 'error');
+                    return;
+                }
                 showProbivMenu();
                 break;
             case '2':
@@ -196,6 +210,16 @@ document.addEventListener('DOMContentLoaded', function() {
     function handleSearch(query) {
         if (query === '1') {
             showProbivMenu();
+            return;
+        }
+        
+        if (!query) {
+            showMessage('Введите поисковый запрос', 'error');
+            return;
+        }
+        
+        if (database.length === 0) {
+            showMessage('База данных пуста! Загрузите data.txt', 'error');
             return;
         }
         
