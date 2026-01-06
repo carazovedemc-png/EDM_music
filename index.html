@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EDM™ HACK</title>
+    <title>EDM™</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @font-face {
@@ -45,12 +45,19 @@
         .logo {
             margin-bottom: 15px;
             line-height: 1.2;
-            font-size: 6px;
+            font-size: 8px;
             white-space: pre;
             color: #0af;
             text-shadow: 0 0 5px #0af;
             overflow: hidden;
             font-family: 'Minecraft', 'Courier New', monospace;
+            text-align: center;
+            opacity: 0;
+            animation: fadeInLogo 1.5s forwards 0.5s;
+        }
+        
+        @keyframes fadeInLogo {
+            to { opacity: 1; }
         }
         
         .output {
@@ -139,15 +146,28 @@
             color: #0af;
             font-size: 12px;
             line-height: 1.3;
-            white-space: pre;
-            overflow: hidden;
+            white-space: pre-wrap;
+            overflow-y: auto;
+            max-height: 300px;
             animation: scrollText 15s linear;
+            word-break: break-all;
             font-family: 'Minecraft', 'Courier New', monospace;
         }
         
         @keyframes scrollText {
-            0% { transform: translateY(0); }
+            0% { transform: translateY(100%); }
             100% { transform: translateY(-100%); }
+        }
+        
+        .binary-line {
+            animation: binaryAppear 0.1s forwards;
+            opacity: 0;
+            word-break: break-all;
+            overflow-wrap: break-word;
+        }
+        
+        @keyframes binaryAppear {
+            to { opacity: 1; }
         }
         
         ::-webkit-scrollbar {
@@ -172,15 +192,39 @@
             font-family: 'Minecraft', 'Courier New', monospace;
         }
         
+        .result-data {
+            color: #0af;
+            margin: 3px 0;
+            padding-left: 10px;
+        }
+        
+        .additional-info {
+            color: #0af;
+            margin: 5px 0;
+            padding-left: 20px;
+            display: none;
+        }
+        
+        .back-btn {
+            color: #0af;
+            margin: 15px 0 5px 10px;
+            animation: typewrite 0.3s forwards;
+            opacity: 0;
+            position: sticky;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 5px;
+        }
+        
         @media (max-width: 768px) {
             .logo {
-                font-size: 5px;
+                font-size: 6px;
             }
         }
         
         @media (max-width: 480px) {
             .logo {
-                font-size: 4px;
+                font-size: 5px;
             }
             body {
                 font-size: 12px;
@@ -189,7 +233,7 @@
         
         @media (max-width: 320px) {
             .logo {
-                font-size: 3px;
+                font-size: 4px;
             }
         }
     </style>
@@ -197,23 +241,15 @@
 <body>
     <div class="terminal">
         <div class="logo" id="logo">
-███████╗██████╗ ███╗   ███╗™   ██╗  ██╗ █████╗  ██████╗██╗  ██╗
-██╔════╝██╔══██╗████╗ ████║    ██║  ██║██╔══██╗██╔════╝██║ ██╔╝
-█████╗  ██║  ██║██╔████╔██║    ███████║███████║██║     █████╔╝ 
-██╔══╝  ██║  ██║██║╚██╔╝██║    ██╔══██║██╔══██║██║     ██╔═██╗ 
-███████╗██████╔╝██║ ╚═╝ ██║    ██║  ██║██║  ██║╚██████╗██║  ██╗
-╚══════╝╚═════╝ ╚═╝     ╚═╝    ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝
+███████╗██████╗ ███╗   ███╗™
+██╔════╝██╔══██╗████╗ ████║
+█████╗  ██║  ██║██╔████╔██║
+██╔══╝  ██║  ██║██║╚██╔╝██║
+███████╗██████╔╝██║ ╚═╝ ██║
+╚══════╝╚═════╝ ╚═╝     ╚═╝
         </div>
         
         <div class="output" id="output">
-<span style="color:#0af;">EDM™ HACK SYSTEM v2.0</span>
-<span style="color:#0af;">Initializing terminal interface...</span>
-<span style="color:#0af;">System ready. Type command or select option:</span>
-
-<span class="menu-item" style="animation-delay:0.1s">[ 1. ПРОБИВ ]</span>
-<span class="menu-item" style="animation-delay:0.2s">[ 2. ВЗЛОМ WIFI ]</span>
-<span class="menu-item" style="animation-delay:0.3s">[ 3. ДОКС ]</span>
-<span class="menu-item" style="animation-delay:0.4s">[ 4. ТГ АКК СНОС ]</span>
         </div>
         
         <div class="input-line">

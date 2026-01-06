@@ -6,6 +6,8 @@ document.addEventListener('DOMContentLoaded', function() {
     let database = [];
     let currentMenu = 'main';
     let searchType = '';
+    let currentResults = [];
+    let currentResultIndex = -1;
     
     // Запрет копирования
     document.addEventListener('copy', function(e) {
@@ -18,11 +20,16 @@ document.addEventListener('DOMContentLoaded', function() {
         showMessage('Система: Правая кнопка мыши отключена', 'error');
     });
     
+    // Инициализация
+    setTimeout(() => {
+        animateLogo();
+        setTimeout(() => {
+            showMainMenu();
+        }, 2000);
+    }, 500);
+    
     // Загрузка базы данных ТОЛЬКО из файла
     loadDatabaseFromFile();
-    
-    // Анимация логотипа
-    animateLogo();
     
     // Фокус на поле ввода
     commandInput.focus();
@@ -51,32 +58,30 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function loadDatabaseFromFile() {
-        // Пытаемся загрузить из файла data.txt
         fetch('data.txt')
             .then(response => {
-                if (!response.ok) {
-                    throw new Error('Файл data.txt не найден');
-                }
+                if (!response.ok) throw new Error('Файл не найден');
                 return response.text();
             })
             .then(data => {
-                if (!data.trim()) {
-                    throw new Error('Файл data.txt пуст');
-                }
+                if (!data.trim()) throw new Error('Файл пуст');
                 
                 database = parseDatabase(data);
                 
                 if (database.length === 0) {
-                    throw new Error('Нет записей в data.txt или неверный формат');
+                    throw new Error('Нет записей или неверный формат');
                 }
                 
-                showMessage('База данных загружена из data.txt: ' + database.length + ' записей', 'success');
+                showMessage('EDM™ SYSTEM v2.0', '');
+                showMessage('Initializing terminal interface...', '');
+                showMessage(`База данных загружена: ${database.length > 0 ? '999+' : '0'} записей`, 'success');
             })
             .catch(error => {
+                showMessage('EDM™ SYSTEM v2.0', '');
+                showMessage('Initializing terminal interface...', '');
+                showMessage(`База данных загружена: 0 записей`, 'error');
                 showMessage('ОШИБКА: ' + error.message, 'error');
-                showMessage('Загрузите файл data.txt с базой данных в формате:', 'error');
-                showMessage('ФИО | Телефон | Telegram | VK | Адрес | Дополнительно', 'error');
-                showMessage('Пример: Иванов Иван Иванович | +79161234567 | @ivanov | id123456 | Москва | IP: 192.168.1.1', 'error');
+                showMessage('Загрузите файл data.txt с базой данных', 'error');
             });
     }
     
@@ -127,6 +132,9 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'tghack':
                 handleTgHack(command);
                 break;
+            case 'view_result':
+                handleViewResult(command);
+                break;
         }
         
         scrollToBottom();
@@ -153,6 +161,17 @@ document.addEventListener('DOMContentLoaded', function() {
             default:
                 showMessage('Неизвестная команда. Введите цифру от 1 до 4.', 'error');
         }
+    }
+    
+    function showMainMenu() {
+        clearOutput();
+        currentMenu = 'main';
+        
+        showMessage('[ ГЛАВНОЕ МЕНЮ ]', '');
+        setTimeout(() => showMenuOption('[ 1. ПРОБИВ ]'), 100);
+        setTimeout(() => showMenuOption('[ 2. ВЗЛОМ WIFI ]'), 200);
+        setTimeout(() => showMenuOption('[ 3. ДОКС ]'), 300);
+        setTimeout(() => showMenuOption('[ 4. ТГ АКК СНОС ]'), 400);
     }
     
     function showProbivMenu() {
@@ -197,14 +216,14 @@ document.addEventListener('DOMContentLoaded', function() {
         searchType = type;
         
         const prompts = {
-            'phone': 'Введите номер телефона (формат: +79161234567):',
-            'telegram': 'Введите Telegram юзернейм (формат: @username):',
-            'vk': 'Введите VK ID (формат: id123456 или screen_name):',
-            'name': 'Введите ФИО (формат: Иванов Иван Иванович):'
+            'phone': 'Введите номер телефона:',
+            'telegram': 'Введите Telegram юзернейм:',
+            'vk': 'Введите VK ID:',
+            'name': 'Введите ФИО:'
         };
         
         showMessage(prompts[type], '');
-        setTimeout(() => showMenuOption('1. Назад'), 100);
+        showBackButton();
     }
     
     function handleSearch(query) {
@@ -219,17 +238,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         if (database.length === 0) {
-            showMessage('База данных пуста! Загрузите data.txt', 'error');
+            showMessage('База данных пуста!', 'error');
             return;
         }
         
         showSearchingAnimation();
         
         setTimeout(() => {
-            const results = searchInDatabase(query, searchType);
-            displayResults(results, query);
-            
-            showMenuOption('1. Назад');
+            currentResults = searchInDatabase(query, searchType);
+            displayResults(currentResults, query);
         }, 2000);
     }
     
@@ -255,16 +272,15 @@ document.addEventListener('DOMContentLoaded', function() {
     function showSearchingAnimation() {
         clearOutput();
         
-        const searchText = 'Поиск в базе данных';
-        showMessage(searchText, '');
+        showMessage('Поиск в базе данных', '');
         
         let dots = 0;
         const interval = setInterval(() => {
             dots = (dots + 1) % 4;
             const dotsText = '.'.repeat(dots);
             const lastLine = output.lastElementChild;
-            if (lastLine && lastLine.textContent.startsWith(searchText)) {
-                lastLine.textContent = searchText + dotsText;
+            if (lastLine && lastLine.textContent.startsWith('Поиск в базе данных')) {
+                lastLine.textContent = 'Поиск в базе данных' + dotsText;
                 lastLine.className = 'searching';
             }
         }, 300);
@@ -277,34 +293,79 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (results.length === 0) {
             showMessage('Ничего не найдено по запросу: ' + query, 'error');
+            showBackButton();
             return;
         }
         
         showMessage('НАЙДЕНО: ' + results.length + ' записей', 'success');
         
-        results.forEach((record, index) => {
+        // Показываем только первую запись
+        if (results.length > 0) {
+            currentResultIndex = 0;
+            showResult(results[0]);
+        }
+        
+        if (results.length > 1) {
             setTimeout(() => {
-                showResult(record);
-            }, index * 300);
-        });
+                showMenuOption('[ Далее: введите 2 для просмотра следующей записи ]');
+            }, 500);
+        }
+        
+        showBackButton();
     }
     
     function showResult(record) {
+        currentMenu = 'view_result';
+        
         const resultDiv = document.createElement('div');
         resultDiv.className = 'result';
-        resultDiv.innerHTML = `
+        
+        const basicInfo = `
             <div style="color:#0af;">════════════════════════════════</div>
-            <div style="color:#0af;">👤 ${record.name}</div>
-            <div style="color:#0af;">📱 Телефон: ${record.phone}</div>
-            <div style="color:#0af;">📲 Telegram: ${record.telegram}</div>
-            <div style="color:#0af;">🌐 VK: ${record.vk}</div>
-            <div style="color:#0af;">📍 Адрес: ${record.address}</div>
-            <div style="color:#0af;">📝 Дополнительно: ${record.other}</div>
+            <div class="result-data">1. ФИО: ${record.name}</div>
+            <div class="result-data">2. Телефон: ${record.phone}</div>
+            <div class="result-data">3. Telegram: ${record.telegram}</div>
+            <div class="result-data">4. VK: ${record.vk}</div>
+            <div class="result-data">5. Адрес: ${record.address}</div>
             <div style="color:#0af;">════════════════════════════════</div>
         `;
         
+        const additionalInfoDiv = document.createElement('div');
+        additionalInfoDiv.className = 'additional-info';
+        additionalInfoDiv.id = 'additional-info';
+        additionalInfoDiv.innerHTML = `
+            <div class="result-data">6. Дополнительная информация:</div>
+            <div class="result-data" style="margin-left:20px;">${record.other}</div>
+        `;
+        
+        resultDiv.innerHTML = basicInfo;
         output.appendChild(resultDiv);
-        scrollToBottom();
+        output.appendChild(additionalInfoDiv);
+        
+        setTimeout(() => {
+            showMenuOption('[ 2. ДОП ИНФА ]');
+        }, 300);
+    }
+    
+    function handleViewResult(command) {
+        if (command === '1') {
+            showProbivMenu();
+            return;
+        }
+        
+        if (command === '2') {
+            const additionalInfo = document.getElementById('additional-info');
+            if (additionalInfo) {
+                if (additionalInfo.style.display === 'none' || !additionalInfo.style.display) {
+                    additionalInfo.style.display = 'block';
+                    showMessage('Дополнительная информация показана', '');
+                } else {
+                    additionalInfo.style.display = 'none';
+                    showMessage('Дополнительная информация скрыта', '');
+                }
+            }
+            return;
+        }
     }
     
     function showHackMenu() {
@@ -313,7 +374,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         showMessage('[ СИСТЕМА ВЗЛОМА WIFI ]', '');
         showMessage('Введите BSSID сети WiFi:', '');
-        setTimeout(() => showMenuOption('1. Назад'), 100);
+        showBackButton();
     }
     
     function handleHack(bssid) {
@@ -331,7 +392,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         showMessage('[ СИСТЕМА ДОКСИНГА ]', '');
         showMessage('Введите данные цели:', '');
-        setTimeout(() => showMenuOption('1. Назад'), 100);
+        showBackButton();
     }
     
     function handleDox(data) {
@@ -349,7 +410,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         showMessage('[ СИСТЕМА СНОСА ТГ АККАУНТОВ ]', '');
         showMessage('Введите username или номер телефона:', '');
-        setTimeout(() => showMenuOption('1. Назад'), 100);
+        showBackButton();
     }
     
     function handleTgHack(target) {
@@ -368,21 +429,36 @@ document.addEventListener('DOMContentLoaded', function() {
         const hackDiv = document.createElement('div');
         hackDiv.className = 'hack-animation';
         
+        // Генерируем двоичный код
         let binaryText = '';
-        for (let i = 0; i < 500; i++) {
-            binaryText += Math.random().toString(2).substring(2, 10) + ' ';
-            if (i % 20 === 0) binaryText += '\n';
+        for (let i = 0; i < 150; i++) { // Уменьшил количество строк для мобильных
+            let line = '';
+            for (let j = 0; j < 40; j++) { // Уменьшил длину строки
+                line += Math.round(Math.random()) + ' ';
+            }
+            binaryText += line + '\n';
         }
         
         hackDiv.textContent = binaryText;
         output.appendChild(hackDiv);
+        
+        // Анимация появления строк
+        const lines = hackDiv.textContent.split('\n');
+        hackDiv.innerHTML = '';
+        lines.forEach((line, index) => {
+            const lineDiv = document.createElement('div');
+            lineDiv.className = 'binary-line';
+            lineDiv.textContent = line;
+            lineDiv.style.animationDelay = (index * 0.05) + 's';
+            hackDiv.appendChild(lineDiv);
+        });
         
         setTimeout(() => {
             clearOutput();
             showMessage('❌ Взлом не удался', 'error');
             showMessage('Причина: Усиленная защита WPA3', '');
             showMessage('Рекомендация: Используйте физический доступ к маршрутизатору', '');
-            showMenuOption('1. Назад');
+            showBackButton();
         }, 15000);
     }
     
@@ -390,25 +466,38 @@ document.addEventListener('DOMContentLoaded', function() {
         clearOutput();
         showMessage('🔍 Сбор информации...', '');
         
-        setTimeout(() => {
-            showMessage('🌐 Поиск в социальных сетях...', '');
-        }, 1000);
+        const hackDiv = document.createElement('div');
+        hackDiv.className = 'hack-animation';
         
-        setTimeout(() => {
-            showMessage('📧 Сканирование почтовых ящиков...', '');
-        }, 2000);
+        let binaryText = '';
+        for (let i = 0; i < 100; i++) {
+            let line = '';
+            for (let j = 0; j < 35; j++) {
+                line += Math.round(Math.random()) + ' ';
+            }
+            binaryText += line + '\n';
+        }
         
-        setTimeout(() => {
-            showMessage('📱 Анализ метаданных...', '');
-        }, 3000);
+        hackDiv.textContent = binaryText;
+        output.appendChild(hackDiv);
+        
+        const lines = hackDiv.textContent.split('\n');
+        hackDiv.innerHTML = '';
+        lines.forEach((line, index) => {
+            const lineDiv = document.createElement('div');
+            lineDiv.className = 'binary-line';
+            lineDiv.textContent = line;
+            lineDiv.style.animationDelay = (index * 0.06) + 's';
+            hackDiv.appendChild(lineDiv);
+        });
         
         setTimeout(() => {
             clearOutput();
             showMessage('❌ Доксинг не удался', 'error');
             showMessage('Причина: Цель использует защищенные каналы', '');
             showMessage('Рекомендация: Недостаточно открытых источников', '');
-            showMenuOption('1. Назад');
-        }, 4000);
+            showBackButton();
+        }, 12000);
     }
     
     function showTgHackAnimation() {
@@ -419,32 +508,35 @@ document.addEventListener('DOMContentLoaded', function() {
         hackDiv.className = 'hack-animation';
         
         let codeText = '';
-        for (let i = 0; i < 300; i++) {
-            codeText += '0x' + Math.floor(Math.random() * 65536).toString(16).padStart(4, '0') + ' ';
-            if (i % 15 === 0) codeText += '\n';
+        for (let i = 0; i < 80; i++) {
+            let line = '0x';
+            for (let j = 0; j < 8; j++) {
+                line += Math.floor(Math.random() * 16).toString(16);
+            }
+            codeText += line + ' ';
+            if (i % 8 === 7) codeText += '\n';
         }
         
         hackDiv.textContent = codeText;
         output.appendChild(hackDiv);
+        
+        const lines = hackDiv.textContent.split('\n');
+        hackDiv.innerHTML = '';
+        lines.forEach((line, index) => {
+            const lineDiv = document.createElement('div');
+            lineDiv.className = 'binary-line';
+            lineDiv.textContent = line;
+            lineDiv.style.animationDelay = (index * 0.07) + 's';
+            hackDiv.appendChild(lineDiv);
+        });
         
         setTimeout(() => {
             clearOutput();
             showMessage('❌ Снос аккаунта не удался', 'error');
             showMessage('Причина: Двухфакторная аутентификация', '');
             showMessage('Рекомендация: Требуется доступ к резервным кодам', '');
-            showMenuOption('1. Назад');
-        }, 12000);
-    }
-    
-    function showMainMenu() {
-        clearOutput();
-        currentMenu = 'main';
-        
-        showMessage('[ ГЛАВНОЕ МЕНЮ ]', '');
-        setTimeout(() => showMenuOption('[ 1. ПРОБИВ ]'), 100);
-        setTimeout(() => showMenuOption('[ 2. ВЗЛОМ WIFI ]'), 200);
-        setTimeout(() => showMenuOption('[ 3. ДОКС ]'), 300);
-        setTimeout(() => showMenuOption('[ 4. ТГ АКК СНОС ]'), 400);
+            showBackButton();
+        }, 10000);
     }
     
     function showMenuOption(text) {
@@ -455,6 +547,15 @@ document.addEventListener('DOMContentLoaded', function() {
         option.style.animation = 'typewrite 0.3s steps(20) forwards';
         option.style.color = '#0af';
         output.appendChild(option);
+        scrollToBottom();
+    }
+    
+    function showBackButton() {
+        const backBtn = document.createElement('div');
+        backBtn.className = 'back-btn';
+        backBtn.textContent = '[ 1. НАЗАД ]';
+        backBtn.style.animationDelay = '0.5s';
+        output.appendChild(backBtn);
         scrollToBottom();
     }
     
