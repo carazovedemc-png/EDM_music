@@ -6,6 +6,11 @@
     <title>EDM™ HACK</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        @font-face {
+            font-family: 'Minecraft';
+            src: url('https://fonts.cdnfonts.com/s/26728/Minecraft.woff') format('woff');
+        }
+        
         * {
             margin: 0;
             padding: 0;
@@ -21,7 +26,7 @@
         body {
             background-color: #000;
             color: #0af;
-            font-family: 'Courier New', monospace;
+            font-family: 'Minecraft', 'Courier New', monospace;
             line-height: 1.4;
             overflow: hidden;
             height: 100vh;
@@ -40,11 +45,12 @@
         .logo {
             margin-bottom: 15px;
             line-height: 1.2;
-            font-size: 10px;
+            font-size: 6px;
             white-space: pre;
             color: #0af;
-            text-shadow: 0 0 10px #0af;
-            overflow-x: auto;
+            text-shadow: 0 0 5px #0af;
+            overflow: hidden;
+            font-family: 'Minecraft', 'Courier New', monospace;
         }
         
         .output {
@@ -53,18 +59,21 @@
             padding: 5px 0;
             white-space: pre-wrap;
             word-wrap: break-word;
+            font-family: 'Minecraft', 'Courier New', monospace;
         }
         
         .input-line {
             display: flex;
             align-items: center;
             margin-top: 5px;
+            font-family: 'Minecraft', 'Courier New', monospace;
         }
         
         .prompt {
             color: #0af;
             margin-right: 8px;
             font-weight: bold;
+            font-family: 'Minecraft', 'Courier New', monospace;
         }
         
         #commandInput {
@@ -72,7 +81,7 @@
             background: transparent;
             border: none;
             color: #0af;
-            font-family: 'Courier New', monospace;
+            font-family: 'Minecraft', 'Courier New', monospace;
             font-size: 14px;
             outline: none;
             caret-color: #0af;
@@ -81,6 +90,7 @@
         .command {
             color: #0af;
             margin: 5px 0;
+            font-family: 'Minecraft', 'Courier New', monospace;
         }
         
         .menu-item {
@@ -90,6 +100,7 @@
             animation: typewrite 0.3s steps(20) forwards;
             opacity: 0;
             transform: translateY(5px);
+            font-family: 'Minecraft', 'Courier New', monospace;
         }
         
         @keyframes typewrite {
@@ -105,6 +116,7 @@
             overflow: hidden;
             border-right: 2px solid #0af;
             animation: blink 0.7s infinite;
+            font-family: 'Minecraft', 'Courier New', monospace;
         }
         
         @keyframes blink {
@@ -115,6 +127,7 @@
             color: #0af;
             margin: 8px 0;
             animation: fadeIn 0.5s ease-out;
+            font-family: 'Minecraft', 'Courier New', monospace;
         }
         
         @keyframes fadeIn {
@@ -129,6 +142,7 @@
             white-space: pre;
             overflow: hidden;
             animation: scrollText 15s linear;
+            font-family: 'Minecraft', 'Courier New', monospace;
         }
         
         @keyframes scrollText {
@@ -150,14 +164,33 @@
         
         .error {
             color: #f00;
+            font-family: 'Minecraft', 'Courier New', monospace;
         }
         
         .success {
             color: #0f0;
+            font-family: 'Minecraft', 'Courier New', monospace;
         }
         
-        .highlight {
-            color: #ff0;
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 5px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .logo {
+                font-size: 4px;
+            }
+            body {
+                font-size: 12px;
+            }
+        }
+        
+        @media (max-width: 320px) {
+            .logo {
+                font-size: 3px;
+            }
         }
     </style>
 </head>

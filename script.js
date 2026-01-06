@@ -89,9 +89,9 @@ document.addEventListener('DOMContentLoaded', function() {
     function loadDemoDatabase() {
         database = [
             {name: "Иванов Иван Иванович", phone: "+79161234567", telegram: "@ivanov", vk: "id123456", address: "Москва, ул. Ленина 1", other: "Дата рождения: 15.03.1990"},
-            {name: "Петров Петр Петрович", phone: "+79269876543", telegram: "@petrov", vk: "id654321", address: "Санкт-Петербург, Невский пр. 10", other: "Паспорт: 4510 123456"},
-            {name: "Сидорова Анна Сергеевна", phone: "+79031234567", telegram: "@sidorova", vk: "id789012", address: "Казань, ул. Баумана 5", other: "Email: anna@mail.ru"},
-            {name: "Смирнов Алексей", phone: "+79105556677", telegram: "@smirnov", vk: "id345678", address: "Новосибирск, ул. Кирова 20", other: "ИНН: 123456789012"}
+            {name: "Петров Петр Петрович", phone: "+79269876543", telegram: "@petrov", vk: "id654321", address: "Санкт-Петербург, Невский пр. 10", other: "Email: petr@gmail.com"},
+            {name: "Сидорова Анна Сергеевна", phone: "+79031234567", telegram: "@sidorova", vk: "id789012", address: "Казань, ул. Баумана 5", other: "ИНН: 123456789012"},
+            {name: "Смирнов Алексей", phone: "+79105556677", telegram: "@smirnov", vk: "id345678", address: "Новосибирск, ул. Кирова 20", other: "Работа: ООО Технологии"}
         ];
     }
     
@@ -145,7 +145,7 @@ document.addEventListener('DOMContentLoaded', function() {
         clearOutput();
         currentMenu = 'probiv';
         
-        showMessage('[ СИСТЕМА ПРОБИВА ]', 'highlight');
+        showMessage('[ СИСТЕМА ПРОБИВА ]', '');
         showMessage('Выберите тип поиска:', '');
         
         setTimeout(() => showMenuOption('1. По номеру телефона'), 100);
@@ -189,7 +189,7 @@ document.addEventListener('DOMContentLoaded', function() {
             'name': 'Введите ФИО (формат: Иванов Иван Иванович):'
         };
         
-        showMessage(prompts[type], 'highlight');
+        showMessage(prompts[type], '');
         setTimeout(() => showMenuOption('1. Назад'), 100);
     }
     
@@ -232,7 +232,7 @@ document.addEventListener('DOMContentLoaded', function() {
         clearOutput();
         
         const searchText = 'Поиск в базе данных';
-        showMessage(searchText, 'highlight');
+        showMessage(searchText, '');
         
         let dots = 0;
         const interval = setInterval(() => {
@@ -269,14 +269,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const resultDiv = document.createElement('div');
         resultDiv.className = 'result';
         resultDiv.innerHTML = `
-            <div style="color:#0ff;">════════════════════════════════</div>
-            <div>👤 <span style="color:#ff0;">${record.name}</span></div>
-            <div>📱 Телефон: ${record.phone}</div>
-            <div>📲 Telegram: ${record.telegram}</div>
-            <div>🌐 VK: ${record.vk}</div>
-            <div>📍 Адрес: ${record.address}</div>
-            <div>📝 Дополнительно: ${record.other}</div>
-            <div style="color:#0ff;">════════════════════════════════</div>
+            <div style="color:#0af;">════════════════════════════════</div>
+            <div style="color:#0af;">👤 ${record.name}</div>
+            <div style="color:#0af;">📱 Телефон: ${record.phone}</div>
+            <div style="color:#0af;">📲 Telegram: ${record.telegram}</div>
+            <div style="color:#0af;">🌐 VK: ${record.vk}</div>
+            <div style="color:#0af;">📍 Адрес: ${record.address}</div>
+            <div style="color:#0af;">📝 Дополнительно: ${record.other}</div>
+            <div style="color:#0af;">════════════════════════════════</div>
         `;
         
         output.appendChild(resultDiv);
@@ -287,7 +287,7 @@ document.addEventListener('DOMContentLoaded', function() {
         clearOutput();
         currentMenu = 'hack';
         
-        showMessage('[ СИСТЕМА ВЗЛОМА WIFI ]', 'highlight');
+        showMessage('[ СИСТЕМА ВЗЛОМА WIFI ]', '');
         showMessage('Введите BSSID сети WiFi:', '');
         setTimeout(() => showMenuOption('1. Назад'), 100);
     }
@@ -305,7 +305,7 @@ document.addEventListener('DOMContentLoaded', function() {
         clearOutput();
         currentMenu = 'dox';
         
-        showMessage('[ СИСТЕМА ДОКСИНГА ]', 'highlight');
+        showMessage('[ СИСТЕМА ДОКСИНГА ]', '');
         showMessage('Введите данные цели:', '');
         setTimeout(() => showMenuOption('1. Назад'), 100);
     }
@@ -323,7 +323,7 @@ document.addEventListener('DOMContentLoaded', function() {
         clearOutput();
         currentMenu = 'tghack';
         
-        showMessage('[ СИСТЕМА СНОСА ТГ АККАУНТОВ ]', 'highlight');
+        showMessage('[ СИСТЕМА СНОСА ТГ АККАУНТОВ ]', '');
         showMessage('Введите username или номер телефона:', '');
         setTimeout(() => showMenuOption('1. Назад'), 100);
     }
@@ -339,7 +339,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function showHackAnimation() {
         clearOutput();
-        showMessage('🚀 Запуск взлома WiFi...', 'highlight');
+        showMessage('🚀 Запуск взлома WiFi...', '');
         
         const hackDiv = document.createElement('div');
         hackDiv.className = 'hack-animation';
@@ -364,7 +364,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function showDoxAnimation() {
         clearOutput();
-        showMessage('🔍 Сбор информации...', 'highlight');
+        showMessage('🔍 Сбор информации...', '');
         
         setTimeout(() => {
             showMessage('🌐 Поиск в социальных сетях...', '');
@@ -389,7 +389,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function showTgHackAnimation() {
         clearOutput();
-        showMessage('⚡ Инициализация атаки на Telegram...', 'highlight');
+        showMessage('⚡ Инициализация атаки на Telegram...', '');
         
         const hackDiv = document.createElement('div');
         hackDiv.className = 'hack-animation';
@@ -416,7 +416,7 @@ document.addEventListener('DOMContentLoaded', function() {
         clearOutput();
         currentMenu = 'main';
         
-        showMessage('[ ГЛАВНОЕ МЕНЮ ]', 'highlight');
+        showMessage('[ ГЛАВНОЕ МЕНЮ ]', '');
         setTimeout(() => showMenuOption('[ 1. ПРОБИВ ]'), 100);
         setTimeout(() => showMenuOption('[ 2. ВЗЛОМ WIFI ]'), 200);
         setTimeout(() => showMenuOption('[ 3. ДОКС ]'), 300);
@@ -429,6 +429,7 @@ document.addEventListener('DOMContentLoaded', function() {
         option.textContent = text;
         option.style.animationDelay = '0s';
         option.style.animation = 'typewrite 0.3s steps(20) forwards';
+        option.style.color = '#0af';
         output.appendChild(option);
         scrollToBottom();
     }
@@ -442,9 +443,13 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function showMessage(text, type) {
         const msgDiv = document.createElement('div');
-        msgDiv.className = type === 'error' ? 'error' : 
-                          type === 'success' ? 'success' :
-                          type === 'highlight' ? 'highlight' : '';
+        if (type === 'error') {
+            msgDiv.className = 'error';
+        } else if (type === 'success') {
+            msgDiv.className = 'success';
+        } else {
+            msgDiv.style.color = '#0af';
+        }
         msgDiv.textContent = text;
         output.appendChild(msgDiv);
     }
