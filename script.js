@@ -95,13 +95,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 const parts = trimmedLine.split('|').map(part => part.trim());
                 
                 if (parts.length >= 5) {
+                    // Разбираем дополнительную информацию
+                    const otherParts = parts.slice(5);
+                    const otherInfo = [];
+                    
+                    otherParts.forEach(info => {
+                        const infoParts = info.split(':').map(p => p.trim());
+                        if (infoParts.length >= 2) {
+                            otherInfo.push({
+                                key: infoParts[0],
+                                value: infoParts.slice(1).join(':')
+                            });
+                        }
+                    });
+                    
                     records.push({
                         name: parts[0],
                         phone: parts[1],
                         telegram: parts[2],
                         vk: parts[3],
                         address: parts[4],
-                        other: parts.slice(5).join(' | ')
+                        other: otherInfo
                     });
                 }
             }
@@ -185,7 +199,7 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => showMenuOption('2. По Telegram юзернейму'), 200);
         setTimeout(() => showMenuOption('3. По VK ID'), 300);
         setTimeout(() => showMenuOption('4. По ФИО'), 400);
-        setTimeout(() => showMenuOption('5. Назад'), 500);
+        setTimeout(() => showBackButton(), 500);
     }
     
     function handleProbivMenu(command) {
@@ -305,12 +319,6 @@ document.addEventListener('DOMContentLoaded', function() {
             showResult(results[0]);
         }
         
-        if (results.length > 1) {
-            setTimeout(() => {
-                showMenuOption('[ Далее: введите 2 для просмотра следующей записи ]');
-            }, 500);
-        }
-        
         showBackButton();
     }
     
@@ -333,10 +341,21 @@ document.addEventListener('DOMContentLoaded', function() {
         const additionalInfoDiv = document.createElement('div');
         additionalInfoDiv.className = 'additional-info';
         additionalInfoDiv.id = 'additional-info';
-        additionalInfoDiv.innerHTML = `
-            <div class="result-data">6. Дополнительная информация:</div>
-            <div class="result-data" style="margin-left:20px;">${record.other}</div>
-        `;
+        
+        let additionalHTML = '<div style="color:#0af;">════════════════════════════════</div>';
+        additionalHTML += '<div class="result-data">ДОПОЛНИТЕЛЬНАЯ ИНФОРМАЦИЯ:</div>';
+        
+        if (record.other && record.other.length > 0) {
+            record.other.forEach((item, index) => {
+                additionalHTML += `<div class="result-data">${index + 1}. ${item.key}: ${item.value}</div>`;
+            });
+        } else {
+            additionalHTML += '<div class="result-data">Нет дополнительной информации</div>';
+        }
+        
+        additionalHTML += '<div style="color:#0af;">════════════════════════════════</div>';
+        
+        additionalInfoDiv.innerHTML = additionalHTML;
         
         resultDiv.innerHTML = basicInfo;
         output.appendChild(resultDiv);
@@ -383,7 +402,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        showHackAnimation();
+        showBinaryAnimation('Взлом WiFi...', 15000);
     }
     
     function showDoxMenu() {
@@ -401,7 +420,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        showDoxAnimation();
+        showBinaryAnimation('Доксинг цели...', 12000);
     }
     
     function showTgHackMenu() {
@@ -419,124 +438,52 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        showTgHackAnimation();
+        showBinaryAnimation('Снос Telegram аккаунта...', 10000);
     }
     
-    function showHackAnimation() {
+    function showBinaryAnimation(message, duration) {
         clearOutput();
-        showMessage('🚀 Запуск взлома WiFi...', '');
+        showMessage('🚀 ' + message, '');
         
-        const hackDiv = document.createElement('div');
-        hackDiv.className = 'hack-animation';
+        // Создаем контейнер для анимации
+        const hackContainer = document.createElement('div');
+        hackContainer.className = 'hack-container';
+        
+        const binaryStream = document.createElement('div');
+        binaryStream.className = 'binary-stream';
         
         // Генерируем двоичный код
         let binaryText = '';
-        for (let i = 0; i < 150; i++) { // Уменьшил количество строк для мобильных
+        for (let i = 0; i < 1000; i++) { // Больше строк для длинной анимации
             let line = '';
-            for (let j = 0; j < 40; j++) { // Уменьшил длину строки
-                line += Math.round(Math.random()) + ' ';
+            for (let j = 0; j < 80; j++) { // 80 символов в строке
+                line += Math.round(Math.random());
             }
             binaryText += line + '\n';
         }
         
-        hackDiv.textContent = binaryText;
-        output.appendChild(hackDiv);
+        // Создаем анимированные символы
+        const chars = binaryText.split('');
+        binaryStream.innerHTML = '';
         
-        // Анимация появления строк
-        const lines = hackDiv.textContent.split('\n');
-        hackDiv.innerHTML = '';
-        lines.forEach((line, index) => {
-            const lineDiv = document.createElement('div');
-            lineDiv.className = 'binary-line';
-            lineDiv.textContent = line;
-            lineDiv.style.animationDelay = (index * 0.05) + 's';
-            hackDiv.appendChild(lineDiv);
+        chars.forEach((char, index) => {
+            const charSpan = document.createElement('span');
+            charSpan.className = 'binary-char';
+            charSpan.textContent = char;
+            charSpan.style.animationDelay = (index * 0.01) + 's';
+            binaryStream.appendChild(charSpan);
         });
+        
+        hackContainer.appendChild(binaryStream);
+        output.appendChild(hackContainer);
         
         setTimeout(() => {
             clearOutput();
-            showMessage('❌ Взлом не удался', 'error');
-            showMessage('Причина: Усиленная защита WPA3', '');
-            showMessage('Рекомендация: Используйте физический доступ к маршрутизатору', '');
+            showMessage('❌ Операция не удалась', 'error');
+            showMessage('Причина: Защита системы слишком сильна', '');
+            showMessage('Рекомендация: Попробуйте другой метод', '');
             showBackButton();
-        }, 15000);
-    }
-    
-    function showDoxAnimation() {
-        clearOutput();
-        showMessage('🔍 Сбор информации...', '');
-        
-        const hackDiv = document.createElement('div');
-        hackDiv.className = 'hack-animation';
-        
-        let binaryText = '';
-        for (let i = 0; i < 100; i++) {
-            let line = '';
-            for (let j = 0; j < 35; j++) {
-                line += Math.round(Math.random()) + ' ';
-            }
-            binaryText += line + '\n';
-        }
-        
-        hackDiv.textContent = binaryText;
-        output.appendChild(hackDiv);
-        
-        const lines = hackDiv.textContent.split('\n');
-        hackDiv.innerHTML = '';
-        lines.forEach((line, index) => {
-            const lineDiv = document.createElement('div');
-            lineDiv.className = 'binary-line';
-            lineDiv.textContent = line;
-            lineDiv.style.animationDelay = (index * 0.06) + 's';
-            hackDiv.appendChild(lineDiv);
-        });
-        
-        setTimeout(() => {
-            clearOutput();
-            showMessage('❌ Доксинг не удался', 'error');
-            showMessage('Причина: Цель использует защищенные каналы', '');
-            showMessage('Рекомендация: Недостаточно открытых источников', '');
-            showBackButton();
-        }, 12000);
-    }
-    
-    function showTgHackAnimation() {
-        clearOutput();
-        showMessage('⚡ Инициализация атаки на Telegram...', '');
-        
-        const hackDiv = document.createElement('div');
-        hackDiv.className = 'hack-animation';
-        
-        let codeText = '';
-        for (let i = 0; i < 80; i++) {
-            let line = '0x';
-            for (let j = 0; j < 8; j++) {
-                line += Math.floor(Math.random() * 16).toString(16);
-            }
-            codeText += line + ' ';
-            if (i % 8 === 7) codeText += '\n';
-        }
-        
-        hackDiv.textContent = codeText;
-        output.appendChild(hackDiv);
-        
-        const lines = hackDiv.textContent.split('\n');
-        hackDiv.innerHTML = '';
-        lines.forEach((line, index) => {
-            const lineDiv = document.createElement('div');
-            lineDiv.className = 'binary-line';
-            lineDiv.textContent = line;
-            lineDiv.style.animationDelay = (index * 0.07) + 's';
-            hackDiv.appendChild(lineDiv);
-        });
-        
-        setTimeout(() => {
-            clearOutput();
-            showMessage('❌ Снос аккаунта не удался', 'error');
-            showMessage('Причина: Двухфакторная аутентификация', '');
-            showMessage('Рекомендация: Требуется доступ к резервным кодам', '');
-            showBackButton();
-        }, 10000);
+        }, duration);
     }
     
     function showMenuOption(text) {
