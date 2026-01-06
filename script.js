@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let searchType = '';
     let currentResults = [];
     let currentResultIndex = -1;
+    let menuItemCount = 0; // Счетчик пунктов меню
     
     // Запрет копирования
     document.addEventListener('copy', function(e) {
@@ -180,29 +181,39 @@ document.addEventListener('DOMContentLoaded', function() {
     function showMainMenu() {
         clearOutput();
         currentMenu = 'main';
+        menuItemCount = 0; // Сбрасываем счетчик
         
         showMessage('[ ГЛАВНОЕ МЕНЮ ]', '');
-        setTimeout(() => showMenuOption('[ 1. ПРОБИВ ]'), 100);
-        setTimeout(() => showMenuOption('[ 2. ВЗЛОМ WIFI ]'), 200);
-        setTimeout(() => showMenuOption('[ 3. ДОКС ]'), 300);
-        setTimeout(() => showMenuOption('[ 4. ТГ АКК СНОС ]'), 400);
+        showMenuOption('[ 1. ПРОБИВ ]');
+        showMenuOption('[ 2. ВЗЛОМ WIFI ]');
+        showMenuOption('[ 3. ДОКС ]');
+        showMenuOption('[ 4. ТГ АКК СНОС ]');
     }
     
     function showProbivMenu() {
         clearOutput();
         currentMenu = 'probiv';
+        menuItemCount = 0; // Сбрасываем счетчик
         
         showMessage('[ СИСТЕМА ПРОБИВА ]', '');
         showMessage('Выберите тип поиска:', '');
         
-        setTimeout(() => showMenuOption('1. По номеру телефона'), 100);
-        setTimeout(() => showMenuOption('2. По Telegram юзернейму'), 200);
-        setTimeout(() => showMenuOption('3. По VK ID'), 300);
-        setTimeout(() => showMenuOption('4. По ФИО'), 400);
-        setTimeout(() => showBackButton(), 500);
+        showMenuOption('1. По номеру телефона');
+        showMenuOption('2. По Telegram юзернейму');
+        showMenuOption('3. По VK ID');
+        showMenuOption('4. По ФИО');
+        showBackButton(); // Теперь будет [5. НАЗАД]
     }
     
     function handleProbivMenu(command) {
+        // Получаем номер для кнопки "Назад" из текущего количества пунктов меню
+        const backCommand = (menuItemCount + 1).toString();
+        
+        if (command === backCommand) {
+            showMainMenu();
+            return;
+        }
+        
         switch(command) {
             case '1':
                 startSearch('phone');
@@ -216,11 +227,8 @@ document.addEventListener('DOMContentLoaded', function() {
             case '4':
                 startSearch('name');
                 break;
-            case '5':
-                showMainMenu();
-                break;
             default:
-                showMessage('Введите цифру от 1 до 5', 'error');
+                showMessage(`Введите цифру от 1 до ${backCommand}`, 'error');
         }
     }
     
@@ -228,6 +236,7 @@ document.addEventListener('DOMContentLoaded', function() {
         clearOutput();
         currentMenu = 'search';
         searchType = type;
+        menuItemCount = 0; // Сбрасываем счетчик
         
         const prompts = {
             'phone': 'Введите номер телефона:',
@@ -237,11 +246,13 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         
         showMessage(prompts[type], '');
-        showBackButton();
+        showBackButton(); // Будет [1. НАЗАД] так как только один пункт
     }
     
     function handleSearch(query) {
-        if (query === '1') {
+        // Проверяем, не является ли команда кнопкой "Назад"
+        const backCommand = (menuItemCount + 1).toString();
+        if (query === backCommand) {
             showProbivMenu();
             return;
         }
@@ -261,7 +272,7 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => {
             currentResults = searchInDatabase(query, searchType);
             displayResults(currentResults, query);
-        }, 2000);
+        }, 1500); // Уменьшил время анимации
     }
     
     function searchInDatabase(query, type) {
@@ -299,7 +310,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }, 300);
         
-        setTimeout(() => clearInterval(interval), 2000);
+        setTimeout(() => clearInterval(interval), 1500);
     }
     
     function displayResults(results, query) {
@@ -318,12 +329,11 @@ document.addEventListener('DOMContentLoaded', function() {
             currentResultIndex = 0;
             showResult(results[0]);
         }
-        
-        showBackButton();
     }
     
     function showResult(record) {
         currentMenu = 'view_result';
+        menuItemCount = 1; // Уже есть один пункт (доп. инфа)
         
         const resultDiv = document.createElement('div');
         resultDiv.className = 'result';
@@ -361,13 +371,14 @@ document.addEventListener('DOMContentLoaded', function() {
         output.appendChild(resultDiv);
         output.appendChild(additionalInfoDiv);
         
-        setTimeout(() => {
-            showMenuOption('[ 2. ДОП ИНФА ]');
-        }, 300);
+        showMenuOption('[ 2. ДОП ИНФА ]');
+        showBackButton(); // Будет [3. НАЗАД]
     }
     
     function handleViewResult(command) {
-        if (command === '1') {
+        const backCommand = (menuItemCount + 1).toString();
+        
+        if (command === backCommand) {
             showProbivMenu();
             return;
         }
@@ -390,6 +401,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function showHackMenu() {
         clearOutput();
         currentMenu = 'hack';
+        menuItemCount = 0;
         
         showMessage('[ СИСТЕМА ВЗЛОМА WIFI ]', '');
         showMessage('Введите BSSID сети WiFi:', '');
@@ -397,17 +409,20 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function handleHack(bssid) {
-        if (bssid === '1') {
+        const backCommand = (menuItemCount + 1).toString();
+        
+        if (bssid === backCommand) {
             showMainMenu();
             return;
         }
         
-        showBinaryAnimation('Взлом WiFi...', 15000);
+        showBinaryAnimation('Взлом WiFi...', 5000); // Уменьшил время до 5 секунд
     }
     
     function showDoxMenu() {
         clearOutput();
         currentMenu = 'dox';
+        menuItemCount = 0;
         
         showMessage('[ СИСТЕМА ДОКСИНГА ]', '');
         showMessage('Введите данные цели:', '');
@@ -415,17 +430,20 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function handleDox(data) {
-        if (data === '1') {
+        const backCommand = (menuItemCount + 1).toString();
+        
+        if (data === backCommand) {
             showMainMenu();
             return;
         }
         
-        showBinaryAnimation('Доксинг цели...', 12000);
+        showBinaryAnimation('Доксинг цели...', 5000); // Уменьшил время до 5 секунд
     }
     
     function showTgHackMenu() {
         clearOutput();
         currentMenu = 'tghack';
+        menuItemCount = 0;
         
         showMessage('[ СИСТЕМА СНОСА ТГ АККАУНТОВ ]', '');
         showMessage('Введите username или номер телефона:', '');
@@ -433,12 +451,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function handleTgHack(target) {
-        if (target === '1') {
+        const backCommand = (menuItemCount + 1).toString();
+        
+        if (target === backCommand) {
             showMainMenu();
             return;
         }
         
-        showBinaryAnimation('Снос Telegram аккаунта...', 10000);
+        showBinaryAnimation('Снос Telegram аккаунта...', 5000); // Уменьшил время до 5 секунд
     }
     
     function showBinaryAnimation(message, duration) {
@@ -452,31 +472,24 @@ document.addEventListener('DOMContentLoaded', function() {
         const binaryStream = document.createElement('div');
         binaryStream.className = 'binary-stream';
         
-        // Генерируем двоичный код
+        // Генерируем двоичный код - УПРОЩЕННАЯ ВЕРСИЯ
         let binaryText = '';
-        for (let i = 0; i < 1000; i++) { // Больше строк для длинной анимации
+        // Значительно уменьшаем количество строк
+        for (let i = 0; i < 50; i++) {
             let line = '';
-            for (let j = 0; j < 80; j++) { // 80 символов в строке
+            for (let j = 0; j < 60; j++) {
                 line += Math.round(Math.random());
             }
             binaryText += line + '\n';
         }
         
-        // Создаем анимированные символы
-        const chars = binaryText.split('');
-        binaryStream.innerHTML = '';
-        
-        chars.forEach((char, index) => {
-            const charSpan = document.createElement('span');
-            charSpan.className = 'binary-char';
-            charSpan.textContent = char;
-            charSpan.style.animationDelay = (index * 0.01) + 's';
-            binaryStream.appendChild(charSpan);
-        });
+        // Используем один текстовый блок вместо тысяч span'ов
+        binaryStream.textContent = binaryText;
         
         hackContainer.appendChild(binaryStream);
         output.appendChild(hackContainer);
         
+        // Показываем сообщение сразу, а не после долгой задержки
         setTimeout(() => {
             clearOutput();
             showMessage('❌ Операция не удалась', 'error');
@@ -494,13 +507,18 @@ document.addEventListener('DOMContentLoaded', function() {
         option.style.animation = 'typewrite 0.3s steps(20) forwards';
         option.style.color = '#0af';
         output.appendChild(option);
+        
+        // Увеличиваем счетчик пунктов меню
+        menuItemCount++;
         scrollToBottom();
     }
     
     function showBackButton() {
         const backBtn = document.createElement('div');
         backBtn.className = 'back-btn';
-        backBtn.textContent = '[ 1. НАЗАД ]';
+        // Используем динамический номер на основе текущего количества пунктов
+        const backNumber = menuItemCount + 1;
+        backBtn.textContent = `[ ${backNumber}. НАЗАД ]`;
         backBtn.style.animationDelay = '0.5s';
         output.appendChild(backBtn);
         scrollToBottom();
