@@ -1,558 +1,532 @@
+// Основные переменные
+let currentUser = null;
+let currentPage = 'home';
+let bannerInterval = null;
+
+// Инициализация при загрузке
 document.addEventListener('DOMContentLoaded', function() {
-    const output = document.getElementById('output');
-    const commandInput = document.getElementById('commandInput');
-    const logo = document.getElementById('logo');
+    initializeApp();
+    setupEventListeners();
+    checkFirstVisit();
+});
+
+function initializeApp() {
+    // Загружаем конфигурацию
+    loadAppConfig();
     
-    let database = [];
-    let currentMenu = 'main';
-    let searchType = '';
-    let currentResults = [];
-    let currentResultIndex = -1;
-    let menuItemCount = 0; // Счетчик пунктов меню
+    // Показываем баннеры
+    setupBanners();
     
-    // Запрет копирования
-    document.addEventListener('copy', function(e) {
-        e.preventDefault();
-        showMessage('Система: Копирование запрещено', 'error');
+    // Загружаем видео
+    loadVideos();
+    
+    // Загружаем предстоящие бои
+    loadUpcomingFights();
+    
+    // Проверяем авторизацию
+    checkAuth();
+}
+
+function loadAppConfig() {
+    document.getElementById('app-title').textContent = APP_CONFIG.appName;
+    document.getElementById('app-logo').src = APP_CONFIG.logoUrl;
+}
+
+function setupBanners() {
+    const container = document.querySelector('.banner-container');
+    const banners = APP_CONFIG.banners.filter(b => b.active);
+    
+    banners.forEach((banner, index) => {
+        const bannerDiv = document.createElement('div');
+        bannerDiv.className = `banner-slide ${index === 0 ? 'active' : ''}`;
+        bannerDiv.innerHTML = `
+            <a href="${banner.link}" target="_blank">
+                <img src="${banner.imageUrl}" alt="Баннер ${index + 1}">
+            </a>
+        `;
+        container.appendChild(bannerDiv);
     });
     
+    // Автопереключение баннеров
+    let currentBanner = 0;
+    const slides = document.querySelectorAll('.banner-slide');
+    
+    bannerInterval = setInterval(() => {
+        slides[currentBanner].classList.remove('active');
+        currentBanner = (currentBanner + 1) % slides.length;
+        slides[currentBanner].classList.add('active');
+    }, 10000);
+}
+
+function loadVideos() {
+    const container = document.querySelector('.videos-grid');
+    APP_CONFIG.fightVideos.forEach(video => {
+        const videoCard = document.createElement('div');
+        videoCard.className = 'video-card glass-card';
+        videoCard.innerHTML = `
+            <a href="${video.videoUrl}" target="_blank" class="video-link">
+                <img src="${video.thumbnail}" alt="${video.title}" class="video-thumbnail">
+                <h3>${video.title}</h3>
+                <p class="video-description">${video.description}</p>
+                <div class="video-date">${video.date}</div>
+            </a>
+        `;
+        container.appendChild(videoCard);
+    });
+}
+
+function loadUpcomingFights() {
+    const container = document.querySelector('.fights-list');
+    APP_CONFIG.upcomingFights.forEach(fight => {
+        const fightCard = document.createElement('div');
+        fightCard.className = 'fight-card glass-card';
+        fightCard.innerHTML = `
+            <h3>${fight.fighters.join(' vs ')}</h3>
+            <p><i class="far fa-calendar"></i> ${fight.date} ${fight.time}</p>
+            <p><i class="fas fa-map-marker-alt"></i> ${fight.place}</p>
+            <p><i class="fas fa-ticket-alt"></i> Билет: ${fight.ticketPrice} руб.</p>
+            <button class="btn-primary buy-ticket-btn" data-fight-id="${fight.id}">Купить билет</button>
+        `;
+        container.appendChild(fightCard);
+    });
+}
+
+function checkFirstVisit() {
+    const hasVisited = localStorage.getItem('hasVisited');
+    if (!hasVisited) {
+        showRegistrationModal();
+        localStorage.setItem('hasVisited', 'true');
+    }
+}
+
+function showRegistrationModal() {
+    const modal = document.getElementById('registration-modal');
+    modal.classList.add('active');
+}
+
+function setupEventListeners() {
+    // Навигация
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const page = btn.dataset.page;
+            switchPage(page);
+            
+            // Обновляем активную кнопку
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        });
+    });
+    
+    // Регистрация
+    document.getElementById('register-btn').addEventListener('click', registerUser);
+    document.getElementById('skip-reg-btn').addEventListener('click', () => {
+        document.getElementById('registration-modal').classList.remove('active');
+    });
+    
+    // Профиль
+    document.getElementById('save-profile-btn').addEventListener('click', saveProfile);
+    document.getElementById('login-bets-btn').addEventListener('click', loginWithBets);
+    document.getElementById('logout-bets-btn').addEventListener('click', logoutBets);
+    
+    // Покупка билетов
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('buy-ticket-btn')) {
+            const fightId = e.target.dataset.fightId;
+            buyTicket(fightId);
+        }
+    });
+    
+    // Защита от копирования
     document.addEventListener('contextmenu', function(e) {
         e.preventDefault();
-        showMessage('Система: Правая кнопка мыши отключена', 'error');
+        showNotification('Копирование запрещено!', 'error');
     });
     
-    // Инициализация
-    setTimeout(() => {
-        animateLogo();
-        setTimeout(() => {
-            showMainMenu();
-        }, 2000);
-    }, 500);
-    
-    // Загрузка базы данных ТОЛЬКО из файла
-    loadDatabaseFromFile();
-    
-    // Фокус на поле ввода
-    commandInput.focus();
-    
-    // Обработчик ввода команд
-    commandInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            const command = this.value.trim();
-            this.value = '';
-            
-            if (command) {
-                processCommand(command);
-            }
-        }
+    document.addEventListener('selectstart', function(e) {
+        e.preventDefault();
     });
     
-    function animateLogo() {
-        const lines = logo.textContent.split('\n');
-        logo.textContent = '';
-        
-        lines.forEach((line, index) => {
-            setTimeout(() => {
-                logo.textContent += line + '\n';
-            }, index * 100);
-        });
+    // Изменение аватарки
+    document.querySelector('.change-avatar-btn').addEventListener('click', changeAvatar);
+}
+
+function switchPage(page) {
+    // Скрываем все страницы
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    
+    // Показываем выбранную страницу
+    document.getElementById(`${page}-page`).classList.add('active');
+    currentPage = page;
+    
+    // Загружаем контент для страницы
+    if (page === 'contract') {
+        loadContractContent();
+    } else if (page === 'profile') {
+        loadProfileData();
+    }
+}
+
+function registerUser() {
+    const firstName = document.getElementById('reg-firstname').value;
+    const lastName = document.getElementById('reg-lastname').value;
+    const login = document.getElementById('reg-login').value;
+    const password = document.getElementById('reg-password').value;
+    
+    if (!firstName || !lastName) {
+        showNotification('Введите имя и фамилию!', 'error');
+        return;
     }
     
-    function loadDatabaseFromFile() {
-        fetch('data.txt')
-            .then(response => {
-                if (!response.ok) throw new Error('Файл не найден');
-                return response.text();
-            })
-            .then(data => {
-                if (!data.trim()) throw new Error('Файл пуст');
-                
-                database = parseDatabase(data);
-                
-                if (database.length === 0) {
-                    throw new Error('Нет записей или неверный формат');
-                }
-                
-                showMessage('EDM™ SYSTEM v2.0', '');
-                showMessage('Initializing terminal interface...', '');
-                showMessage(`База данных загружена: ${database.length > 0 ? '999+' : '0'} записей`, 'success');
-            })
-            .catch(error => {
-                showMessage('EDM™ SYSTEM v2.0', '');
-                showMessage('Initializing terminal interface...', '');
-                showMessage(`База данных загружена: 0 записей`, 'error');
-                showMessage('ОШИБКА: ' + error.message, 'error');
-                showMessage('Загрузите файл data.txt с базой данных', 'error');
-            });
-    }
+    // Сохраняем данные пользователя
+    currentUser = {
+        firstName,
+        lastName,
+        login,
+        isAdultAccount: false,
+        avatar: 'assets/default-avatar.png'
+    };
     
-    function parseDatabase(data) {
-        const lines = data.split('\n');
-        const records = [];
-        
-        lines.forEach(line => {
-            const trimmedLine = line.trim();
-            if (trimmedLine && !trimmedLine.startsWith('//') && !trimmedLine.startsWith('#') && !trimmedLine.startsWith('<!--')) {
-                const parts = trimmedLine.split('|').map(part => part.trim());
-                
-                if (parts.length >= 5) {
-                    // Разбираем дополнительную информацию
-                    const otherParts = parts.slice(5);
-                    const otherInfo = [];
-                    
-                    otherParts.forEach(info => {
-                        const infoParts = info.split(':').map(p => p.trim());
-                        if (infoParts.length >= 2) {
-                            otherInfo.push({
-                                key: infoParts[0],
-                                value: infoParts.slice(1).join(':')
-                            });
-                        }
-                    });
-                    
-                    records.push({
-                        name: parts[0],
-                        phone: parts[1],
-                        telegram: parts[2],
-                        vk: parts[3],
-                        address: parts[4],
-                        other: otherInfo
-                    });
-                }
-            }
-        });
-        
-        return records;
-    }
+    // Сохраняем в localStorage
+    localStorage.setItem('currentUser', JSON.stringify(currentUser));
     
-    function processCommand(command) {
-        showCommand(command);
+    // Обновляем профиль
+    updateProfileDisplay();
+    
+    // Закрываем модалку
+    document.getElementById('registration-modal').classList.remove('active');
+    
+    showNotification('Регистрация успешна!', 'success');
+}
+
+function saveProfile() {
+    const firstName = document.getElementById('input-firstname').value;
+    const lastName = document.getElementById('input-lastname').value;
+    
+    if (currentUser) {
+        currentUser.firstName = firstName || currentUser.firstName;
+        currentUser.lastName = lastName || currentUser.lastName;
         
-        switch(currentMenu) {
-            case 'main':
-                handleMainMenu(command);
-                break;
-            case 'probiv':
-                handleProbivMenu(command);
-                break;
-            case 'search':
-                handleSearch(command);
-                break;
-            case 'hack':
-                handleHack(command);
-                break;
-            case 'dox':
-                handleDox(command);
-                break;
-            case 'tghack':
-                handleTgHack(command);
-                break;
-            case 'view_result':
-                handleViewResult(command);
-                break;
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        updateProfileDisplay();
+        showNotification('Профиль обновлен!', 'success');
+    }
+}
+
+function loginWithBets() {
+    const login = document.getElementById('input-login').value;
+    const password = document.getElementById('input-password').value;
+    
+    // Проверяем в базе данных
+    const adultAccount = APP_CONFIG.adultAccounts.find(
+        acc => acc.login === login && acc.password === password
+    );
+    
+    if (adultAccount) {
+        // Обновляем текущего пользователя
+        if (currentUser) {
+            currentUser.isAdultAccount = true;
+            currentUser.betsAllowed = true;
+            currentUser.originalName = currentUser.firstName + ' ' + currentUser.lastName;
+        } else {
+            currentUser = {
+                firstName: adultAccount.firstName,
+                lastName: adultAccount.lastName,
+                isAdultAccount: true,
+                betsAllowed: true
+            };
         }
         
-        scrollToBottom();
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        updateProfileDisplay();
+        showNotification('Вход в аккаунт со ставками выполнен!', 'success');
+    } else {
+        showNotification('Неверный логин или пароль!', 'error');
     }
-    
-    function handleMainMenu(command) {
-        switch(command) {
-            case '1':
-                if (database.length === 0) {
-                    showMessage('База данных не загружена! Загрузите файл data.txt', 'error');
-                    return;
-                }
-                showProbivMenu();
-                break;
-            case '2':
-                showHackMenu();
-                break;
-            case '3':
-                showDoxMenu();
-                break;
-            case '4':
-                showTgHackMenu();
-                break;
-            default:
-                showMessage('Неизвестная команда. Введите цифру от 1 до 4.', 'error');
-        }
-    }
-    
-    function showMainMenu() {
-        clearOutput();
-        currentMenu = 'main';
-        menuItemCount = 0; // Сбрасываем счетчик
-        
-        showMessage('[ ГЛАВНОЕ МЕНЮ ]', '');
-        showMenuOption('[ 1. ПРОБИВ ]');
-        showMenuOption('[ 2. ВЗЛОМ WIFI ]');
-        showMenuOption('[ 3. ДОКС ]');
-        showMenuOption('[ 4. ТГ АКК СНОС ]');
-    }
-    
-    function showProbivMenu() {
-        clearOutput();
-        currentMenu = 'probiv';
-        menuItemCount = 0; // Сбрасываем счетчик
-        
-        showMessage('[ СИСТЕМА ПРОБИВА ]', '');
-        showMessage('Выберите тип поиска:', '');
-        
-        showMenuOption('1. По номеру телефона');
-        showMenuOption('2. По Telegram юзернейму');
-        showMenuOption('3. По VK ID');
-        showMenuOption('4. По ФИО');
-        showBackButton(); // Теперь будет [5. НАЗАД]
-    }
-    
-    function handleProbivMenu(command) {
-        // Получаем номер для кнопки "Назад" из текущего количества пунктов меню
-        const backCommand = (menuItemCount + 1).toString();
-        
-        if (command === backCommand) {
-            showMainMenu();
-            return;
+}
+
+function logoutBets() {
+    if (currentUser && currentUser.isAdultAccount) {
+        // Возвращаем оригинальное имя
+        if (currentUser.originalName) {
+            const names = currentUser.originalName.split(' ');
+            currentUser.firstName = names[0];
+            currentUser.lastName = names[1] || '';
         }
         
-        switch(command) {
-            case '1':
-                startSearch('phone');
-                break;
-            case '2':
-                startSearch('telegram');
-                break;
-            case '3':
-                startSearch('vk');
-                break;
-            case '4':
-                startSearch('name');
-                break;
-            default:
-                showMessage(`Введите цифру от 1 до ${backCommand}`, 'error');
-        }
+        currentUser.isAdultAccount = false;
+        currentUser.betsAllowed = false;
+        
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        updateProfileDisplay();
+        showNotification('Вы вышли из аккаунта со ставками', 'info');
     }
+}
+
+function loadContractContent() {
+    const container = document.getElementById('contract-content');
     
-    function startSearch(type) {
-        clearOutput();
-        currentMenu = 'search';
-        searchType = type;
-        menuItemCount = 0; // Сбрасываем счетчик
-        
-        const prompts = {
-            'phone': 'Введите номер телефона:',
-            'telegram': 'Введите Telegram юзернейм:',
-            'vk': 'Введите VK ID:',
-            'name': 'Введите ФИО:'
-        };
-        
-        showMessage(prompts[type], '');
-        showBackButton(); // Будет [1. НАЗАД] так как только один пункт
-    }
-    
-    function handleSearch(query) {
-        // Проверяем, не является ли команда кнопкой "Назад"
-        const backCommand = (menuItemCount + 1).toString();
-        if (query === backCommand) {
-            showProbivMenu();
-            return;
-        }
-        
-        if (!query) {
-            showMessage('Введите поисковый запрос', 'error');
-            return;
-        }
-        
-        if (database.length === 0) {
-            showMessage('База данных пуста!', 'error');
-            return;
-        }
-        
-        showSearchingAnimation();
-        
-        setTimeout(() => {
-            currentResults = searchInDatabase(query, searchType);
-            displayResults(currentResults, query);
-        }, 1500); // Уменьшил время анимации
-    }
-    
-    function searchInDatabase(query, type) {
-        query = query.toLowerCase().trim();
-        
-        return database.filter(record => {
-            switch(type) {
-                case 'phone':
-                    return record.phone.toLowerCase().includes(query);
-                case 'telegram':
-                    return record.telegram.toLowerCase().includes(query);
-                case 'vk':
-                    return record.vk.toLowerCase().includes(query);
-                case 'name':
-                    return record.name.toLowerCase().includes(query);
-                default:
-                    return false;
-            }
-        });
-    }
-    
-    function showSearchingAnimation() {
-        clearOutput();
-        
-        showMessage('Поиск в базе данных', '');
-        
-        let dots = 0;
-        const interval = setInterval(() => {
-            dots = (dots + 1) % 4;
-            const dotsText = '.'.repeat(dots);
-            const lastLine = output.lastElementChild;
-            if (lastLine && lastLine.textContent.startsWith('Поиск в базе данных')) {
-                lastLine.textContent = 'Поиск в базе данных' + dotsText;
-                lastLine.className = 'searching';
-            }
-        }, 300);
-        
-        setTimeout(() => clearInterval(interval), 1500);
-    }
-    
-    function displayResults(results, query) {
-        clearOutput();
-        
-        if (results.length === 0) {
-            showMessage('Ничего не найдено по запросу: ' + query, 'error');
-            showBackButton();
-            return;
-        }
-        
-        showMessage('НАЙДЕНО: ' + results.length + ' записей', 'success');
-        
-        // Показываем только первую запись
-        if (results.length > 0) {
-            currentResultIndex = 0;
-            showResult(results[0]);
-        }
-    }
-    
-    function showResult(record) {
-        currentMenu = 'view_result';
-        menuItemCount = 1; // Уже есть один пункт (доп. инфа)
-        
-        const resultDiv = document.createElement('div');
-        resultDiv.className = 'result';
-        
-        const basicInfo = `
-            <div style="color:#0af;">════════════════════════════════</div>
-            <div class="result-data">1. ФИО: ${record.name}</div>
-            <div class="result-data">2. Телефон: ${record.phone}</div>
-            <div class="result-data">3. Telegram: ${record.telegram}</div>
-            <div class="result-data">4. VK: ${record.vk}</div>
-            <div class="result-data">5. Адрес: ${record.address}</div>
-            <div style="color:#0af;">════════════════════════════════</div>
+    if (currentUser && currentUser.isAdultAccount) {
+        // Показываем контракт для взрослого аккаунта
+        const contractUrl = APP_CONFIG.contracts[currentUser.login] || APP_CONFIG.contracts.default;
+        container.innerHTML = `
+            <div class="contract-container">
+                <h2><i class="fas fa-file-signature"></i> Ваш контракт</h2>
+                <img src="${contractUrl}" alt="Контракт" class="contract-image">
+                <div class="contract-actions">
+                    <button class="btn-primary" onclick="downloadContract()">Скачать контракт</button>
+                </div>
+            </div>
         `;
+    } else {
+        // Показываем форму анкеты для школьников
+        container.innerHTML = `
+            <div class="application-form">
+                <h2><i class="fas fa-edit"></i> Анкета для участия в боях</h2>
+                
+                <div class="input-group">
+                    <input type="text" id="app-fullname" placeholder="ФИО" required>
+                    <input type="date" id="app-birthdate" required>
+                    <input type="number" id="app-height" placeholder="Рост (см)" required>
+                    <input type="number" id="app-weight" placeholder="Вес (кг)" required>
+                    <textarea id="app-achievements" placeholder="Достижения в спорте" rows="3"></textarea>
+                    <textarea id="app-health" placeholder="Состояние здоровья, противопоказания" rows="3" required></textarea>
+                    <textarea id="app-experience" placeholder="Опыт в единоборствах" rows="3"></textarea>
+                    <input type="text" id="app-contact" placeholder="Контактный телефон" required>
+                </div>
+                
+                <div class="form-section">
+                    <h3><i class="fas fa-dumbbell"></i> Запись на занятия</h3>
+                    <select id="training-type">
+                        <option value="boxing">Бокс (Ислям Нариманович)</option>
+                        <option value="mma">MMA</option>
+                        <option value="wrestling">Борьба</option>
+                    </select>
+                    <input type="date" id="training-date" required>
+                </div>
+                
+                <button class="btn-primary" onclick="submitApplication()">Отправить анкету</button>
+            </div>
+        `;
+    }
+}
+
+function submitApplication() {
+    // Собираем данные анкеты
+    const application = {
+        fullName: document.getElementById('app-fullname').value,
+        birthDate: document.getElementById('app-birthdate').value,
+        height: document.getElementById('app-height').value,
+        weight: document.getElementById('app-weight').value,
+        achievements: document.getElementById('app-achievements').value,
+        healthInfo: document.getElementById('app-health').value,
+        experience: document.getElementById('app-experience').value,
+        contact: document.getElementById('app-contact').value,
+        trainingType: document.getElementById('training-type').value,
+        trainingDate: document.getElementById('training-date').value,
+        submissionDate: new Date().toISOString()
+    };
+    
+    // В реальном приложении здесь отправка на сервер
+    // Для демо сохраняем в localStorage
+    const applications = JSON.parse(localStorage.getItem('applications') || '[]');
+    applications.push(application);
+    localStorage.setItem('applications', JSON.stringify(applications));
+    
+    showNotification('Анкета отправлена! Мы свяжемся с вами в Telegram.', 'success');
+    
+    // Очищаем форму
+    document.querySelectorAll('#contract-content input, #contract-content textarea').forEach(el => {
+        el.value = '';
+    });
+}
+
+function buyTicket(fightId) {
+    const fight = APP_CONFIG.upcomingFights.find(f => f.id == fightId);
+    if (!fight) return;
+    
+    const ticket = {
+        id: Date.now(),
+        fightId: fightId,
+        fighters: fight.fighters,
+        date: fight.date,
+        time: fight.time,
+        place: fight.place,
+        price: fight.ticketPrice,
+        purchaseDate: new Date().toLocaleDateString('ru-RU')
+    };
+    
+    // Сохраняем билет
+    const tickets = JSON.parse(localStorage.getItem('tickets') || '[]');
+    tickets.push(ticket);
+    localStorage.setItem('tickets', JSON.stringify(tickets));
+    
+    showNotification(`Билет куплен! Стоимость: ${fight.ticketPrice} руб.`, 'success');
+    
+    // Обновляем список билетов в профиле
+    loadProfileData();
+}
+
+function loadProfileData() {
+    if (!currentUser) return;
+    
+    // Обновляем данные пользователя
+    updateProfileDisplay();
+    
+    // Загружаем билеты
+    loadTickets();
+    
+    // Загружаем ставки
+    loadBets();
+}
+
+function updateProfileDisplay() {
+    if (currentUser) {
+        document.getElementById('user-name').textContent = 
+            `${currentUser.firstName} ${currentUser.lastName}`;
         
-        const additionalInfoDiv = document.createElement('div');
-        additionalInfoDiv.className = 'additional-info';
-        additionalInfoDiv.id = 'additional-info';
+        document.getElementById('user-status').textContent = 
+            currentUser.isAdultAccount ? 'Аккаунт со ставками (18+)' : 'Школьный аккаунт';
         
-        let additionalHTML = '<div style="color:#0af;">════════════════════════════════</div>';
-        additionalHTML += '<div class="result-data">ДОПОЛНИТЕЛЬНАЯ ИНФОРМАЦИЯ:</div>';
+        document.getElementById('user-status').style.color = 
+            currentUser.isAdultAccount ? '#4ECDC4' : '#FFD166';
         
-        if (record.other && record.other.length > 0) {
-            record.other.forEach((item, index) => {
-                additionalHTML += `<div class="result-data">${index + 1}. ${item.key}: ${item.value}</div>`;
-            });
-        } else {
-            additionalHTML += '<div class="result-data">Нет дополнительной информации</div>';
-        }
+        // Обновляем поля ввода
+        document.getElementById('input-firstname').value = currentUser.firstName || '';
+        document.getElementById('input-lastname').value = currentUser.lastName || '';
         
-        additionalHTML += '<div style="color:#0af;">════════════════════════════════</div>';
-        
-        additionalInfoDiv.innerHTML = additionalHTML;
-        
-        resultDiv.innerHTML = basicInfo;
-        output.appendChild(resultDiv);
-        output.appendChild(additionalInfoDiv);
-        
-        showMenuOption('[ 2. ДОП ИНФА ]');
-        showBackButton(); // Будет [3. НАЗАД]
+        // Показываем/скрываем кнопки
+        document.getElementById('logout-bets-btn').style.display = 
+            currentUser.isAdultAccount ? 'block' : 'none';
+    }
+}
+
+function loadTickets() {
+    const container = document.getElementById('tickets-list');
+    const tickets = JSON.parse(localStorage.getItem('tickets') || '[]');
+    
+    if (tickets.length === 0) {
+        container.innerHTML = '<p class="empty-message">Билетов пока нет</p>';
+        return;
     }
     
-    function handleViewResult(command) {
-        const backCommand = (menuItemCount + 1).toString();
-        
-        if (command === backCommand) {
-            showProbivMenu();
-            return;
-        }
-        
-        if (command === '2') {
-            const additionalInfo = document.getElementById('additional-info');
-            if (additionalInfo) {
-                if (additionalInfo.style.display === 'none' || !additionalInfo.style.display) {
-                    additionalInfo.style.display = 'block';
-                    showMessage('Дополнительная информация показана', '');
-                } else {
-                    additionalInfo.style.display = 'none';
-                    showMessage('Дополнительная информация скрыта', '');
-                }
-            }
-            return;
-        }
+    container.innerHTML = tickets.map(ticket => `
+        <div class="ticket-item">
+            <h4>${ticket.fighters.join(' vs ')}</h4>
+            <p>Дата: ${ticket.date} ${ticket.time}</p>
+            <p>Место: ${ticket.place}</p>
+            <p>Цена: ${ticket.price} руб.</p>
+            <p>Куплен: ${ticket.purchaseDate}</p>
+        </div>
+    `).join('');
+}
+
+function loadBets() {
+    const container = document.getElementById('bets-list');
+    
+    if (!currentUser || !currentUser.isAdultAccount) {
+        container.innerHTML = '<p class="empty-message">Ставки доступны только для аккаунтов 18+</p>';
+        return;
     }
     
-    function showHackMenu() {
-        clearOutput();
-        currentMenu = 'hack';
-        menuItemCount = 0;
-        
-        showMessage('[ СИСТЕМА ВЗЛОМА WIFI ]', '');
-        showMessage('Введите BSSID сети WiFi:', '');
-        showBackButton();
+    const bets = JSON.parse(localStorage.getItem('bets') || '[]');
+    const userBets = bets.filter(bet => bet.userId === currentUser.login);
+    
+    if (userBets.length === 0) {
+        container.innerHTML = '<p class="empty-message">Ставок пока нет</p>';
+        return;
     }
     
-    function handleHack(bssid) {
-        const backCommand = (menuItemCount + 1).toString();
-        
-        if (bssid === backCommand) {
-            showMainMenu();
-            return;
-        }
-        
-        showBinaryAnimation('Взлом WiFi...', 5000); // Уменьшил время до 5 секунд
+    container.innerHTML = userBets.map(bet => `
+        <div class="bet-item">
+            <h4>${bet.fight}</h4>
+            <p>Ставка: ${bet.amount} руб. на ${bet.fighter}</p>
+            <p>Коэффициент: ${bet.odds}</p>
+            <p>Статус: <span class="bet-status ${bet.status}">${bet.status}</span></p>
+        </div>
+    `).join('');
+}
+
+function changeAvatar() {
+    // В реальном приложении здесь загрузка файла
+    // Для демо просто меняем на случайный цвет
+    const colors = ['#FF6B6B', '#4ECDC4', '#FFD166', '#06D6A0', '#118AB2'];
+    const randomColor = colors[Math.floor(Math.random() * colors.length)];
+    
+    // Создаем canvas для генерации аватарки
+    const canvas = document.createElement('canvas');
+    canvas.width = 200;
+    canvas.height = 200;
+    const ctx = canvas.getContext('2d');
+    
+    // Рисуем круг с цветом
+    ctx.fillStyle = randomColor;
+    ctx.beginPath();
+    ctx.arc(100, 100, 100, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Добавляем инициалы
+    if (currentUser) {
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 80px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const initials = (currentUser.firstName[0] + currentUser.lastName[0]).toUpperCase();
+        ctx.fillText(initials, 100, 100);
     }
     
-    function showDoxMenu() {
-        clearOutput();
-        currentMenu = 'dox';
-        menuItemCount = 0;
-        
-        showMessage('[ СИСТЕМА ДОКСИНГА ]', '');
-        showMessage('Введите данные цели:', '');
-        showBackButton();
+    // Преобразуем в data URL
+    const dataUrl = canvas.toDataURL();
+    
+    // Сохраняем
+    document.getElementById('user-avatar').src = dataUrl;
+    if (currentUser) {
+        currentUser.avatar = dataUrl;
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
     }
     
-    function handleDox(data) {
-        const backCommand = (menuItemCount + 1).toString();
-        
-        if (data === backCommand) {
-            showMainMenu();
-            return;
-        }
-        
-        showBinaryAnimation('Доксинг цели...', 5000); // Уменьшил время до 5 секунд
+    showNotification('Аватар обновлен!', 'success');
+}
+
+function checkAuth() {
+    const savedUser = localStorage.getItem('currentUser');
+    if (savedUser) {
+        currentUser = JSON.parse(savedUser);
+        updateProfileDisplay();
     }
+}
+
+function showNotification(message, type = 'info') {
+    // Создаем уведомление
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.textContent = message;
     
-    function showTgHackMenu() {
-        clearOutput();
-        currentMenu = 'tghack';
-        menuItemCount = 0;
-        
-        showMessage('[ СИСТЕМА СНОСА ТГ АККАУНТОВ ]', '');
-        showMessage('Введите username или номер телефона:', '');
-        showBackButton();
-    }
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'error' ? '#FF6B6B' : type === 'success' ? '#4ECDC4' : '#FFD166'};
+        color: white;
+        padding: 15px 25px;
+        border-radius: 10px;
+        z-index: 4000;
+        animation: slideIn 0.3s ease;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    `;
     
-    function handleTgHack(target) {
-        const backCommand = (menuItemCount + 1).toString();
-        
-        if (target === backCommand) {
-            showMainMenu();
-            return;
-        }
-        
-        showBinaryAnimation('Снос Telegram аккаунта...', 5000); // Уменьшил время до 5 секунд
-    }
+    document.body.appendChild(notification);
     
-    function showBinaryAnimation(message, duration) {
-        clearOutput();
-        showMessage('🚀 ' + message, '');
-        
-        // Создаем контейнер для анимации
-        const hackContainer = document.createElement('div');
-        hackContainer.className = 'hack-container';
-        
-        const binaryStream = document.createElement('div');
-        binaryStream.className = 'binary-stream';
-        
-        // Генерируем двоичный код - УПРОЩЕННАЯ ВЕРСИЯ
-        let binaryText = '';
-        // Значительно уменьшаем количество строк
-        for (let i = 0; i < 50; i++) {
-            let line = '';
-            for (let j = 0; j < 60; j++) {
-                line += Math.round(Math.random());
-            }
-            binaryText += line + '\n';
-        }
-        
-        // Используем один текстовый блок вместо тысяч span'ов
-        binaryStream.textContent = binaryText;
-        
-        hackContainer.appendChild(binaryStream);
-        output.appendChild(hackContainer);
-        
-        // Показываем сообщение сразу, а не после долгой задержки
-        setTimeout(() => {
-            clearOutput();
-            showMessage('❌ Операция не удалась', 'error');
-            showMessage('Причина: Защита системы слишком сильна', '');
-            showMessage('Рекомендация: Попробуйте другой метод', '');
-            showBackButton();
-        }, duration);
-    }
-    
-    function showMenuOption(text) {
-        const option = document.createElement('div');
-        option.className = 'menu-item';
-        option.textContent = text;
-        option.style.animationDelay = '0s';
-        option.style.animation = 'typewrite 0.3s steps(20) forwards';
-        option.style.color = '#0af';
-        output.appendChild(option);
-        
-        // Увеличиваем счетчик пунктов меню
-        menuItemCount++;
-        scrollToBottom();
-    }
-    
-    function showBackButton() {
-        const backBtn = document.createElement('div');
-        backBtn.className = 'back-btn';
-        // Используем динамический номер на основе текущего количества пунктов
-        const backNumber = menuItemCount + 1;
-        backBtn.textContent = `[ ${backNumber}. НАЗАД ]`;
-        backBtn.style.animationDelay = '0.5s';
-        output.appendChild(backBtn);
-        scrollToBottom();
-    }
-    
-    function showCommand(command) {
-        const commandDiv = document.createElement('div');
-        commandDiv.className = 'command';
-        commandDiv.innerHTML = `<span style="color:#0af">root@edm:~#</span> ${command}`;
-        output.appendChild(commandDiv);
-    }
-    
-    function showMessage(text, type) {
-        const msgDiv = document.createElement('div');
-        if (type === 'error') {
-            msgDiv.className = 'error';
-        } else if (type === 'success') {
-            msgDiv.className = 'success';
-        } else {
-            msgDiv.style.color = '#0af';
-        }
-        msgDiv.textContent = text;
-        output.appendChild(msgDiv);
-    }
-    
-    function clearOutput() {
-        while (output.children.length > 0) {
-            output.removeChild(output.firstChild);
-        }
-    }
-    
-    function scrollToBottom() {
-        setTimeout(() => {
-            output.scrollTop = output.scrollHeight;
-        }, 10);
-    }
-});
+    // Удаляем через 3 секунды
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+// Вспомогательные функции
+function downloadContract() {
+    const link = document.createElement('a');
+    link.href = APP_CONFIG.contracts[currentUser.login] || APP_CONFIG.contracts.default;
+    link.download = `Контракт_${currentUser.firstName}_${currentUser.lastName}.jpg`;
+    link.click();
+}

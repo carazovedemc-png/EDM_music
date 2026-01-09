@@ -2,308 +2,175 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EDM™</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School UFC - Школьные бои</title>
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        @font-face {
-            font-family: 'Minecraft';
-            src: url('https://fonts.cdnfonts.com/s/26728/Minecraft.woff') format('woff');
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        body {
-            background-color: #000;
-            color: #0af;
-            font-family: 'Minecraft', 'Courier New', monospace;
-            line-height: 1.4;
-            overflow: hidden;
-            height: 100vh;
-            width: 100vw;
-            padding: 10px;
-            font-size: 14px;
-        }
-        
-        .terminal {
-            height: 100%;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .logo {
-            margin-bottom: 15px;
-            line-height: 1.2;
-            font-size: 8px;
-            white-space: pre;
-            color: #0af;
-            text-shadow: 0 0 5px #0af;
-            overflow: hidden;
-            font-family: 'Minecraft', 'Courier New', monospace;
-            text-align: center;
-            opacity: 0;
-            animation: fadeInLogo 1.5s forwards 0.5s;
-        }
-        
-        @keyframes fadeInLogo {
-            to { opacity: 1; }
-        }
-        
-        .output {
-            flex: 1;
-            overflow-y: auto;
-            padding: 5px 0;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            font-family: 'Minecraft', 'Courier New', monospace;
-        }
-        
-        .input-line {
-            display: flex;
-            align-items: center;
-            margin-top: 5px;
-            font-family: 'Minecraft', 'Courier New', monospace;
-        }
-        
-        .prompt {
-            color: #0af;
-            margin-right: 8px;
-            font-weight: bold;
-            font-family: 'Minecraft', 'Courier New', monospace;
-        }
-        
-        .input-container {
-            display: flex;
-            align-items: center;
-            flex: 1;
-        }
-        
-        .input-bracket-left {
-            color: #0af;
-            margin-right: 5px;
-        }
-        
-        .input-bracket-right {
-            color: #0af;
-            margin-left: 5px;
-        }
-        
-        #commandInput {
-            flex: 1;
-            background: transparent;
-            border: none;
-            color: #0af;
-            font-family: 'Minecraft', 'Courier New', monospace;
-            font-size: 14px;
-            outline: none;
-            caret-color: #0af;
-            padding: 3px 5px;
-        }
-        
-        .input-area {
-            flex: 1;
-            border: 1px solid #0af;
-            padding: 3px 5px;
-            display: flex;
-            align-items: center;
-        }
-        
-        .command {
-            color: #0af;
-            margin: 5px 0;
-            font-family: 'Minecraft', 'Courier New', monospace;
-        }
-        
-        .menu-item {
-            color: #0af;
-            margin: 3px 0;
-            padding-left: 10px;
-            animation: typewrite 0.3s steps(20) forwards;
-            opacity: 0;
-            transform: translateY(5px);
-            font-family: 'Minecraft', 'Courier New', monospace;
-        }
-        
-        @keyframes typewrite {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .searching {
-            color: #0af;
-            display: inline-block;
-            overflow: hidden;
-            border-right: 2px solid #0af;
-            animation: blink 0.7s infinite;
-            font-family: 'Minecraft', 'Courier New', monospace;
-        }
-        
-        @keyframes blink {
-            50% { border-color: transparent; }
-        }
-        
-        .result {
-            color: #0af;
-            margin: 8px 0;
-            animation: fadeIn 0.5s ease-out;
-            font-family: 'Minecraft', 'Courier New', monospace;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .hack-container {
-            position: relative;
-            height: 300px;
-            overflow: hidden;
-            margin: 10px 0;
-            border: 1px solid #0af;
-        }
-        
-        .binary-stream {
-            position: absolute;
-            top: 100%;
-            width: 100%;
-            color: #0af;
-            font-size: 12px;
-            line-height: 1.2;
-            white-space: pre-wrap;
-            word-break: break-all;
-            animation: binaryScroll 15s linear forwards;
-            font-family: 'Minecraft', 'Courier New', monospace;
-        }
-        
-        @keyframes binaryScroll {
-            0% { top: 100%; }
-            100% { top: -2000%; }
-        }
-        
-        .binary-char {
-            opacity: 0;
-            animation: charAppear 0.1s forwards;
-            display: inline-block;
-        }
-        
-        @keyframes charAppear {
-            to { opacity: 1; }
-        }
-        
-        ::-webkit-scrollbar {
-            width: 3px;
-        }
-        
-        ::-webkit-scrollbar-track {
-            background: #000;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: #0af;
-        }
-        
-        .error {
-            color: #f00;
-            font-family: 'Minecraft', 'Courier New', monospace;
-        }
-        
-        .success {
-            color: #0f0;
-            font-family: 'Minecraft', 'Courier New', monospace;
-        }
-        
-        .result-data {
-            color: #0af;
-            margin: 3px 0;
-            padding-left: 10px;
-        }
-        
-        .additional-info {
-            color: #0af;
-            margin: 5px 0;
-            padding-left: 20px;
-            display: none;
-        }
-        
-        .back-btn {
-            color: #0af;
-            margin: 15px 0 5px 10px;
-            animation: typewrite 0.3s forwards;
-            opacity: 0;
-            position: sticky;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.8);
-            padding: 5px;
-        }
-        
-        @media (max-width: 768px) {
-            .logo {
-                font-size: 6px;
-            }
-            .hack-container {
-                height: 250px;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .logo {
-                font-size: 5px;
-            }
-            body {
-                font-size: 12px;
-            }
-            .hack-container {
-                height: 200px;
-            }
-        }
-        
-        @media (max-width: 320px) {
-            .logo {
-                font-size: 4px;
-            }
-            .hack-container {
-                height: 180px;
-            }
-        }
-    </style>
+    <meta name="description" content="Школьный UFC - бои, ставки, турниры">
 </head>
 <body>
-    <div class="terminal">
-        <div class="logo" id="logo">
-███████╗██████╗ ███╗   ███╗™
-██╔════╝██╔══██╗████╗ ████║
-█████╗  ██║  ██║██╔████╔██║
-██╔══╝  ██║  ██║██║╚██╔╝██║
-███████╗██████╔╝██║ ╚═╝ ██║
-╚══════╝╚═════╝ ╚═╝     ╚═╝
+    <!-- Хедер с логотипом -->
+    <header class="glass-header">
+        <div class="header-content">
+            <div class="logo-container">
+                <img id="app-logo" src="" alt="Логотип" class="logo">
+            </div>
+            <h1 id="app-title" class="app-title">EDM™ UFC</h1>
         </div>
-        
-        <div class="output" id="output">
+    </header>
+
+    <!-- Основной контент -->
+    <main id="main-content">
+        <!-- Главная страница (загружается по умолчанию) -->
+        <section id="home-page" class="page active">
+            <div class="banner-container">
+                <!-- Баннеры загружаются через JS -->
+            </div>
+            
+            <div class="news-section">
+                <h2><i class="fas fa-newspaper"></i> Последние новости</h2>
+                <div class="news-grid">
+                    <div class="news-card glass-card">
+                        <div class="news-date">12.11.2024</div>
+                        <h3>Новый турнир объявлен!</h3>
+                        <p>Стартует зимний чемпионат по школьному UFC. Регистрация до 30 ноября.</p>
+                    </div>
+                    <div class="news-card glass-card">
+                        <div class="news-date">10.11.2024</div>
+                        <h3>Иванов защитил титул</h3>
+                        <p>В прошедшие выходные состоялся главный бой сезона.</p>
+                    </div>
+                    <div class="news-card glass-card">
+                        <div class="news-date">05.11.2024</div>
+                        <h3>Набор в секцию бокса</h3>
+                        <p>Тренер Ислям Нариманович начинает новый набор группы.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="upcoming-fights">
+                <h2><i class="fas fa-fist-raised"></i> Ближайшие бои</h2>
+                <div class="fights-list">
+                    <!-- Загружается через JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Страница видео -->
+        <section id="videos-page" class="page">
+            <div class="videos-container">
+                <h2><i class="fas fa-video"></i> Видео боев</h2>
+                <div class="videos-grid">
+                    <!-- Видео загружаются через JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Страница анкеты/контракта -->
+        <section id="contract-page" class="page">
+            <div id="contract-content">
+                <!-- Контент меняется в зависимости от типа пользователя -->
+            </div>
+        </section>
+
+        <!-- Страница профиля -->
+        <section id="profile-page" class="page">
+            <div class="profile-container">
+                <div class="profile-header glass-card">
+                    <div class="avatar-container">
+                        <img id="user-avatar" src="assets/default-avatar.png" alt="Аватар" class="avatar">
+                        <button class="change-avatar-btn"><i class="fas fa-camera"></i></button>
+                    </div>
+                    <h2 id="user-name">Гость</h2>
+                    <p id="user-status" class="status">Школьный аккаунт</p>
+                </div>
+
+                <div class="profile-actions">
+                    <div class="action-card glass-card">
+                        <h3><i class="fas fa-user-edit"></i> Редактировать профиль</h3>
+                        <div class="input-group">
+                            <input type="text" id="input-firstname" placeholder="Имя">
+                            <input type="text" id="input-lastname" placeholder="Фамилия">
+                            <button id="save-profile-btn" class="btn-primary">Сохранить</button>
+                        </div>
+                    </div>
+
+                    <div class="action-card glass-card">
+                        <h3><i class="fas fa-sign-in-alt"></i> Аккаунт со ставками</h3>
+                        <div class="input-group">
+                            <input type="text" id="input-login" placeholder="Логин">
+                            <input type="password" id="input-password" placeholder="Пароль">
+                            <button id="login-bets-btn" class="btn-secondary">Войти</button>
+                            <button id="logout-bets-btn" class="btn-danger">Выйти</button>
+                        </div>
+                    </div>
+
+                    <div class="action-card glass-card">
+                        <h3><i class="fas fa-ticket-alt"></i> Мои билеты</h3>
+                        <div id="tickets-list">
+                            <!-- Билеты загружаются из localStorage -->
+                        </div>
+                    </div>
+
+                    <div class="action-card glass-card">
+                        <h3><i class="fas fa-coins"></i> Мои ставки</h3>
+                        <div id="bets-list">
+                            <!-- Ставки загружаются из localStorage -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Навигационная панель -->
+    <nav class="glass-nav">
+        <div class="nav-container">
+            <button class="nav-btn active" data-page="home">
+                <i class="fas fa-home"></i>
+            </button>
+            <div class="nav-divider"></div>
+            
+            <button class="nav-btn" data-page="videos">
+                <i class="fas fa-video"></i>
+            </button>
+            <div class="nav-divider"></div>
+            
+            <button class="nav-btn" data-page="contract">
+                <i class="fas fa-file-contract"></i>
+            </button>
+            <div class="nav-divider"></div>
+            
+            <button class="nav-btn" data-page="profile">
+                <i class="fas fa-user"></i>
+            </button>
         </div>
-        
-        <div class="input-line">
-            <span class="prompt">root@edm:~#</span>
-            <div class="input-area">
-                <span class="input-bracket-left">[</span>
-                <input type="text" id="commandInput" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Введите команду">
-                <span class="input-bracket-right">]</span>
+    </nav>
+
+    <!-- Модальные окна -->
+    <div id="registration-modal" class="modal">
+        <div class="modal-content glass-card">
+            <h2>Регистрация</h2>
+            <div class="input-group">
+                <input type="text" id="reg-firstname" placeholder="Имя" required>
+                <input type="text" id="reg-lastname" placeholder="Фамилия" required>
+                <input type="text" id="reg-login" placeholder="Придумайте логин">
+                <input type="password" id="reg-password" placeholder="Придумайте пароль">
+                <small>Логин и пароль нужны только для аккаунта со ставками</small>
+            </div>
+            <div class="modal-buttons">
+                <button id="register-btn" class="btn-primary">Зарегистрироваться</button>
+                <button id="skip-reg-btn" class="btn-secondary">Пропустить</button>
             </div>
         </div>
     </div>
 
+    <!-- Загрузчик -->
+    <div id="loader" class="loader">
+        <div class="spinner"></div>
+    </div>
+
+    <script src="data.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
