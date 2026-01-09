@@ -10,7 +10,7 @@ const APP_CONFIG = {
     // Пользователи с доступом к ставкам (18+)
     // Здесь указываем Telegram ID пользователей
     betsAllowedUsers: [
-        123456789, // Пример ID
+        1745639675, // Пример ID
         987654321  // Пример ID
     ],
     
@@ -18,7 +18,7 @@ const APP_CONFIG = {
     // Ключ: Telegram ID, значение: URL контракта
     contracts: {
         // Пример:
-        // 123456789: "https://example.com/contract1.jpg",
+        // 1745639675: "",
         // 987654321: "https://example.com/contract2.jpg"
     },
     
