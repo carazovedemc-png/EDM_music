@@ -1,37 +1,36 @@
 // Основные переменные
-let currentUser = null;
 let currentPage = 'home';
 let bannerInterval = null;
 
-// Инициализация приложения
+// Инициализация при загрузке
 document.addEventListener('DOMContentLoaded', async function() {
-    // Скрываем loader
+    // Сразу скрываем loader
     document.getElementById('loader').style.display = 'none';
     
     try {
         // Инициализируем Telegram Auth
-        currentUser = await window.TelegramAuth.init();
+        await window.TelegramAuth.init();
         
         // Показываем анимацию приветствия
         window.TelegramAuth.showWelcomeAnimation();
-        
-        // Обновляем профиль
-        updateProfileDisplay();
-        
-        // Настраиваем кнопки профиля
-        setupProfileButtons();
         
         // Инициализируем приложение
         initializeApp();
         setupEventListeners();
         
+        // Обновляем профиль
+        updateProfileDisplay();
+        setupProfileButtons();
+        
         // Устанавливаем активную страницу
         switchPage('home');
         
     } catch (error) {
-        console.error('Ошибка инициализации приложения:', error);
-        // Показываем ошибку пользователю
-        showNotification('Ошибка загрузки приложения. Пожалуйста, перезагрузите страницу.', 'error');
+        console.error('Ошибка инициализации:', error);
+        // В случае ошибки все равно продолжаем
+        initializeApp();
+        setupEventListeners();
+        switchPage('home');
     }
 });
 
@@ -98,7 +97,7 @@ function loadVideos() {
     
     APP_CONFIG.fightVideos.forEach(video => {
         const videoCard = document.createElement('div');
-        videoCard.className = 'video-card glass-card';
+        videoCard.className = 'video-card';
         videoCard.innerHTML = `
             <a href="${video.videoUrl}" target="_blank" class="video-link">
                 <img src="${video.thumbnail}" alt="${video.title}" class="video-thumbnail" 
@@ -120,7 +119,7 @@ function loadUpcomingFights() {
     
     APP_CONFIG.upcomingFights.forEach(fight => {
         const fightCard = document.createElement('div');
-        fightCard.className = 'fight-card glass-card';
+        fightCard.className = 'fight-card';
         fightCard.innerHTML = `
             <h3>${fight.fighters.join(' vs ')}</h3>
             <p><i class="far fa-calendar"></i> ${fight.date} ${fight.time}</p>
@@ -134,58 +133,50 @@ function loadUpcomingFights() {
     });
 }
 
-function setupProfileButtons() {
-    const userId = window.TelegramAuth.getUserId();
-    
-    // 1. Кнопка "Ставки" - показываем только если пользователь в списке
-    const betsBtn = document.getElementById('bets-btn');
-    if (betsBtn && APP_CONFIG.betsAllowedUsers.includes(parseInt(userId))) {
-        betsBtn.style.display = 'flex';
-        betsBtn.addEventListener('click', function() {
-            showNotification('Функция ставок в разработке', 'info');
+function setupEventListeners() {
+    // Навигация
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const page = this.getAttribute('data-page');
+            
+            // Убираем активный класс у всех кнопок
+            document.querySelectorAll('.nav-btn').forEach(b => {
+                b.classList.remove('active');
+            });
+            
+            // Добавляем активный класс текущей кнопке
+            this.classList.add('active');
+            
+            // Переключаем страницу
+            switchPage(page);
         });
-    }
+    });
     
-    // 2. Кнопка "Мои бои"
-    const myFightsBtn = document.getElementById('my-fights-btn');
-    myFightsBtn.addEventListener('click', showMyFights);
-    
-    // 3. Кнопка "Анкета/Контракт"
-    const contractBtn = document.getElementById('contract-btn');
-    updateContractButton();
-    
-    contractBtn.addEventListener('click', function() {
-        if (APP_CONFIG.contracts[userId]) {
-            showContract();
-        } else {
-            showApplicationForm();
+    // Покупка билетов
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('buy-ticket-btn')) {
+            const fightId = e.target.getAttribute('data-fight-id');
+            buyTicket(fightId);
+        }
+        
+        // Открытие видео
+        if (e.target.closest('.video-link')) {
+            e.preventDefault();
+            const link = e.target.closest('.video-link').href;
+            window.open(link, '_blank');
+        }
+        
+        // Открытие баннера
+        if (e.target.closest('.banner-link')) {
+            e.preventDefault();
+            const link = e.target.closest('.banner-link').href;
+            window.open(link, '_blank');
         }
     });
     
-    // 4. Кнопка "Пользовательское соглашение"
-    const agreementBtn = document.getElementById('agreement-btn');
-    agreementBtn.addEventListener('click', function() {
-        window.open(APP_CONFIG.agreementUrl, '_blank');
-    });
-    
-    // 5. Кнопка "Мои билеты"
-    const ticketsBtn = document.getElementById('my-tickets-btn');
-    ticketsBtn.addEventListener('click', showMyTickets);
-}
-
-function updateContractButton() {
-    const userId = window.TelegramAuth.getUserId();
-    const contractBtn = document.getElementById('contract-btn');
-    const title = document.getElementById('contract-btn-title');
-    const subtitle = document.getElementById('contract-btn-subtitle');
-    
-    if (APP_CONFIG.contracts[userId]) {
-        title.textContent = 'Мой контракт';
-        subtitle.textContent = 'Просмотреть контракт';
-    } else {
-        title.textContent = 'Моя анкета';
-        subtitle.textContent = 'Заполнить анкету для участия';
-    }
+    // Устанавливаем активную кнопку навигации
+    document.querySelector('.nav-btn[data-page="home"]').classList.add('active');
 }
 
 function updateProfileDisplay() {
@@ -193,173 +184,162 @@ function updateProfileDisplay() {
     const userAvatar = document.getElementById('user-avatar');
     const userId = document.getElementById('user-id');
     
-    if (currentUser) {
-        const tgAuth = window.TelegramAuth;
-        
-        if (userName) {
-            userName.textContent = tgAuth.getUserName();
-        }
-        
-        if (userId) {
-            userId.textContent = `ID: ${tgAuth.getUserId()}`;
-        }
-        
-        if (userAvatar) {
-            const avatarUrl = tgAuth.getUserAvatar();
-            userAvatar.src = avatarUrl;
-            userAvatar.onerror = function() {
-                this.src = 'https://via.placeholder.com/200/FF6B6B/FFFFFF?text=' + 
-                          (currentUser.first_name?.charAt(0) || 'U');
-            };
-        }
+    const auth = window.TelegramAuth;
+    const user = auth.getUser();
+    
+    if (user && userName) {
+        userName.textContent = auth.getUserName();
+    }
+    
+    if (user && userId) {
+        userId.textContent = `ID: ${auth.getUserId()}`;
+    }
+    
+    if (user && userAvatar) {
+        const avatarUrl = auth.getUserAvatar();
+        userAvatar.src = avatarUrl;
+        userAvatar.onerror = function() {
+            this.src = 'https://via.placeholder.com/200/FF6B6B/FFFFFF?text=' + 
+                      (user.first_name?.charAt(0) || 'U');
+        };
     }
 }
 
-function showMyTickets() {
-    const modal = document.getElementById('my-tickets-modal');
-    const container = document.getElementById('tickets-list');
+function setupProfileButtons() {
+    const auth = window.TelegramAuth;
+    const userId = auth.getUserId();
     
-    const tickets = JSON.parse(localStorage.getItem('tickets') || '[]');
-    
-    if (tickets.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-ticket-alt"></i>
-                <p>Билетов пока нет</p>
-                <p style="margin-top: 10px; font-size: 0.9rem; color: rgba(255,255,255,0.5);">
-                    Купите билеты на главной странице
-                </p>
-            </div>
-        `;
-    } else {
-        container.innerHTML = tickets.map(ticket => `
-            <div class="ticket-item glass-card">
-                <div class="ticket-header">
-                    <h4>${ticket.fighters.join(' vs ')}</h4>
-                    <span class="ticket-price">${ticket.price} руб.</span>
-                </div>
-                <div class="ticket-details">
-                    <p><i class="far fa-calendar"></i> ${ticket.date} ${ticket.time}</p>
-                    <p><i class="fas fa-map-marker-alt"></i> ${ticket.place}</p>
-                    <p><i class="far fa-clock"></i> Куплен: ${ticket.purchaseDate} ${ticket.purchaseTime}</p>
-                </div>
-            </div>
-        `).join('');
+    // Кнопка "Ставки" - показываем только если пользователь в списке
+    const betsBtn = document.getElementById('bets-btn');
+    if (betsBtn) {
+        if (APP_CONFIG.betsAllowedUsers.includes(parseInt(userId))) {
+            betsBtn.style.display = 'flex';
+            betsBtn.addEventListener('click', function() {
+                alert('Функция ставок в разработке');
+            });
+        } else {
+            betsBtn.style.display = 'none';
+        }
     }
     
-    modal.classList.add('active');
-}
-
-function showMyFights() {
-    const modal = document.getElementById('my-fights-modal');
-    const container = document.getElementById('fights-list');
-    const userId = window.TelegramAuth.getUserId();
+    // Кнопка "Мои бои"
+    const myFightsBtn = document.getElementById('my-fights-btn');
+    if (myFightsBtn) {
+        myFightsBtn.addEventListener('click', function() {
+            const userId = window.TelegramAuth.getUserId();
+            if (APP_CONFIG.userFights && APP_CONFIG.userFights[userId]) {
+                const fights = APP_CONFIG.userFights[userId];
+                let message = 'Ваши бои:\n\n';
+                fights.forEach(fight => {
+                    message += `Против: ${fight.opponent}\n`;
+                    message += `Дата: ${fight.date} ${fight.time}\n`;
+                    message += `Место: ${fight.place}\n`;
+                    message += `Гонорар: ${fight.reward} руб.\n`;
+                    message += `Статус: ${fight.status === 'upcoming' ? 'Предстоящий' : fight.status === 'completed' ? 'Завершен' : 'Отменен'}\n\n`;
+                });
+                alert(message);
+            } else {
+                alert('У вас пока нет запланированных боев');
+            }
+        });
+    }
     
-    if (APP_CONFIG.userFights && APP_CONFIG.userFights[userId]) {
-        const fights = APP_CONFIG.userFights[userId];
+    // Кнопка "Анкета/Контракт"
+    const contractBtn = document.getElementById('contract-btn');
+    if (contractBtn) {
+        // Обновляем текст кнопки
+        if (APP_CONFIG.contracts[userId]) {
+            document.getElementById('contract-btn-title').textContent = 'Мой контракт';
+            document.getElementById('contract-btn-subtitle').textContent = 'Просмотреть контракт';
+        }
         
-        container.innerHTML = fights.map(fight => `
-            <div class="fight-item">
-                <h3>Бой против: ${fight.opponent}</h3>
-                <p><i class="far fa-calendar"></i> ${fight.date} ${fight.time}</p>
-                <p><i class="fas fa-map-marker-alt"></i> ${fight.place}</p>
-                <p><i class="fas fa-coins"></i> Гонорар: <span class="fight-reward">${fight.reward} руб.</span></p>
-                <p><i class="fas fa-info-circle"></i> Статус: ${
-                    fight.status === 'upcoming' ? 'Предстоящий' :
-                    fight.status === 'completed' ? 'Завершен' : 'Отменен'
-                }</p>
-            </div>
-        `).join('');
-    } else {
-        container.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-fist-raised"></i>
-                <p>Боев пока нет</p>
-                <p style="margin-top: 10px; font-size: 0.9rem; color: rgba(255,255,255,0.5);">
-                    Заполните анкету для участия в боях
-                </p>
-            </div>
-        `;
+        contractBtn.addEventListener('click', function() {
+            if (APP_CONFIG.contracts[userId]) {
+                // Показываем контракт
+                const contractUrl = APP_CONFIG.contracts[userId];
+                window.open(contractUrl, '_blank');
+            } else {
+                // Показываем анкету
+                showApplicationForm();
+            }
+        });
     }
     
-    modal.classList.add('active');
+    // Кнопка "Пользовательское соглашение"
+    const agreementBtn = document.getElementById('agreement-btn');
+    if (agreementBtn) {
+        agreementBtn.addEventListener('click', function() {
+            window.open(APP_CONFIG.agreementUrl, '_blank');
+        });
+    }
+    
+    // Кнопка "Мои билеты"
+    const ticketsBtn = document.getElementById('my-tickets-btn');
+    if (ticketsBtn) {
+        ticketsBtn.addEventListener('click', function() {
+            showMyTickets();
+        });
+    }
 }
 
 function showApplicationForm() {
-    const modal = document.getElementById('application-modal');
-    const container = modal.querySelector('.application-form');
-    
-    container.innerHTML = `
+    let formHTML = `
         <div class="modal-header">
             <h2><i class="fas fa-edit"></i> Анкета для участия в боях</h2>
             <button class="modal-close">&times;</button>
         </div>
         <div class="modal-body">
-            <p class="form-subtitle">Заполните анкету для участия в школьных боях</p>
+            <p style="text-align: center; margin-bottom: 20px; color: rgba(255,255,255,0.7);">
+                Заполните анкету для участия в школьных боях
+            </p>
             
-            <div class="form-section">
-                <h3><i class="fas fa-user"></i> Личная информация</h3>
-                <div class="input-group">
-                    <input type="text" id="app-fullname" placeholder="ФИО" required>
-                    <input type="date" id="app-birthdate" required>
-                    <div class="input-row">
-                        <input type="number" id="app-height" placeholder="Рост (см)" required>
-                        <input type="number" id="app-weight" placeholder="Вес (кг)" required>
-                    </div>
+            <div class="input-group">
+                <input type="text" id="app-fullname" placeholder="ФИО" required>
+                <input type="date" id="app-birthdate" required>
+                <div style="display: flex; gap: 15px;">
+                    <input type="number" id="app-height" placeholder="Рост (см)" required style="flex: 1;">
+                    <input type="number" id="app-weight" placeholder="Вес (кг)" required style="flex: 1;">
                 </div>
+                <textarea id="app-experience" placeholder="Опыт в единоборствах" rows="2"></textarea>
+                <textarea id="app-achievements" placeholder="Достижения в спорте" rows="2"></textarea>
+                <textarea id="app-health" placeholder="Состояние здоровья, противопоказания" rows="3" required></textarea>
+                <input type="tel" id="app-contact" placeholder="Контактный телефон" required>
+                <input type="email" id="app-email" placeholder="Email (необязательно)">
+                <select id="training-type" style="padding: 16px 20px; background: rgba(255,255,255,0.07); color: white; border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; width: 100%;">
+                    <option value="">Выберите тип занятий</option>
+                    <option value="boxing">Бокс (Ислям Нариманович)</option>
+                    <option value="mma">MMA</option>
+                    <option value="wrestling">Борьба</option>
+                    <option value="hosting">Хостинг</option>
+                </select>
+                <input type="date" id="training-date" required>
             </div>
             
-            <div class="form-section">
-                <h3><i class="fas fa-dumbbell"></i> Спортивные данные</h3>
-                <div class="input-group">
-                    <textarea id="app-experience" placeholder="Опыт в единоборствах" rows="2"></textarea>
-                    <textarea id="app-achievements" placeholder="Достижения в спорте" rows="2"></textarea>
-                </div>
-            </div>
-            
-            <div class="form-section">
-                <h3><i class="fas fa-heartbeat"></i> Состояние здоровья</h3>
-                <div class="input-group">
-                    <textarea id="app-health" placeholder="Состояние здоровья, противопоказания" rows="3" required></textarea>
-                </div>
-            </div>
-            
-            <div class="form-section">
-                <h3><i class="fas fa-phone"></i> Контактная информация</h3>
-                <div class="input-group">
-                    <input type="tel" id="app-contact" placeholder="Контактный телефон" required>
-                    <input type="email" id="app-email" placeholder="Email (необязательно)">
-                </div>
-            </div>
-            
-            <div class="form-section">
-                <h3><i class="fas fa-calendar-alt"></i> Запись на занятия</h3>
-                <div class="input-group">
-                    <select id="training-type">
-                        <option value="">Выберите тип занятий</option>
-                        <option value="boxing">Бокс (Ислям Нариманович)</option>
-                        <option value="mma">MMA</option>
-                        <option value="wrestling">Борьба</option>
-                        <option value="hosting">Хостинг</option>
-                    </select>
-                    <input type="date" id="training-date" required>
-                </div>
-            </div>
-            
-            <div class="form-actions">
+            <div style="margin-top: 30px;">
                 <button class="btn-primary" id="submit-application-btn">
                     <i class="fas fa-paper-plane"></i> Отправить анкету в Telegram
                 </button>
-                <button class="btn-secondary" id="clear-form-btn">
+                <button class="btn-secondary" id="clear-form-btn" style="margin-top: 10px;">
                     <i class="fas fa-eraser"></i> Очистить форму
                 </button>
             </div>
             
-            <p class="form-note">
+            <p style="text-align: center; margin-top: 20px; color: rgba(255,255,255,0.6); font-size: 0.9rem;">
                 <i class="fas fa-info-circle"></i> После отправки анкеты мы свяжемся с вами в Telegram
             </p>
         </div>
     `;
+    
+    // Создаем модальное окно
+    const modal = document.createElement('div');
+    modal.className = 'modal active';
+    modal.innerHTML = `
+        <div class="modal-content">
+            ${formHTML}
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
     
     // Устанавливаем минимальную дату для записи (завтра)
     const tomorrow = new Date();
@@ -374,19 +354,35 @@ function showApplicationForm() {
         }
     }, 100);
     
-    // Добавляем обработчики
-    const submitBtn = container.querySelector('#submit-application-btn');
-    const clearBtn = container.querySelector('#clear-form-btn');
-    const closeBtn = container.querySelector('.modal-close');
+    // Обработчики для модального окна
+    const closeBtn = modal.querySelector('.modal-close');
+    const submitBtn = modal.querySelector('#submit-application-btn');
+    const clearBtn = modal.querySelector('#clear-form-btn');
+    
+    closeBtn.addEventListener('click', () => {
+        modal.remove();
+    });
+    
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
     
     submitBtn.addEventListener('click', submitApplication);
-    clearBtn.addEventListener('click', clearApplicationForm);
-    closeBtn.addEventListener('click', () => modal.classList.remove('active'));
-    
-    modal.classList.add('active');
+    clearBtn.addEventListener('click', () => {
+        const inputs = modal.querySelectorAll('input, textarea, select');
+        inputs.forEach(input => {
+            if (input.type !== 'button') {
+                input.value = '';
+            }
+        });
+    });
 }
 
 function submitApplication() {
+    const auth = window.TelegramAuth;
+    
     // Собираем данные анкеты
     const application = {
         fullName: document.getElementById('app-fullname')?.value,
@@ -401,13 +397,13 @@ function submitApplication() {
         trainingType: document.getElementById('training-type')?.value,
         trainingDate: document.getElementById('training-date')?.value,
         submissionDate: new Date().toLocaleString('ru-RU'),
-        userId: window.TelegramAuth.getUserId(),
-        userName: window.TelegramAuth.getUserName()
+        userId: auth.getUserId(),
+        userName: auth.getUserName()
     };
     
     // Проверяем обязательные поля
     if (!application.fullName || !application.birthDate || !application.contact) {
-        showNotification('Заполните обязательные поля!', 'error');
+        alert('Заполните обязательные поля!');
         return;
     }
     
@@ -453,161 +449,30 @@ ${application.healthInfo}
     applications.push(application);
     localStorage.setItem('applications', JSON.stringify(applications));
     
-    // Показываем успешное сообщение
-    showNotification('✅ Анкета сформирована! Откройте Telegram для отправки.', 'success');
+    // Закрываем модалку
+    document.querySelector('.modal.active').remove();
     
-    // Закрываем модалку через 2 секунды
-    setTimeout(() => {
-        document.getElementById('application-modal').classList.remove('active');
-    }, 2000);
+    alert('✅ Анкета сформирована! Откройте Telegram для отправки.');
 }
 
-function clearApplicationForm() {
-    const inputs = document.querySelectorAll('#application-modal input, #application-modal textarea, #application-modal select');
-    inputs.forEach(input => {
-        if (input.type !== 'button') {
-            input.value = '';
-        }
-    });
-}
-
-function showContract() {
-    const modal = document.getElementById('contract-modal');
-    const container = modal.querySelector('.contract-container');
-    const userId = window.TelegramAuth.getUserId();
-    const contractUrl = APP_CONFIG.contracts[userId];
+function showMyTickets() {
+    const tickets = JSON.parse(localStorage.getItem('tickets') || '[]');
     
-    if (!contractUrl) {
-        showNotification('Контракт не найден!', 'error');
+    if (tickets.length === 0) {
+        alert('У вас пока нет купленных билетов');
         return;
     }
     
-    container.innerHTML = `
-        <div class="modal-header">
-            <h2><i class="fas fa-file-signature"></i> Ваш контракт</h2>
-            <button class="modal-close">&times;</button>
-        </div>
-        <div class="modal-body">
-            <div class="contract-image-container">
-                <img src="${contractUrl}" alt="Контракт" class="contract-image"
-                     onerror="this.src='https://via.placeholder.com/800x1131/FFFFFF/000000?text=Контракт'">
-            </div>
-            <div class="contract-actions">
-                <button class="btn-primary" onclick="downloadContract()">
-                    <i class="fas fa-download"></i> Скачать контракт
-                </button>
-                <button class="btn-secondary modal-close">
-                    <i class="fas fa-times"></i> Закрыть
-                </button>
-            </div>
-        </div>
-    `;
-    
-    const closeBtn = container.querySelector('.modal-close');
-    closeBtn.addEventListener('click', () => modal.classList.remove('active'));
-    
-    modal.classList.add('active');
-}
-
-function downloadContract() {
-    const userId = window.TelegramAuth.getUserId();
-    const contractUrl = APP_CONFIG.contracts[userId];
-    
-    if (!contractUrl) {
-        showNotification('Контракт не найден!', 'error');
-        return;
-    }
-    
-    const link = document.createElement('a');
-    link.href = contractUrl;
-    link.download = `Контракт_${window.TelegramAuth.getUserName()}.jpg`;
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    showNotification('Контракт скачивается...', 'info');
-}
-
-function setupEventListeners() {
-    // Навигация
-    document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            const page = this.getAttribute('data-page');
-            
-            document.querySelectorAll('.nav-btn').forEach(b => {
-                b.classList.remove('active');
-            });
-            
-            this.classList.add('active');
-            switchPage(page);
-        });
+    let message = 'Ваши билеты:\n\n';
+    tickets.forEach(ticket => {
+        message += `🎫 ${ticket.fighters.join(' vs ')}\n`;
+        message += `📅 ${ticket.date} ${ticket.time}\n`;
+        message += `📍 ${ticket.place}\n`;
+        message += `💵 ${ticket.price} руб.\n`;
+        message += `🛒 Куплен: ${ticket.purchaseDate} ${ticket.purchaseTime}\n\n`;
     });
     
-    // Закрытие модалок
-    document.querySelectorAll('.modal-close').forEach(btn => {
-        btn.addEventListener('click', function() {
-            this.closest('.modal').classList.remove('active');
-        });
-    });
-    
-    // Закрытие модалок при клике вне их
-    document.querySelectorAll('.modal').forEach(modal => {
-        modal.addEventListener('click', function(e) {
-            if (e.target === this) {
-                this.classList.remove('active');
-            }
-        });
-    });
-    
-    // Покупка билетов
-    document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('buy-ticket-btn')) {
-            const fightId = e.target.getAttribute('data-fight-id');
-            buyTicket(fightId);
-        }
-        
-        // Открытие видео
-        if (e.target.closest('.video-link')) {
-            e.preventDefault();
-            const link = e.target.closest('.video-link').href;
-            window.open(link, '_blank');
-        }
-        
-        // Открытие баннера
-        if (e.target.closest('.banner-link')) {
-            e.preventDefault();
-            const link = e.target.closest('.banner-link').href;
-            window.open(link, '_blank');
-        }
-    });
-}
-
-function switchPage(page) {
-    document.querySelectorAll('.page').forEach(p => {
-        p.classList.remove('active');
-        p.style.display = 'none';
-    });
-    
-    const targetPage = document.getElementById(`${page}-page`);
-    if (targetPage) {
-        targetPage.style.display = 'block';
-        setTimeout(() => {
-            targetPage.classList.add('active');
-        }, 10);
-    }
-    
-    currentPage = page;
-    
-    setTimeout(() => {
-        if (page === 'videos') {
-            loadVideos();
-        } else if (page === 'home') {
-            loadUpcomingFights();
-            setupBanners();
-        }
-    }, 100);
+    alert(message);
 }
 
 function buyTicket(fightId) {
@@ -630,37 +495,46 @@ function buyTicket(fightId) {
     tickets.push(ticket);
     localStorage.setItem('tickets', JSON.stringify(tickets));
     
-    showNotification(`✅ Билет куплен! ${fight.ticketPrice} руб.`, 'success');
+    alert(`✅ Билет куплен! ${fight.ticketPrice} руб.`);
 }
 
-function showNotification(message, type = 'info') {
-    const oldNotifications = document.querySelectorAll('.notification');
-    oldNotifications.forEach(n => n.remove());
+function switchPage(page) {
+    // Скрываем все страницы
+    document.querySelectorAll('.page').forEach(p => {
+        p.classList.remove('active');
+        p.style.display = 'none';
+    });
     
-    const notification = document.createElement('div');
-    notification.className = `notification notification-${type}`;
-    notification.innerHTML = `
-        <div class="notification-content">
-            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
-            <span>${message}</span>
-        </div>
-    `;
-    
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-        notification.classList.add('show');
-    }, 10);
-    
-    setTimeout(() => {
-        notification.classList.remove('show');
+    // Показываем выбранную страницу
+    const targetPage = document.getElementById(`${page}-page`);
+    if (targetPage) {
+        targetPage.style.display = 'block';
         setTimeout(() => {
-            if (notification.parentNode) {
-                notification.remove();
-            }
-        }, 300);
-    }, 3000);
+            targetPage.classList.add('active');
+        }, 10);
+    }
+    
+    currentPage = page;
+    
+    // Загружаем контент для страницы
+    setTimeout(() => {
+        if (page === 'videos') {
+            loadVideos();
+        } else if (page === 'home') {
+            loadUpcomingFights();
+            setupBanners();
+        }
+    }, 100);
 }
 
-// Глобальные функции для кнопок
-window.downloadContract = downloadContract;
+// Запускаем при загрузке страницы
+window.addEventListener('load', function() {
+    // Адаптируем размеры для мобильных
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const isTablet = /iPad|Tablet|PlayBook|Silk/i.test(navigator.userAgent) || 
+                     (window.innerWidth >= 600 && window.innerWidth <= 1024);
+    
+    document.body.classList.toggle('mobile', isMobile);
+    document.body.classList.toggle('tablet', isTablet);
+    document.body.classList.toggle('desktop', !isMobile && !isTablet);
+});

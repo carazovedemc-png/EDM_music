@@ -7,11 +7,10 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" href="https://via.placeholder.com/32/FF6B6B/FFFFFF?text=UFC">
-    <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-    <!-- Хедер с логотипом -->
+    <!-- Хедер -->
     <header class="glass-header">
         <div class="header-content">
             <div class="logo-container">
@@ -21,9 +20,9 @@
         </div>
     </header>
 
-    <!-- Анимация приветствия Telegram -->
+    <!-- Анимация приветствия -->
     <div id="telegram-welcome" class="telegram-welcome">
-        <div class="welcome-content glass-card">
+        <div class="welcome-content">
             <div class="welcome-avatar">
                 <img id="welcome-avatar" src="" alt="Аватар">
             </div>
@@ -35,25 +34,23 @@
     <!-- Основной контент -->
     <main id="main-content">
         <!-- Главная страница -->
-        <section id="home-page" class="page">
-            <div class="banner-container">
-                <!-- Баннеры загружаются через JS -->
-            </div>
+        <section id="home-page" class="page active">
+            <div class="banner-container"></div>
             
             <div class="news-section">
                 <h2><i class="fas fa-newspaper"></i> Последние новости</h2>
                 <div class="news-grid">
-                    <div class="news-card glass-card">
+                    <div class="news-card">
                         <div class="news-date">12.11.2024</div>
                         <h3>Новый турнир объявлен!</h3>
                         <p>Стартует зимний чемпионат по школьному UFC. Регистрация до 30 ноября.</p>
                     </div>
-                    <div class="news-card glass-card">
+                    <div class="news-card">
                         <div class="news-date">10.11.2024</div>
                         <h3>Иванов защитил титул</h3>
                         <p>В прошедшие выходные состоялся главный бой сезона.</p>
                     </div>
-                    <div class="news-card glass-card">
+                    <div class="news-card">
                         <div class="news-date">05.11.2024</div>
                         <h3>Набор в секцию бокса</h3>
                         <p>Тренер Ислям Нариманович начинает новый набор группы.</p>
@@ -63,9 +60,7 @@
             
             <div class="upcoming-fights">
                 <h2><i class="fas fa-fist-raised"></i> Ближайшие бои</h2>
-                <div class="fights-list">
-                    <!-- Загружается через JS -->
-                </div>
+                <div class="fights-list"></div>
             </div>
         </section>
 
@@ -73,17 +68,15 @@
         <section id="videos-page" class="page">
             <div class="videos-container">
                 <h2><i class="fas fa-video"></i> Видео боев</h2>
-                <div class="videos-grid">
-                    <!-- Видео загружаются через JS -->
-                </div>
+                <div class="videos-grid"></div>
             </div>
         </section>
 
         <!-- Страница профиля -->
         <section id="profile-page" class="page">
             <div class="profile-container">
-                <!-- Блок с данными пользователя Telegram -->
-                <div class="profile-header glass-card">
+                <!-- Данные пользователя -->
+                <div class="profile-header">
                     <div class="avatar-container">
                         <img id="user-avatar" src="" alt="Аватар" class="avatar">
                     </div>
@@ -93,8 +86,7 @@
 
                 <!-- Кнопки профиля -->
                 <div class="profile-actions">
-                    <!-- Кнопка 1: Мои билеты -->
-                    <button class="profile-btn glass-card" id="my-tickets-btn">
+                    <button class="profile-btn" id="my-tickets-btn">
                         <div class="btn-icon">
                             <i class="fas fa-ticket-alt"></i>
                         </div>
@@ -104,8 +96,7 @@
                         </div>
                     </button>
 
-                    <!-- Кнопка 2: Ставки (только для определенных пользователей) -->
-                    <button class="profile-btn glass-card" id="bets-btn" style="display: none;">
+                    <button class="profile-btn" id="bets-btn" style="display: none;">
                         <div class="btn-icon">
                             <i class="fas fa-chart-line"></i>
                         </div>
@@ -115,8 +106,7 @@
                         </div>
                     </button>
 
-                    <!-- Кнопка 3: Мои бои -->
-                    <button class="profile-btn glass-card" id="my-fights-btn">
+                    <button class="profile-btn" id="my-fights-btn">
                         <div class="btn-icon">
                             <i class="fas fa-fist-raised"></i>
                         </div>
@@ -126,8 +116,7 @@
                         </div>
                     </button>
 
-                    <!-- Кнопка 4: Анкета/Контракт -->
-                    <button class="profile-btn glass-card" id="contract-btn">
+                    <button class="profile-btn" id="contract-btn">
                         <div class="btn-icon">
                             <i class="fas fa-file-contract"></i>
                         </div>
@@ -137,8 +126,7 @@
                         </div>
                     </button>
 
-                    <!-- Кнопка 5: Пользовательское соглашение -->
-                    <button class="profile-btn glass-card" id="agreement-btn">
+                    <button class="profile-btn" id="agreement-btn">
                         <div class="btn-icon">
                             <i class="fas fa-file-alt"></i>
                         </div>
@@ -148,53 +136,14 @@
                         </div>
                     </button>
                 </div>
-
-                <!-- Модальные окна для профиля -->
-                <div id="my-tickets-modal" class="modal">
-                    <div class="modal-content glass-card">
-                        <div class="modal-header">
-                            <h2><i class="fas fa-ticket-alt"></i> Мои билеты</h2>
-                            <button class="modal-close">&times;</button>
-                        </div>
-                        <div id="tickets-list" class="modal-body">
-                            <!-- Билеты загружаются через JS -->
-                        </div>
-                    </div>
-                </div>
-
-                <div id="my-fights-modal" class="modal">
-                    <div class="modal-content glass-card">
-                        <div class="modal-header">
-                            <h2><i class="fas fa-fist-raised"></i> Мои бои</h2>
-                            <button class="modal-close">&times;</button>
-                        </div>
-                        <div id="fights-list" class="modal-body">
-                            <!-- Бои загружаются через JS -->
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Модалка анкеты -->
-                <div id="application-modal" class="modal">
-                    <div class="modal-content glass-card application-form">
-                        <!-- Анкета будет загружена через JS -->
-                    </div>
-                </div>
-
-                <!-- Модалка контракта -->
-                <div id="contract-modal" class="modal">
-                    <div class="modal-content glass-card contract-container">
-                        <!-- Контракт будет загружен через JS -->
-                    </div>
-                </div>
             </div>
         </section>
     </main>
 
-    <!-- Навигационная панель (только 3 кнопки) -->
+    <!-- Навигация -->
     <nav class="glass-nav">
         <div class="nav-container">
-            <button class="nav-btn" data-page="home">
+            <button class="nav-btn active" data-page="home">
                 <i class="fas fa-home"></i>
             </button>
             <div class="nav-divider"></div>
@@ -216,7 +165,6 @@
         <div class="loader-text">Загрузка EDM™ UFC...</div>
     </div>
 
-    <!-- Система авторизации Telegram -->
     <script src="telegram-auth.js"></script>
     <script src="data.js"></script>
     <script src="script.js"></script>
