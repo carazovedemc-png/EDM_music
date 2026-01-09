@@ -2,15 +2,20 @@
 let currentUser = null;
 let currentPage = 'home';
 let bannerInterval = null;
+let isAdmin = false;
 
 // Инициализация при загрузке
 document.addEventListener('DOMContentLoaded', function() {
     // Сразу скрываем loader
     document.getElementById('loader').style.display = 'none';
     
+    // Инициализация приложения
     initializeApp();
     setupEventListeners();
     checkFirstVisit();
+    
+    // Устанавливаем активную страницу
+    switchPage('home');
 });
 
 function initializeApp() {
@@ -20,20 +25,12 @@ function initializeApp() {
     // Проверяем авторизацию
     checkAuth();
     
-    // Показываем баннеры
+    // Загружаем контент
     setTimeout(() => {
         setupBanners();
-    }, 100);
-    
-    // Загружаем видео
-    setTimeout(() => {
         loadVideos();
-    }, 150);
-    
-    // Загружаем предстоящие бои
-    setTimeout(() => {
         loadUpcomingFights();
-    }, 200);
+    }, 100);
 }
 
 function loadAppConfig() {
@@ -126,7 +123,6 @@ function loadUpcomingFights() {
 function checkFirstVisit() {
     const hasVisited = localStorage.getItem('hasVisited');
     if (!hasVisited) {
-        // Даем время на загрузку интерфейса
         setTimeout(() => {
             showRegistrationModal();
         }, 500);
@@ -142,15 +138,23 @@ function showRegistrationModal() {
 }
 
 function setupEventListeners() {
-    // Навигация
+    // Навигация - исправленная версия
     document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const page = this.dataset.page;
-            switchPage(page);
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const page = this.getAttribute('data-page');
+            console.log('Переключение на страницу:', page);
             
-            // Обновляем активную кнопку
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            // Убираем активный класс у всех кнопок
+            document.querySelectorAll('.nav-btn').forEach(b => {
+                b.classList.remove('active');
+            });
+            
+            // Добавляем активный класс текущей кнопке
             this.classList.add('active');
+            
+            // Переключаем страницу
+            switchPage(page);
         });
     });
     
@@ -163,11 +167,20 @@ function setupEventListeners() {
     }
     
     if (skipRegBtn) {
-        skipRegBtn.addEventListener('click', () => {
+        skipRegBtn.addEventListener('click', function() {
             const modal = document.getElementById('registration-modal');
             if (modal) {
                 modal.classList.remove('active');
             }
+            // Создаем гостевой аккаунт
+            currentUser = {
+                firstName: 'Гость',
+                lastName: '',
+                isAdultAccount: false,
+                isAdmin: false,
+                avatar: 'assets/default-avatar.png'
+            };
+            updateProfileDisplay();
         });
     }
     
@@ -191,11 +204,11 @@ function setupEventListeners() {
     // Покупка билетов
     document.addEventListener('click', function(e) {
         if (e.target.classList.contains('buy-ticket-btn')) {
-            const fightId = e.target.dataset.fightId;
+            const fightId = e.target.getAttribute('data-fight-id');
             buyTicket(fightId);
         }
         
-        // Открытие видео по клику на карточку
+        // Открытие видео
         if (e.target.closest('.video-link')) {
             e.preventDefault();
             const link = e.target.closest('.video-link').href;
@@ -210,10 +223,9 @@ function setupEventListeners() {
         }
     });
     
-    // Защита от копирования
+    // Защита от копирования (без уведомления)
     document.addEventListener('contextmenu', function(e) {
         e.preventDefault();
-        showNotification('Копирование запрещено!', 'error');
         return false;
     });
     
@@ -243,9 +255,22 @@ function setupEventListeners() {
             modal.classList.remove('active');
         }
     });
+    
+    // Кнопка просмотра статистики
+    document.addEventListener('click', function(e) {
+        if (e.target.id === 'view-stats-btn') {
+            viewStatistics();
+        }
+        
+        if (e.target.id === 'back-to-profile-btn') {
+            switchPage('profile');
+        }
+    });
 }
 
 function switchPage(page) {
+    console.log('Переключение страницы на:', page);
+    
     // Скрываем все страницы
     document.querySelectorAll('.page').forEach(p => {
         p.classList.remove('active');
@@ -264,33 +289,31 @@ function switchPage(page) {
     currentPage = page;
     
     // Загружаем контент для страницы
-    if (page === 'contract') {
-        setTimeout(() => {
+    setTimeout(() => {
+        if (page === 'contract') {
             loadContractContent();
-        }, 100);
-    } else if (page === 'profile') {
-        setTimeout(() => {
+        } else if (page === 'profile') {
             loadProfileData();
-        }, 100);
-    }
+        } else if (page === 'videos') {
+            loadVideos();
+        } else if (page === 'home') {
+            loadUpcomingFights();
+            setupBanners();
+        }
+    }, 100);
 }
 
 function registerUser() {
-    const firstName = document.getElementById('reg-firstname')?.value.trim();
-    const lastName = document.getElementById('reg-lastname')?.value.trim();
-    
-    if (!firstName || !lastName) {
-        showNotification('Введите имя и фамилию!', 'error');
-        return;
-    }
+    const firstName = document.getElementById('reg-firstname')?.value.trim() || 'Пользователь';
+    const lastName = document.getElementById('reg-lastname')?.value.trim() || '';
     
     // Создаем пользователя
     currentUser = {
         firstName,
         lastName,
         isAdultAccount: false,
-        avatar: 'assets/default-avatar.png',
-        registrationDate: new Date().toISOString()
+        isAdmin: false,
+        avatar: 'https://via.placeholder.com/200/FF6B6B/FFFFFF?text=' + firstName.charAt(0)
     };
     
     // Сохраняем в localStorage
@@ -346,20 +369,24 @@ function loginWithBets() {
             currentUser.firstName = adultAccount.firstName;
             currentUser.lastName = adultAccount.lastName;
             currentUser.adultLogin = login;
+            currentUser.isAdmin = adultAccount.isAdmin || false;
+            isAdmin = adultAccount.isAdmin || false;
         } else {
             currentUser = {
                 firstName: adultAccount.firstName,
                 lastName: adultAccount.lastName,
                 isAdultAccount: true,
                 betsAllowed: true,
+                isAdmin: adultAccount.isAdmin || false,
                 adultLogin: login,
-                avatar: 'assets/default-avatar.png'
+                avatar: 'https://via.placeholder.com/200/4ECDC4/FFFFFF?text=' + adultAccount.firstName.charAt(0)
             };
+            isAdmin = adultAccount.isAdmin || false;
         }
         
         localStorage.setItem('currentUser', JSON.stringify(currentUser));
         updateProfileDisplay();
-        showNotification('Вход в аккаунт со ставками выполнен!', 'success');
+        showNotification('Вход в аккаунт выполнен!', 'success');
         
         // Обновляем страницу контракта если она открыта
         if (currentPage === 'contract') {
@@ -380,11 +407,13 @@ function logoutBets() {
         
         currentUser.isAdultAccount = false;
         currentUser.betsAllowed = false;
+        currentUser.isAdmin = false;
+        isAdmin = false;
         delete currentUser.adultLogin;
         
         localStorage.setItem('currentUser', JSON.stringify(currentUser));
         updateProfileDisplay();
-        showNotification('Вы вышли из аккаунта со ставками', 'info');
+        showNotification('Вы вышли из аккаунта', 'info');
         
         // Обновляем страницу контракта если она открыта
         if (currentPage === 'contract') {
@@ -525,8 +554,7 @@ function submitApplication() {
         return;
     }
     
-    // В реальном приложении здесь отправка на сервер
-    // Для демо сохраняем в localStorage
+    // Сохраняем в localStorage
     const applications = JSON.parse(localStorage.getItem('applications') || '[]');
     applications.push(application);
     localStorage.setItem('applications', JSON.stringify(applications));
@@ -575,7 +603,16 @@ function buyTicket(fightId) {
 }
 
 function loadProfileData() {
-    if (!currentUser) return;
+    if (!currentUser) {
+        // Создаем гостевой аккаунт если нет пользователя
+        currentUser = {
+            firstName: 'Гость',
+            lastName: '',
+            isAdultAccount: false,
+            isAdmin: false,
+            avatar: 'https://via.placeholder.com/200/333/FFFFFF?text=G'
+        };
+    }
     
     // Обновляем данные пользователя
     updateProfileDisplay();
@@ -585,27 +622,36 @@ function loadProfileData() {
     
     // Загружаем ставки
     loadBets();
+    
+    // Показываем кнопку статистики если админ
+    showAdminButton();
 }
 
 function updateProfileDisplay() {
     if (currentUser) {
         const userName = document.getElementById('user-name');
         const userStatus = document.getElementById('user-status');
+        const userAvatar = document.getElementById('user-avatar');
         
         if (userName) {
-            userName.textContent = `${currentUser.firstName} ${currentUser.lastName}`;
+            userName.textContent = `${currentUser.firstName} ${currentUser.lastName}`.trim();
         }
         
         if (userStatus) {
-            if (currentUser.isAdultAccount) {
-                userStatus.textContent = 'Аккаунт со ставками (18+)';
-                userStatus.style.color = '#4ECDC4';
+            if (currentUser.isAdmin) {
+                userStatus.innerHTML = '<i class="fas fa-crown"></i> Администратор';
+                userStatus.style.color = '#9D50BB';
+            } else if (currentUser.isAdultAccount) {
                 userStatus.innerHTML = '<i class="fas fa-check-circle"></i> Аккаунт со ставками (18+)';
+                userStatus.style.color = '#4ECDC4';
             } else {
-                userStatus.textContent = 'Школьный аккаунт';
-                userStatus.style.color = '#FFD166';
                 userStatus.innerHTML = '<i class="fas fa-user-graduate"></i> Школьный аккаунт';
+                userStatus.style.color = '#FFD166';
             }
+        }
+        
+        if (userAvatar && currentUser.avatar) {
+            userAvatar.src = currentUser.avatar;
         }
         
         // Обновляем поля ввода
@@ -620,13 +666,125 @@ function updateProfileDisplay() {
         if (logoutBetsBtn) {
             logoutBetsBtn.style.display = currentUser.isAdultAccount ? 'block' : 'none';
         }
-        
-        // Обновляем аватар
-        const userAvatar = document.getElementById('user-avatar');
-        if (userAvatar && currentUser.avatar) {
-            userAvatar.src = currentUser.avatar;
-        }
     }
+}
+
+function showAdminButton() {
+    const profileActions = document.querySelector('.profile-actions');
+    if (!profileActions) return;
+    
+    // Удаляем старую кнопку статистики если есть
+    const oldStatsBtn = document.getElementById('admin-stats-card');
+    if (oldStatsBtn) oldStatsBtn.remove();
+    
+    // Добавляем кнопку статистики если админ
+    if (currentUser && currentUser.isAdmin) {
+        const adminCard = document.createElement('div');
+        adminCard.id = 'admin-stats-card';
+        adminCard.className = 'action-card glass-card';
+        adminCard.innerHTML = `
+            <h3><i class="fas fa-chart-bar"></i> Административная панель</h3>
+            <button id="view-stats-btn" class="btn-admin">
+                <i class="fas fa-chart-line"></i> Просмотр статистики
+            </button>
+        `;
+        profileActions.prepend(adminCard);
+    }
+}
+
+function viewStatistics() {
+    // Получаем данные из localStorage
+    const tickets = JSON.parse(localStorage.getItem('tickets') || '[]');
+    const applications = JSON.parse(localStorage.getItem('applications') || '[]');
+    const bets = JSON.parse(localStorage.getItem('bets') || '[]');
+    
+    // Считаем статистику
+    const totalRevenue = tickets.reduce((sum, ticket) => sum + (ticket.price || 0), 0);
+    const totalApplications = applications.length;
+    const totalBets = bets.length;
+    const activeUsers = new Set([
+        ...tickets.map(t => t.userId),
+        ...applications.map(a => a.userId),
+        ...bets.map(b => b.userId)
+    ]).size;
+    
+    // Создаем страницу статистики
+    const statsPage = document.createElement('div');
+    statsPage.id = 'stats-page';
+    statsPage.className = 'page active';
+    statsPage.innerHTML = `
+        <div class="stats-container">
+            <h2><i class="fas fa-chart-bar"></i> Статистика системы</h2>
+            
+            <div class="stats-grid">
+                <div class="stat-card glass-card">
+                    <div class="stat-value">${tickets.length}</div>
+                    <div class="stat-label">Продано билетов</div>
+                </div>
+                
+                <div class="stat-card glass-card">
+                    <div class="stat-value">${totalRevenue} руб.</div>
+                    <div class="stat-label">Общая выручка</div>
+                </div>
+                
+                <div class="stat-card glass-card">
+                    <div class="stat-value">${totalApplications}</div>
+                    <div class="stat-label">Заявок на участие</div>
+                </div>
+                
+                <div class="stat-card glass-card">
+                    <div class="stat-value">${totalBets}</div>
+                    <div class="stat-label">Совершено ставок</div>
+                </div>
+                
+                <div class="stat-card glass-card">
+                    <div class="stat-value">${activeUsers}</div>
+                    <div class="stat-label">Активных пользователей</div>
+                </div>
+                
+                <div class="stat-card glass-card">
+                    <div class="stat-value">${APP_CONFIG.adultAccounts.length}</div>
+                    <div class="stat-label">Аккаунтов со ставками</div>
+                </div>
+            </div>
+            
+            <div class="detailed-stats glass-card" style="padding: 25px; margin-top: 30px;">
+                <h3><i class="fas fa-list"></i> Подробная статистика</h3>
+                
+                <div style="margin-top: 20px;">
+                    <h4>Последние билеты:</h4>
+                    ${tickets.slice(-5).map(ticket => `
+                        <div style="margin: 10px 0; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                            ${ticket.fighters.join(' vs ')} - ${ticket.price} руб. (${ticket.purchaseDate})
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <h4>Последние заявки:</h4>
+                    ${applications.slice(-5).map(app => `
+                        <div style="margin: 10px 0; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                            ${app.fullName} - ${app.trainingType} (${app.submissionDate})
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            
+            <div style="margin-top: 30px;">
+                <button id="back-to-profile-btn" class="btn-primary">
+                    <i class="fas fa-arrow-left"></i> Назад к профилю
+                </button>
+            </div>
+        </div>
+    `;
+    
+    // Скрываем текущую страницу и показываем статистику
+    document.querySelectorAll('.page').forEach(p => {
+        p.classList.remove('active');
+        p.style.display = 'none';
+    });
+    
+    document.getElementById('main-content').appendChild(statsPage);
 }
 
 function loadTickets() {
@@ -691,8 +849,7 @@ function loadBets() {
 }
 
 function changeAvatar() {
-    // В реальном приложении здесь загрузка файла
-    // Для демо просто меняем цвет фона
+    // Генерируем случайный цвет для аватара
     const colors = [
         'linear-gradient(135deg, #FF6B6B, #FF8E53)',
         'linear-gradient(135deg, #4ECDC4, #44A08D)',
@@ -703,7 +860,7 @@ function changeAvatar() {
     
     const randomColor = colors[Math.floor(Math.random() * colors.length)];
     
-    // Создаем аватар с инициалами
+    // Создаем canvas для аватара
     const canvas = document.createElement('canvas');
     canvas.width = 200;
     canvas.height = 200;
@@ -725,7 +882,7 @@ function changeAvatar() {
         ctx.font = 'bold 80px Arial, sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        const initials = (currentUser.firstName[0] + currentUser.lastName[0]).toUpperCase();
+        const initials = (currentUser.firstName[0] + (currentUser.lastName[0] || '')).toUpperCase();
         ctx.fillText(initials, 100, 100);
     }
     
@@ -819,10 +976,13 @@ window.addEventListener('load', function() {
         if (loader) {
             loader.style.display = 'none';
         }
-    }, 1000);
+    }, 500);
     
     // Адаптируем размеры для мобильных
     adaptLayout();
+    
+    // Устанавливаем активную навигационную кнопку
+    document.querySelector('.nav-btn[data-page="home"]').classList.add('active');
 });
 
 // Адаптация layout под устройство

@@ -1,33 +1,35 @@
 // Конфигурация приложения School UFC
 const APP_CONFIG = {
     // Логотип и название
-    appName: "𝙀𝙁𝘾™",
-    logoUrl: "https://via.placeholder.com/50/FF6B6B/FFFFFF?text=UFC", // Замените на свой логотип
+    appName: "EDM™ UFC",
+    logoUrl: "https://via.placeholder.com/50/FF6B6B/FFFFFF?text=UFC",
     
-    // Аккаунты для ставок (18+)
+    // Аккаунты для ставок (18+) и администратора
     adultAccounts: [
         {
             login: "EDM™",
             password: "4892edica492",
-            firstName: "ADMIN",
-            lastName: "SISTEM",
-            betsAllowed: true
+            firstName: "Администратор",
+            lastName: "Системы",
+            betsAllowed: true,
+            isAdmin: true
         },
         {
             login: "ivanov",
             password: "pass123",
             firstName: "Иван",
             lastName: "Иванов",
-            betsAllowed: true
+            betsAllowed: true,
+            isAdmin: false
         },
         {
             login: "petrov",
             password: "pass456",
             firstName: "Петр",
             lastName: "Петров",
-            betsAllowed: true
+            betsAllowed: true,
+            isAdmin: false
         }
-        // Добавляйте новые аккаунты здесь
     ],
     
     // Баннеры (реклама/бои)
@@ -58,31 +60,23 @@ const APP_CONFIG = {
             id: 1,
             title: "Финал турнира 2024 - Иванов vs Петров",
             thumbnail: "https://images.unsplash.com/photo-1547036967-23d11aaca258?w=400&h=225&fit=crop",
-            videoUrl: "https://youtu.be/example1",
-            description: "Захватывающий финальный бой сезона 2024. Технический нокаут в 3 раунде.",
+            videoUrl: "https://youtu.be/dQw4w9WgXcQ",
+            description: "Захватывающий финальный бой сезона 2024",
             date: "10.11.2024"
         },
         {
             id: 2,
             title: "Полуфинал. Группа А - Сидоров vs Козлов",
             thumbnail: "https://images.unsplash.com/photo-1519861531473-920034658307?w=400&h=225&fit=crop",
-            videoUrl: "https://youtu.be/example2",
-            description: "Жесткий бой с неожиданной развязкой. Судьи присудили победу раздельным решением.",
+            videoUrl: "https://youtu.be/dQw4w9WgXcQ",
+            description: "Жесткий бой с неожиданной развязкой",
             date: "03.11.2024"
-        },
-        {
-            id: 3,
-            title: "Четвертьфинал. Бой вечера",
-            thumbnail: "https://images.unsplash.com/photo-1542744095-fcf48d80b0fd?w=400&h=225&fit=crop",
-            videoUrl: "https://youtu.be/example3",
-            description: "Невероятный бой с 5-ю нокдаунами. Претендент на лучший бой года.",
-            date: "27.10.2024"
         }
     ],
     
     // Контракты (ссылки на изображения)
     contracts: {
-        "admin": "https://via.placeholder.com/800x1131/FFFFFF/000000?text=Контракт+Администратора",
+        "EDM™": "https://via.placeholder.com/800x1131/FFFFFF/000000?text=АДМИН+КОНТРАКТ",
         "ivanov": "https://via.placeholder.com/800x1131/FFFFFF/000000?text=Контракт+Иванова",
         "petrov": "https://via.placeholder.com/800x1131/FFFFFF/000000?text=Контракт+Петрова"
     },
@@ -96,22 +90,6 @@ const APP_CONFIG = {
             time: "18:00",
             place: "Школьный спортзал №1",
             ticketPrice: 300
-        },
-        {
-            id: 2,
-            fighters: ["Максим Орлов", "Артем Волков"],
-            date: "22.12.2024",
-            time: "19:30",
-            place: "Школьный спортзал №2",
-            ticketPrice: 250
-        },
-        {
-            id: 3,
-            fighters: ["Кирилл Новиков", "Егор Морозов"],
-            date: "29.12.2024",
-            time: "17:00",
-            place: "Главный спортзал",
-            ticketPrice: 350
         }
     ]
 };

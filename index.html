@@ -2,11 +2,11 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>School UFC - Школьные бои</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <meta name="description" content="Школьный UFC - бои, ставки, турниры">
+    <link rel="icon" href="https://via.placeholder.com/32/FF6B6B/FFFFFF?text=UFC">
 </head>
 <body>
     <!-- Хедер с логотипом -->
@@ -21,8 +21,8 @@
 
     <!-- Основной контент -->
     <main id="main-content">
-        <!-- Главная страница (загружается по умолчанию) -->
-        <section id="home-page" class="page active">
+        <!-- Главная страница -->
+        <section id="home-page" class="page">
             <div class="banner-container">
                 <!-- Баннеры загружаются через JS -->
             </div>
@@ -78,7 +78,7 @@
             <div class="profile-container">
                 <div class="profile-header glass-card">
                     <div class="avatar-container">
-                        <img id="user-avatar" src="assets/default-avatar.png" alt="Аватар" class="avatar">
+                        <img id="user-avatar" src="https://via.placeholder.com/200/333/FFFFFF?text=U" alt="Аватар" class="avatar">
                         <button class="change-avatar-btn"><i class="fas fa-camera"></i></button>
                     </div>
                     <h2 id="user-name">Гость</h2>
@@ -89,9 +89,11 @@
                     <div class="action-card glass-card">
                         <h3><i class="fas fa-user-edit"></i> Редактировать профиль</h3>
                         <div class="input-group">
-                            <input type="text" id="input-firstname" placeholder="Имя">
+                            <input type="text" id="input-firstname" placeholder="Имя" value="Гость">
                             <input type="text" id="input-lastname" placeholder="Фамилия">
-                            <button id="save-profile-btn" class="btn-primary">Сохранить</button>
+                            <button id="save-profile-btn" class="btn-primary">
+                                <i class="fas fa-save"></i> Сохранить
+                            </button>
                         </div>
                     </div>
 
@@ -100,22 +102,32 @@
                         <div class="input-group">
                             <input type="text" id="input-login" placeholder="Логин">
                             <input type="password" id="input-password" placeholder="Пароль">
-                            <button id="login-bets-btn" class="btn-secondary">Войти</button>
-                            <button id="logout-bets-btn" class="btn-danger">Выйти</button>
+                            <button id="login-bets-btn" class="btn-secondary">
+                                <i class="fas fa-sign-in-alt"></i> Войти
+                            </button>
+                            <button id="logout-bets-btn" class="btn-danger" style="display: none;">
+                                <i class="fas fa-sign-out-alt"></i> Выйти
+                            </button>
                         </div>
                     </div>
 
                     <div class="action-card glass-card">
                         <h3><i class="fas fa-ticket-alt"></i> Мои билеты</h3>
                         <div id="tickets-list">
-                            <!-- Билеты загружаются из localStorage -->
+                            <div class="empty-state">
+                                <i class="fas fa-ticket-alt"></i>
+                                <p>Билетов пока нет</p>
+                            </div>
                         </div>
                     </div>
 
                     <div class="action-card glass-card">
                         <h3><i class="fas fa-coins"></i> Мои ставки</h3>
                         <div id="bets-list">
-                            <!-- Ставки загружаются из localStorage -->
+                            <div class="empty-state">
+                                <i class="fas fa-chart-line"></i>
+                                <p>Ставок пока нет</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -126,7 +138,7 @@
     <!-- Навигационная панель -->
     <nav class="glass-nav">
         <div class="nav-container">
-            <button class="nav-btn active" data-page="home">
+            <button class="nav-btn" data-page="home">
                 <i class="fas fa-home"></i>
             </button>
             <div class="nav-divider"></div>
@@ -147,20 +159,31 @@
         </div>
     </nav>
 
-    <!-- Модальные окна -->
+    <!-- Модальное окно регистрации -->
     <div id="registration-modal" class="modal">
         <div class="modal-content glass-card">
-            <h2>Регистрация</h2>
+            <h2>Добро пожаловать в EDM™ UFC!</h2>
+            <p style="text-align: center; margin-bottom: 20px; color: rgba(255,255,255,0.7);">
+                Зарегистрируйтесь для начала работы
+            </p>
+            
             <div class="input-group">
                 <input type="text" id="reg-firstname" placeholder="Имя" required>
                 <input type="text" id="reg-lastname" placeholder="Фамилия" required>
-                <input type="text" id="reg-login" placeholder="Придумайте логин">
-                <input type="password" id="reg-password" placeholder="Придумайте пароль">
-                <small>Логин и пароль нужны только для аккаунта со ставками</small>
+                <input type="text" id="reg-login" placeholder="Логин (для аккаунта со ставками)">
+                <input type="password" id="reg-password" placeholder="Пароль (для аккаунта со ставками)">
+                <small style="color: rgba(255,255,255,0.5); font-size: 0.9rem;">
+                    Логин и пароль нужны только для аккаунта со ставками (18+)
+                </small>
             </div>
+            
             <div class="modal-buttons">
-                <button id="register-btn" class="btn-primary">Зарегистрироваться</button>
-                <button id="skip-reg-btn" class="btn-secondary">Пропустить</button>
+                <button id="register-btn" class="btn-primary">
+                    <i class="fas fa-user-plus"></i> Зарегистрироваться
+                </button>
+                <button id="skip-reg-btn" class="btn-secondary">
+                    <i class="fas fa-forward"></i> Продолжить как гость
+                </button>
             </div>
         </div>
     </div>
@@ -168,6 +191,7 @@
     <!-- Загрузчик -->
     <div id="loader" class="loader">
         <div class="spinner"></div>
+        <div class="loader-text">Загрузка EDM™ UFC...</div>
     </div>
 
     <script src="data.js"></script>
