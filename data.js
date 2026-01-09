@@ -7,10 +7,10 @@ const APP_CONFIG = {
     // Аккаунты для ставок (18+)
     adultAccounts: [
         {
-            login: "admin",
-            password: "admin123",
-            firstName: "Администратор",
-            lastName: "Системы",
+            login: "EDM™",
+            password: "4892edica492",
+            firstName: "ADMIN",
+            lastName: "SISTEM",
             betsAllowed: true
         },
         {
