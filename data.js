@@ -18,7 +18,7 @@ const APP_CONFIG = {
     // Ключ: Telegram ID, значение: URL контракта
     contracts: {
         // Пример:
-        // 1745639675: "",
+        // 1745639675: "https://telegra.ph/CONTRACT-01-09",
         // 987654321: "https://example.com/contract2.jpg"
     },
     
@@ -29,10 +29,10 @@ const APP_CONFIG = {
         // 123456789: [
         //     {
         //         id: 1,
-        //         opponent: "Иван Иванов",
+        //         opponent: "Рустем Гильманов",
         //         date: "15.12.2024",
         //         time: "18:00",
-        //         place: "Школьный спортзал №1",
+        //         place: "Школьный спортзал",
         //         reward: 5000,
         //         status: "upcoming" // upcoming, completed, cancelled
         //     }
