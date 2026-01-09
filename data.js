@@ -2,7 +2,7 @@
 const APP_CONFIG = {
     // Логотип и название
     appName: "𝙀𝙁𝘾™",
-    logoUrl: "https://via.placeholder.com/50/FF6B6B/FFFFFF?text=UFC",
+    logoUrl: "https://sun9-79.userapi.com/s/v1/ig2/Iwgs_SLJiCG0rCQiHerqheqgN93PxCMUoU8j3cto1xpKXjBaQDLpwSL9d4cmtAoAh5UTCClI-QTmUjzo3oQ-UTxv.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1024x1024&from=bu&u=vBvlWP12ZXV3-6fRHQiaQfpPXYJBFIu_vV-oThtYMy0&cs=640x0",
     
     // Аккаунты для ставок (18+) и администратора
     adultAccounts: [
