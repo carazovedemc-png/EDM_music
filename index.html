@@ -3,10 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>School UFC - Школьные бои</title>
+    <title>EDM™ UFC - Школьные бои</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" href="https://via.placeholder.com/32/FF6B6B/FFFFFF?text=UFC">
+    <!-- Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
     <!-- Хедер с логотипом -->
@@ -18,6 +20,17 @@
             <h1 id="app-title" class="app-title">EDM™ UFC</h1>
         </div>
     </header>
+
+    <!-- Анимация приветствия Telegram -->
+    <div id="telegram-welcome" class="telegram-welcome">
+        <div class="welcome-content glass-card">
+            <div class="welcome-avatar">
+                <img id="welcome-avatar" src="" alt="Аватар">
+            </div>
+            <div class="welcome-name" id="welcome-name"></div>
+            <div class="welcome-id" id="welcome-id"></div>
+        </div>
+    </div>
 
     <!-- Основной контент -->
     <main id="main-content">
@@ -66,76 +79,119 @@
             </div>
         </section>
 
-        <!-- Страница анкеты/контракта -->
-        <section id="contract-page" class="page">
-            <div id="contract-content">
-                <!-- Контент меняется в зависимости от типа пользователя -->
-            </div>
-        </section>
-
         <!-- Страница профиля -->
         <section id="profile-page" class="page">
             <div class="profile-container">
+                <!-- Блок с данными пользователя Telegram -->
                 <div class="profile-header glass-card">
                     <div class="avatar-container">
-                        <img id="user-avatar" src="https://via.placeholder.com/200/333/FFFFFF?text=U" alt="Аватар" class="avatar">
-                        <button class="change-avatar-btn"><i class="fas fa-camera"></i></button>
+                        <img id="user-avatar" src="" alt="Аватар" class="avatar">
                     </div>
-                    <h2 id="user-name">Гость</h2>
-                    <p id="user-status" class="status">Школьный аккаунт</p>
+                    <h2 id="user-name">Загрузка...</h2>
+                    <p id="user-id" class="status">ID: ...</p>
                 </div>
 
+                <!-- Кнопки профиля -->
                 <div class="profile-actions">
-                    <div class="action-card glass-card">
-                        <h3><i class="fas fa-user-edit"></i> Редактировать профиль</h3>
-                        <div class="input-group">
-                            <input type="text" id="input-firstname" placeholder="Имя" value="Гость">
-                            <input type="text" id="input-lastname" placeholder="Фамилия">
-                            <button id="save-profile-btn" class="btn-primary">
-                                <i class="fas fa-save"></i> Сохранить
-                            </button>
+                    <!-- Кнопка 1: Мои билеты -->
+                    <button class="profile-btn glass-card" id="my-tickets-btn">
+                        <div class="btn-icon">
+                            <i class="fas fa-ticket-alt"></i>
+                        </div>
+                        <div class="btn-text">
+                            <span class="btn-title">Мои билеты</span>
+                            <span class="btn-subtitle">Купленные билеты на бои</span>
+                        </div>
+                    </button>
+
+                    <!-- Кнопка 2: Ставки (только для определенных пользователей) -->
+                    <button class="profile-btn glass-card" id="bets-btn" style="display: none;">
+                        <div class="btn-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="btn-text">
+                            <span class="btn-title">Ставки</span>
+                            <span class="btn-subtitle">Ставки на бои (18+)</span>
+                        </div>
+                    </button>
+
+                    <!-- Кнопка 3: Мои бои -->
+                    <button class="profile-btn glass-card" id="my-fights-btn">
+                        <div class="btn-icon">
+                            <i class="fas fa-fist-raised"></i>
+                        </div>
+                        <div class="btn-text">
+                            <span class="btn-title">Мои бои</span>
+                            <span class="btn-subtitle">Расписание и гонорары</span>
+                        </div>
+                    </button>
+
+                    <!-- Кнопка 4: Анкета/Контракт -->
+                    <button class="profile-btn glass-card" id="contract-btn">
+                        <div class="btn-icon">
+                            <i class="fas fa-file-contract"></i>
+                        </div>
+                        <div class="btn-text">
+                            <span class="btn-title" id="contract-btn-title">Моя анкета</span>
+                            <span class="btn-subtitle" id="contract-btn-subtitle">Заполнить анкету для участия</span>
+                        </div>
+                    </button>
+
+                    <!-- Кнопка 5: Пользовательское соглашение -->
+                    <button class="profile-btn glass-card" id="agreement-btn">
+                        <div class="btn-icon">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <div class="btn-text">
+                            <span class="btn-title">Пользовательское соглашение</span>
+                            <span class="btn-subtitle">Правила использования</span>
+                        </div>
+                    </button>
+                </div>
+
+                <!-- Модальные окна для профиля -->
+                <div id="my-tickets-modal" class="modal">
+                    <div class="modal-content glass-card">
+                        <div class="modal-header">
+                            <h2><i class="fas fa-ticket-alt"></i> Мои билеты</h2>
+                            <button class="modal-close">&times;</button>
+                        </div>
+                        <div id="tickets-list" class="modal-body">
+                            <!-- Билеты загружаются через JS -->
                         </div>
                     </div>
+                </div>
 
-                    <div class="action-card glass-card">
-                        <h3><i class="fas fa-sign-in-alt"></i> Аккаунт со ставками</h3>
-                        <div class="input-group">
-                            <input type="text" id="input-login" placeholder="Логин">
-                            <input type="password" id="input-password" placeholder="Пароль">
-                            <button id="login-bets-btn" class="btn-secondary">
-                                <i class="fas fa-sign-in-alt"></i> Войти
-                            </button>
-                            <button id="logout-bets-btn" class="btn-danger" style="display: none;">
-                                <i class="fas fa-sign-out-alt"></i> Выйти
-                            </button>
+                <div id="my-fights-modal" class="modal">
+                    <div class="modal-content glass-card">
+                        <div class="modal-header">
+                            <h2><i class="fas fa-fist-raised"></i> Мои бои</h2>
+                            <button class="modal-close">&times;</button>
+                        </div>
+                        <div id="fights-list" class="modal-body">
+                            <!-- Бои загружаются через JS -->
                         </div>
                     </div>
+                </div>
 
-                    <div class="action-card glass-card">
-                        <h3><i class="fas fa-ticket-alt"></i> Мои билеты</h3>
-                        <div id="tickets-list">
-                            <div class="empty-state">
-                                <i class="fas fa-ticket-alt"></i>
-                                <p>Билетов пока нет</p>
-                            </div>
-                        </div>
+                <!-- Модалка анкеты -->
+                <div id="application-modal" class="modal">
+                    <div class="modal-content glass-card application-form">
+                        <!-- Анкета будет загружена через JS -->
                     </div>
+                </div>
 
-                    <div class="action-card glass-card">
-                        <h3><i class="fas fa-coins"></i> Мои ставки</h3>
-                        <div id="bets-list">
-                            <div class="empty-state">
-                                <i class="fas fa-chart-line"></i>
-                                <p>Ставок пока нет</p>
-                            </div>
-                        </div>
+                <!-- Модалка контракта -->
+                <div id="contract-modal" class="modal">
+                    <div class="modal-content glass-card contract-container">
+                        <!-- Контракт будет загружен через JS -->
                     </div>
                 </div>
             </div>
         </section>
     </main>
 
-    <!-- Навигационная панель -->
+    <!-- Навигационная панель (только 3 кнопки) -->
     <nav class="glass-nav">
         <div class="nav-container">
             <button class="nav-btn" data-page="home">
@@ -148,45 +204,11 @@
             </button>
             <div class="nav-divider"></div>
             
-            <button class="nav-btn" data-page="contract">
-                <i class="fas fa-file-contract"></i>
-            </button>
-            <div class="nav-divider"></div>
-            
             <button class="nav-btn" data-page="profile">
                 <i class="fas fa-user"></i>
             </button>
         </div>
     </nav>
-
-    <!-- Модальное окно регистрации -->
-    <div id="registration-modal" class="modal">
-        <div class="modal-content glass-card">
-            <h2>Добро пожаловать в EDM™ UFC!</h2>
-            <p style="text-align: center; margin-bottom: 20px; color: rgba(255,255,255,0.7);">
-                Зарегистрируйтесь для начала работы
-            </p>
-            
-            <div class="input-group">
-                <input type="text" id="reg-firstname" placeholder="Имя" required>
-                <input type="text" id="reg-lastname" placeholder="Фамилия" required>
-                <input type="text" id="reg-login" placeholder="Логин (для аккаунта со ставками)">
-                <input type="password" id="reg-password" placeholder="Пароль (для аккаунта со ставками)">
-                <small style="color: rgba(255,255,255,0.5); font-size: 0.9rem;">
-                    Логин и пароль нужны только для аккаунта со ставками (18+)
-                </small>
-            </div>
-            
-            <div class="modal-buttons">
-                <button id="register-btn" class="btn-primary">
-                    <i class="fas fa-user-plus"></i> Зарегистрироваться
-                </button>
-                <button id="skip-reg-btn" class="btn-secondary">
-                    <i class="fas fa-forward"></i> Продолжить как гость
-                </button>
-            </div>
-        </div>
-    </div>
 
     <!-- Загрузчик -->
     <div id="loader" class="loader">
@@ -194,6 +216,8 @@
         <div class="loader-text">Загрузка EDM™ UFC...</div>
     </div>
 
+    <!-- Система авторизации Telegram -->
+    <script src="telegram-auth.js"></script>
     <script src="data.js"></script>
     <script src="script.js"></script>
 </body>

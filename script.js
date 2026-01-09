@@ -1,1008 +1,289 @@
-// Основные переменные
-let currentUser = null;
-let currentPage = 'home';
-let bannerInterval = null;
-let isAdmin = false;
+/**
+ * Telegram Mini Apps - Система автоматической авторизации для EDM™ UFC
+ * Версия: 1.0
+ */
 
-// Инициализация при загрузке
-document.addEventListener('DOMContentLoaded', function() {
-    // Сразу скрываем loader
-    document.getElementById('loader').style.display = 'none';
-    
-    // Инициализация приложения
-    initializeApp();
-    setupEventListeners();
-    checkFirstVisit();
-    
-    // Устанавливаем активную страницу
-    switchPage('home');
-});
+class TelegramAuth {
+    constructor() {
+        this.tg = window.Telegram?.WebApp;
+        this.user = null;
+        this.isInitialized = false;
+        this.authCallbacks = [];
+    }
 
-function initializeApp() {
-    // Загружаем конфигурацию
-    loadAppConfig();
-    
-    // Проверяем авторизацию
-    checkAuth();
-    
-    // Загружаем контент
-    setTimeout(() => {
-        setupBanners();
-        loadVideos();
-        loadUpcomingFights();
-    }, 100);
-}
-
-function loadAppConfig() {
-    document.getElementById('app-title').textContent = APP_CONFIG.appName;
-    const logoImg = document.getElementById('app-logo');
-    logoImg.src = APP_CONFIG.logoUrl;
-    logoImg.onerror = function() {
-        this.src = 'https://via.placeholder.com/50/FF6B6B/FFFFFF?text=UFC';
-    };
-}
-
-function setupBanners() {
-    const container = document.querySelector('.banner-container');
-    if (!container) return;
-    
-    const banners = APP_CONFIG.banners.filter(b => b.active);
-    if (banners.length === 0) return;
-    
-    container.innerHTML = '';
-    
-    banners.forEach((banner, index) => {
-        const bannerDiv = document.createElement('div');
-        bannerDiv.className = `banner-slide ${index === 0 ? 'active' : ''}`;
-        bannerDiv.innerHTML = `
-            <a href="${banner.link}" target="_blank" class="banner-link">
-                <img src="${banner.imageUrl}" alt="Баннер ${index + 1}" onerror="this.src='https://via.placeholder.com/800x400/333/fff?text=Баннер'">
-            </a>
-        `;
-        container.appendChild(bannerDiv);
-    });
-    
-    // Автопереключение баннеров
-    if (banners.length > 1) {
-        let currentBanner = 0;
-        const slides = document.querySelectorAll('.banner-slide');
+    /**
+     * Инициализация системы авторизации
+     */
+    async init() {
+        // Сначала скрываем loader
+        document.getElementById('loader').style.display = 'none';
         
-        clearInterval(bannerInterval);
-        bannerInterval = setInterval(() => {
-            slides[currentBanner].classList.remove('active');
-            currentBanner = (currentBanner + 1) % slides.length;
-            slides[currentBanner].classList.add('active');
-        }, 10000);
-    }
-}
+        if (!this.tg) {
+            console.log('Telegram WebApp не найден. Запускаем в режиме разработки.');
+            return this.initDevMode();
+        }
 
-function loadVideos() {
-    const container = document.querySelector('.videos-grid');
-    if (!container) return;
-    
-    container.innerHTML = '';
-    
-    APP_CONFIG.fightVideos.forEach(video => {
-        const videoCard = document.createElement('div');
-        videoCard.className = 'video-card glass-card';
-        videoCard.innerHTML = `
-            <a href="${video.videoUrl}" target="_blank" class="video-link">
-                <img src="${video.thumbnail}" alt="${video.title}" class="video-thumbnail" 
-                     onerror="this.src='https://via.placeholder.com/400x225/333/fff?text=Бой'">
-                <h3>${video.title}</h3>
-                <p class="video-description">${video.description}</p>
-                <div class="video-date">${video.date}</div>
-            </a>
-        `;
-        container.appendChild(videoCard);
-    });
-}
-
-function loadUpcomingFights() {
-    const container = document.querySelector('.fights-list');
-    if (!container) return;
-    
-    container.innerHTML = '';
-    
-    APP_CONFIG.upcomingFights.forEach(fight => {
-        const fightCard = document.createElement('div');
-        fightCard.className = 'fight-card glass-card';
-        fightCard.innerHTML = `
-            <h3>${fight.fighters.join(' vs ')}</h3>
-            <p><i class="far fa-calendar"></i> ${fight.date} ${fight.time}</p>
-            <p><i class="fas fa-map-marker-alt"></i> ${fight.place}</p>
-            <p><i class="fas fa-ticket-alt"></i> Билет: ${fight.ticketPrice} руб.</p>
-            <button class="btn-primary buy-ticket-btn" data-fight-id="${fight.id}">
-                Купить билет
-            </button>
-        `;
-        container.appendChild(fightCard);
-    });
-}
-
-function checkFirstVisit() {
-    const hasVisited = localStorage.getItem('hasVisited');
-    if (!hasVisited) {
-        setTimeout(() => {
-            showRegistrationModal();
-        }, 500);
-        localStorage.setItem('hasVisited', 'true');
-    }
-}
-
-function showRegistrationModal() {
-    const modal = document.getElementById('registration-modal');
-    if (modal) {
-        modal.classList.add('active');
-    }
-}
-
-function setupEventListeners() {
-    // Навигация - исправленная версия
-    document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            const page = this.getAttribute('data-page');
-            console.log('Переключение на страницу:', page);
+        try {
+            // Инициализируем Telegram WebApp
+            this.tg.expand();
+            this.tg.ready();
             
-            // Убираем активный класс у всех кнопок
-            document.querySelectorAll('.nav-btn').forEach(b => {
-                b.classList.remove('active');
-            });
+            // Получаем данные пользователя
+            await this.loadUserData();
             
-            // Добавляем активный класс текущей кнопке
-            this.classList.add('active');
+            // Сохраняем в localStorage
+            this.saveUserToStorage();
             
-            // Переключаем страницу
-            switchPage(page);
-        });
-    });
-    
-    // Регистрация
-    const registerBtn = document.getElementById('register-btn');
-    const skipRegBtn = document.getElementById('skip-reg-btn');
-    
-    if (registerBtn) {
-        registerBtn.addEventListener('click', registerUser);
+            this.isInitialized = true;
+            
+            // Вызываем все колбэки авторизации
+            this.authCallbacks.forEach(callback => callback(this.user));
+            
+            console.log('Telegram Auth: Пользователь успешно авторизован', this.user);
+            return this.user;
+            
+        } catch (error) {
+            console.error('Telegram Auth: Ошибка инициализации', error);
+            return this.initDevMode();
+        }
     }
-    
-    if (skipRegBtn) {
-        skipRegBtn.addEventListener('click', function() {
-            const modal = document.getElementById('registration-modal');
-            if (modal) {
-                modal.classList.remove('active');
+
+    /**
+     * Загрузка данных пользователя из Telegram
+     */
+    async loadUserData() {
+        if (!this.tg || !this.tg.initDataUnsafe) {
+            throw new Error('Данные Telegram не доступны');
+        }
+
+        const tgUser = this.tg.initDataUnsafe.user;
+        
+        if (!tgUser) {
+            throw new Error('Данные пользователя не найдены');
+        }
+
+        // Создаем объект пользователя
+        this.user = {
+            id: tgUser.id,
+            is_bot: tgUser.is_bot || false,
+            first_name: tgUser.first_name || 'Пользователь',
+            last_name: tgUser.last_name || '',
+            username: tgUser.username || `user_${tgUser.id}`,
+            language_code: tgUser.language_code || 'ru',
+            is_premium: tgUser.is_premium || false,
+            photo_url: tgUser.photo_url || null,
+            
+            // Дополнительные данные для приложения
+            app_data: {
+                registration_date: new Date().toISOString(),
+                last_login: new Date().toISOString(),
+                session_id: this.generateSessionId()
             }
-            // Создаем гостевой аккаунт
-            currentUser = {
-                firstName: 'Гость',
-                lastName: '',
-                isAdultAccount: false,
-                isAdmin: false,
-                avatar: 'assets/default-avatar.png'
+        };
+
+        // Проверяем, есть ли сохраненные данные в localStorage
+        const savedUser = this.getUserFromStorage();
+        if (savedUser && savedUser.id === this.user.id) {
+            // Объединяем с сохраненными данными
+            this.user.app_data = { ...savedUser.app_data, ...this.user.app_data };
+            this.user.app_data.last_login = new Date().toISOString();
+        }
+
+        return this.user;
+    }
+
+    /**
+     * Режим разработки (когда приложение запущено вне Telegram)
+     */
+    initDevMode() {
+        // Проверяем, есть ли сохраненный пользователь
+        const savedUser = this.getUserFromStorage();
+        if (savedUser) {
+            this.user = savedUser;
+            this.user.app_data.last_login = new Date().toISOString();
+        } else {
+            // Создаем тестового пользователя
+            this.user = {
+                id: Date.now(),
+                is_bot: false,
+                first_name: 'Тестовый',
+                last_name: 'Пользователь',
+                username: 'test_user',
+                language_code: 'ru',
+                is_premium: false,
+                photo_url: null,
+                
+                app_data: {
+                    registration_date: new Date().toISOString(),
+                    last_login: new Date().toISOString(),
+                    session_id: this.generateSessionId()
+                }
             };
-            updateProfileDisplay();
-        });
+        }
+
+        this.saveUserToStorage();
+        this.isInitialized = true;
+        
+        console.log('Telegram Auth: Режим разработки активирован', this.user);
+        return this.user;
     }
-    
-    // Профиль
-    const saveProfileBtn = document.getElementById('save-profile-btn');
-    const loginBetsBtn = document.getElementById('login-bets-btn');
-    const logoutBetsBtn = document.getElementById('logout-bets-btn');
-    
-    if (saveProfileBtn) {
-        saveProfileBtn.addEventListener('click', saveProfile);
+
+    /**
+     * Сохранение пользователя в localStorage
+     */
+    saveUserToStorage() {
+        if (!this.user) return;
+        
+        try {
+            localStorage.setItem('tg_user', JSON.stringify(this.user));
+            localStorage.setItem('tg_user_id', this.user.id.toString());
+        } catch (error) {
+            console.error('Telegram Auth: Ошибка сохранения в localStorage', error);
+        }
     }
-    
-    if (loginBetsBtn) {
-        loginBetsBtn.addEventListener('click', loginWithBets);
+
+    /**
+     * Загрузка пользователя из localStorage
+     */
+    getUserFromStorage() {
+        try {
+            const userData = localStorage.getItem('tg_user');
+            return userData ? JSON.parse(userData) : null;
+        } catch (error) {
+            console.error('Telegram Auth: Ошибка загрузки из localStorage', error);
+            return null;
+        }
     }
-    
-    if (logoutBetsBtn) {
-        logoutBetsBtn.addEventListener('click', logoutBets);
+
+    /**
+     * Генерация ID сессии
+     */
+    generateSessionId() {
+        return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     }
-    
-    // Покупка билетов
-    document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('buy-ticket-btn')) {
-            const fightId = e.target.getAttribute('data-fight-id');
-            buyTicket(fightId);
+
+    /**
+     * Получение данных текущего пользователя
+     */
+    getUser() {
+        if (!this.isInitialized) {
+            return this.getUserFromStorage();
+        }
+        return this.user;
+    }
+
+    /**
+     * Получение ID пользователя
+     */
+    getUserId() {
+        return this.user?.id || localStorage.getItem('tg_user_id');
+    }
+
+    /**
+     * Получение имени пользователя
+     */
+    getUserName() {
+        if (!this.user) return 'Гость';
+        
+        if (this.user.first_name && this.user.last_name) {
+            return `${this.user.first_name} ${this.user.last_name}`;
+        }
+        return this.user.first_name || this.user.username || 'Пользователь';
+    }
+
+    /**
+     * Получение аватара пользователя
+     */
+    getUserAvatar() {
+        if (!this.user) return null;
+        
+        // Если есть фото из Telegram
+        if (this.user.photo_url) {
+            return this.user.photo_url;
         }
         
-        // Открытие видео
-        if (e.target.closest('.video-link')) {
-            e.preventDefault();
-            const link = e.target.closest('.video-link').href;
-            window.open(link, '_blank');
+        // Генерируем аватар на основе имени
+        const name = this.user.first_name || this.user.username || 'U';
+        const initial = name.charAt(0).toUpperCase();
+        return `https://ui-avatars.com/api/?name=${encodeURIComponent(initial)}&background=FF6B6B&color=fff&size=200`;
+    }
+
+    /**
+     * Показ анимации приветствия
+     */
+    showWelcomeAnimation() {
+        const welcomeEl = document.getElementById('telegram-welcome');
+        const avatarEl = document.getElementById('welcome-avatar');
+        const nameEl = document.getElementById('welcome-name');
+        const idEl = document.getElementById('welcome-id');
+        
+        if (!welcomeEl || !this.user) return;
+        
+        // Устанавливаем данные
+        const avatarUrl = this.getUserAvatar();
+        if (avatarUrl) {
+            avatarEl.src = avatarUrl;
+            avatarEl.onerror = function() {
+                this.src = 'https://via.placeholder.com/200/FF6B6B/FFFFFF?text=' + 
+                          (window.TelegramAuth.user?.first_name?.charAt(0) || 'U');
+            };
         }
         
-        // Открытие баннера
-        if (e.target.closest('.banner-link')) {
-            e.preventDefault();
-            const link = e.target.closest('.banner-link').href;
-            window.open(link, '_blank');
-        }
-    });
-    
-    // Защита от копирования (без уведомления)
-    document.addEventListener('contextmenu', function(e) {
-        e.preventDefault();
-        return false;
-    });
-    
-    document.addEventListener('selectstart', function(e) {
-        e.preventDefault();
-        return false;
-    });
-    
-    // Отключение drag&drop для изображений
-    document.addEventListener('dragstart', function(e) {
-        if (e.target.tagName === 'IMG') {
-            e.preventDefault();
+        nameEl.textContent = this.getUserName();
+        idEl.textContent = `ID: ${this.user.id}`;
+        
+        // Показываем анимацию
+        welcomeEl.classList.add('active');
+        
+        // Скрываем через 2.5 секунды
+        setTimeout(() => {
+            welcomeEl.classList.remove('active');
+        }, 2500);
+    }
+
+    /**
+     * Обновление данных пользователя
+     */
+    updateUserData(updates) {
+        if (!this.user) return false;
+        
+        try {
+            Object.assign(this.user, updates);
+            this.saveUserToStorage();
+            return true;
+        } catch (error) {
+            console.error('Telegram Auth: Ошибка обновления данных', error);
             return false;
         }
-    });
-    
-    // Изменение аватарки
-    const changeAvatarBtn = document.querySelector('.change-avatar-btn');
-    if (changeAvatarBtn) {
-        changeAvatarBtn.addEventListener('click', changeAvatar);
     }
-    
-    // Закрытие модалки при клике вне её
-    document.addEventListener('click', function(e) {
-        const modal = document.getElementById('registration-modal');
-        if (modal && modal.classList.contains('active') && e.target === modal) {
-            modal.classList.remove('active');
-        }
-    });
-    
-    // Кнопка просмотра статистики
-    document.addEventListener('click', function(e) {
-        if (e.target.id === 'view-stats-btn') {
-            viewStatistics();
-        }
+
+    /**
+     * Добавление обработчика авторизации
+     */
+    onAuth(callback) {
+        if (typeof callback !== 'function') return;
         
-        if (e.target.id === 'back-to-profile-btn') {
-            switchPage('profile');
-        }
-    });
-}
-
-function switchPage(page) {
-    console.log('Переключение страницы на:', page);
-    
-    // Скрываем все страницы
-    document.querySelectorAll('.page').forEach(p => {
-        p.classList.remove('active');
-        p.style.display = 'none';
-    });
-    
-    // Показываем выбранную страницу
-    const targetPage = document.getElementById(`${page}-page`);
-    if (targetPage) {
-        targetPage.style.display = 'block';
-        setTimeout(() => {
-            targetPage.classList.add('active');
-        }, 10);
-    }
-    
-    currentPage = page;
-    
-    // Загружаем контент для страницы
-    setTimeout(() => {
-        if (page === 'contract') {
-            loadContractContent();
-        } else if (page === 'profile') {
-            loadProfileData();
-        } else if (page === 'videos') {
-            loadVideos();
-        } else if (page === 'home') {
-            loadUpcomingFights();
-            setupBanners();
-        }
-    }, 100);
-}
-
-function registerUser() {
-    const firstName = document.getElementById('reg-firstname')?.value.trim() || 'Пользователь';
-    const lastName = document.getElementById('reg-lastname')?.value.trim() || '';
-    
-    // Создаем пользователя
-    currentUser = {
-        firstName,
-        lastName,
-        isAdultAccount: false,
-        isAdmin: false,
-        avatar: 'https://via.placeholder.com/200/FF6B6B/FFFFFF?text=' + firstName.charAt(0)
-    };
-    
-    // Сохраняем в localStorage
-    localStorage.setItem('currentUser', JSON.stringify(currentUser));
-    
-    // Обновляем профиль
-    updateProfileDisplay();
-    
-    // Закрываем модалку
-    const modal = document.getElementById('registration-modal');
-    if (modal) {
-        modal.classList.remove('active');
-    }
-    
-    showNotification('Регистрация успешна!', 'success');
-}
-
-function saveProfile() {
-    const firstName = document.getElementById('input-firstname')?.value.trim();
-    const lastName = document.getElementById('input-lastname')?.value.trim();
-    
-    if (currentUser) {
-        currentUser.firstName = firstName || currentUser.firstName;
-        currentUser.lastName = lastName || currentUser.lastName;
+        this.authCallbacks.push(callback);
         
-        localStorage.setItem('currentUser', JSON.stringify(currentUser));
-        updateProfileDisplay();
-        showNotification('Профиль обновлен!', 'success');
-    }
-}
-
-function loginWithBets() {
-    const login = document.getElementById('input-login')?.value.trim();
-    const password = document.getElementById('input-password')?.value.trim();
-    
-    if (!login || !password) {
-        showNotification('Введите логин и пароль!', 'error');
-        return;
-    }
-    
-    // Проверяем в базе данных
-    const adultAccount = APP_CONFIG.adultAccounts.find(
-        acc => acc.login === login && acc.password === password
-    );
-    
-    if (adultAccount) {
-        // Обновляем текущего пользователя
-        if (currentUser) {
-            currentUser.isAdultAccount = true;
-            currentUser.betsAllowed = true;
-            currentUser.originalFirstName = currentUser.firstName;
-            currentUser.originalLastName = currentUser.lastName;
-            currentUser.firstName = adultAccount.firstName;
-            currentUser.lastName = adultAccount.lastName;
-            currentUser.adultLogin = login;
-            currentUser.isAdmin = adultAccount.isAdmin || false;
-            isAdmin = adultAccount.isAdmin || false;
-        } else {
-            currentUser = {
-                firstName: adultAccount.firstName,
-                lastName: adultAccount.lastName,
-                isAdultAccount: true,
-                betsAllowed: true,
-                isAdmin: adultAccount.isAdmin || false,
-                adultLogin: login,
-                avatar: 'https://via.placeholder.com/200/4ECDC4/FFFFFF?text=' + adultAccount.firstName.charAt(0)
-            };
-            isAdmin = adultAccount.isAdmin || false;
-        }
-        
-        localStorage.setItem('currentUser', JSON.stringify(currentUser));
-        updateProfileDisplay();
-        showNotification('Вход в аккаунт выполнен!', 'success');
-        
-        // Обновляем страницу контракта если она открыта
-        if (currentPage === 'contract') {
-            loadContractContent();
-        }
-    } else {
-        showNotification('Неверный логин или пароль!', 'error');
-    }
-}
-
-function logoutBets() {
-    if (currentUser && currentUser.isAdultAccount) {
-        // Возвращаем оригинальное имя
-        if (currentUser.originalFirstName && currentUser.originalLastName) {
-            currentUser.firstName = currentUser.originalFirstName;
-            currentUser.lastName = currentUser.originalLastName;
-        }
-        
-        currentUser.isAdultAccount = false;
-        currentUser.betsAllowed = false;
-        currentUser.isAdmin = false;
-        isAdmin = false;
-        delete currentUser.adultLogin;
-        
-        localStorage.setItem('currentUser', JSON.stringify(currentUser));
-        updateProfileDisplay();
-        showNotification('Вы вышли из аккаунта', 'info');
-        
-        // Обновляем страницу контракта если она открыта
-        if (currentPage === 'contract') {
-            loadContractContent();
+        if (this.isInitialized && this.user) {
+            callback(this.user);
         }
     }
-}
 
-function loadContractContent() {
-    const container = document.getElementById('contract-content');
-    if (!container) return;
-    
-    if (currentUser && currentUser.isAdultAccount && currentUser.adultLogin) {
-        // Показываем контракт для взрослого аккаунта
-        const login = currentUser.adultLogin;
-        const contractUrl = APP_CONFIG.contracts[login] || 'https://via.placeholder.com/800x1131/FFFFFF/000000?text=Контракт';
-        
-        container.innerHTML = `
-            <div class="contract-container">
-                <h2><i class="fas fa-file-signature"></i> Ваш контракт</h2>
-                <div class="contract-image-container">
-                    <img src="${contractUrl}" alt="Контракт" class="contract-image"
-                         onerror="this.src='https://via.placeholder.com/800x1131/FFFFFF/000000?text=Контракт'">
-                </div>
-                <div class="contract-actions">
-                    <button class="btn-primary" onclick="downloadContract()">
-                        <i class="fas fa-download"></i> Скачать контракт
-                    </button>
-                </div>
-            </div>
-        `;
-    } else {
-        // Показываем форму анкеты для школьников
-        container.innerHTML = `
-            <div class="application-form">
-                <h2><i class="fas fa-edit"></i> Анкета для участия в боях</h2>
-                <p class="form-subtitle">Заполните анкету для участия в школьных боях</p>
-                
-                <div class="form-section">
-                    <h3><i class="fas fa-user"></i> Личная информация</h3>
-                    <div class="input-group">
-                        <input type="text" id="app-fullname" placeholder="ФИО" required>
-                        <input type="date" id="app-birthdate" required>
-                        <div class="input-row">
-                            <input type="number" id="app-height" placeholder="Рост (см)" required>
-                            <input type="number" id="app-weight" placeholder="Вес (кг)" required>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="form-section">
-                    <h3><i class="fas fa-dumbbell"></i> Спортивные данные</h3>
-                    <div class="input-group">
-                        <textarea id="app-experience" placeholder="Опыт в единоборствах" rows="2"></textarea>
-                        <textarea id="app-achievements" placeholder="Достижения в спорте" rows="2"></textarea>
-                    </div>
-                </div>
-                
-                <div class="form-section">
-                    <h3><i class="fas fa-heartbeat"></i> Состояние здоровья</h3>
-                    <div class="input-group">
-                        <textarea id="app-health" placeholder="Состояние здоровья, противопоказания" rows="3" required></textarea>
-                    </div>
-                </div>
-                
-                <div class="form-section">
-                    <h3><i class="fas fa-phone"></i> Контактная информация</h3>
-                    <div class="input-group">
-                        <input type="tel" id="app-contact" placeholder="Контактный телефон" required>
-                        <input type="email" id="app-email" placeholder="Email (необязательно)">
-                    </div>
-                </div>
-                
-                <div class="form-section">
-                    <h3><i class="fas fa-calendar-alt"></i> Запись на занятия</h3>
-                    <div class="input-group">
-                        <select id="training-type">
-                            <option value="">Выберите тип занятий</option>
-                            <option value="boxing">Бокс (Ислям Нариманович)</option>
-                            <option value="mma">MMA</option>
-                            <option value="wrestling">Борьба</option>
-                            <option value="hosting">Хостинг</option>
-                        </select>
-                        <input type="date" id="training-date" required>
-                    </div>
-                </div>
-                
-                <div class="form-actions">
-                    <button class="btn-primary" onclick="submitApplication()">
-                        <i class="fas fa-paper-plane"></i> Отправить анкету
-                    </button>
-                    <button class="btn-secondary" onclick="clearForm()">
-                        <i class="fas fa-eraser"></i> Очистить форму
-                    </button>
-                </div>
-                
-                <p class="form-note">
-                    <i class="fas fa-info-circle"></i> После отправки анкеты мы свяжемся с вами в Telegram
-                </p>
-            </div>
-        `;
-        
-        // Устанавливаем минимальную дату для записи (завтра)
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        const minDate = tomorrow.toISOString().split('T')[0];
-        setTimeout(() => {
-            const dateInput = document.getElementById('training-date');
-            if (dateInput) {
-                dateInput.min = minDate;
-                dateInput.value = minDate;
-            }
-        }, 100);
+    /**
+     * Проверка, авторизован ли пользователь
+     */
+    isAuthenticated() {
+        return !!this.user && this.isInitialized;
+    }
+
+    /**
+     * Проверка, запущено ли в Telegram
+     */
+    isInTelegram() {
+        return !!this.tg;
     }
 }
 
-function submitApplication() {
-    // Собираем данные анкеты
-    const application = {
-        fullName: document.getElementById('app-fullname')?.value,
-        birthDate: document.getElementById('app-birthdate')?.value,
-        height: document.getElementById('app-height')?.value,
-        weight: document.getElementById('app-weight')?.value,
-        achievements: document.getElementById('app-achievements')?.value,
-        healthInfo: document.getElementById('app-health')?.value,
-        experience: document.getElementById('app-experience')?.value,
-        contact: document.getElementById('app-contact')?.value,
-        email: document.getElementById('app-email')?.value,
-        trainingType: document.getElementById('training-type')?.value,
-        trainingDate: document.getElementById('training-date')?.value,
-        submissionDate: new Date().toLocaleString('ru-RU'),
-        userId: currentUser ? currentUser.firstName + ' ' + currentUser.lastName : 'Аноним'
-    };
-    
-    // Проверяем обязательные поля
-    if (!application.fullName || !application.birthDate || !application.contact) {
-        showNotification('Заполните обязательные поля!', 'error');
-        return;
-    }
-    
-    // Сохраняем в localStorage
-    const applications = JSON.parse(localStorage.getItem('applications') || '[]');
-    applications.push(application);
-    localStorage.setItem('applications', JSON.stringify(applications));
-    
-    // Показываем успешное сообщение
-    showNotification('✅ Анкета отправлена! Мы свяжемся с вами в Telegram.', 'success');
-    
-    // Очищаем форму через 2 секунды
-    setTimeout(clearForm, 2000);
-}
-
-function clearForm() {
-    const inputs = document.querySelectorAll('#contract-content input, #contract-content textarea, #contract-content select');
-    inputs.forEach(input => {
-        if (input.type !== 'button') {
-            input.value = '';
-        }
-    });
-}
-
-function buyTicket(fightId) {
-    const fight = APP_CONFIG.upcomingFights.find(f => f.id == fightId);
-    if (!fight) return;
-    
-    const ticket = {
-        id: Date.now(),
-        fightId: fightId,
-        fighters: fight.fighters,
-        date: fight.date,
-        time: fight.time,
-        place: fight.place,
-        price: fight.ticketPrice,
-        purchaseDate: new Date().toLocaleDateString('ru-RU'),
-        purchaseTime: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
-    };
-    
-    // Сохраняем билет
-    const tickets = JSON.parse(localStorage.getItem('tickets') || '[]');
-    tickets.push(ticket);
-    localStorage.setItem('tickets', JSON.stringify(tickets));
-    
-    showNotification(`✅ Билет куплен! ${fight.ticketPrice} руб.`, 'success');
-    
-    // Обновляем список билетов в профиле
-    loadProfileData();
-}
-
-function loadProfileData() {
-    if (!currentUser) {
-        // Создаем гостевой аккаунт если нет пользователя
-        currentUser = {
-            firstName: 'Гость',
-            lastName: '',
-            isAdultAccount: false,
-            isAdmin: false,
-            avatar: 'https://via.placeholder.com/200/333/FFFFFF?text=G'
-        };
-    }
-    
-    // Обновляем данные пользователя
-    updateProfileDisplay();
-    
-    // Загружаем билеты
-    loadTickets();
-    
-    // Загружаем ставки
-    loadBets();
-    
-    // Показываем кнопку статистики если админ
-    showAdminButton();
-}
-
-function updateProfileDisplay() {
-    if (currentUser) {
-        const userName = document.getElementById('user-name');
-        const userStatus = document.getElementById('user-status');
-        const userAvatar = document.getElementById('user-avatar');
-        
-        if (userName) {
-            userName.textContent = `${currentUser.firstName} ${currentUser.lastName}`.trim();
-        }
-        
-        if (userStatus) {
-            if (currentUser.isAdmin) {
-                userStatus.innerHTML = '<i class="fas fa-crown"></i> Администратор';
-                userStatus.style.color = '#9D50BB';
-            } else if (currentUser.isAdultAccount) {
-                userStatus.innerHTML = '<i class="fas fa-check-circle"></i> Аккаунт со ставками (18+)';
-                userStatus.style.color = '#4ECDC4';
-            } else {
-                userStatus.innerHTML = '<i class="fas fa-user-graduate"></i> Школьный аккаунт';
-                userStatus.style.color = '#FFD166';
-            }
-        }
-        
-        if (userAvatar && currentUser.avatar) {
-            userAvatar.src = currentUser.avatar;
-        }
-        
-        // Обновляем поля ввода
-        const inputFirstName = document.getElementById('input-firstname');
-        const inputLastName = document.getElementById('input-lastname');
-        
-        if (inputFirstName) inputFirstName.value = currentUser.firstName || '';
-        if (inputLastName) inputLastName.value = currentUser.lastName || '';
-        
-        // Показываем/скрываем кнопки
-        const logoutBetsBtn = document.getElementById('logout-bets-btn');
-        if (logoutBetsBtn) {
-            logoutBetsBtn.style.display = currentUser.isAdultAccount ? 'block' : 'none';
-        }
-    }
-}
-
-function showAdminButton() {
-    const profileActions = document.querySelector('.profile-actions');
-    if (!profileActions) return;
-    
-    // Удаляем старую кнопку статистики если есть
-    const oldStatsBtn = document.getElementById('admin-stats-card');
-    if (oldStatsBtn) oldStatsBtn.remove();
-    
-    // Добавляем кнопку статистики если админ
-    if (currentUser && currentUser.isAdmin) {
-        const adminCard = document.createElement('div');
-        adminCard.id = 'admin-stats-card';
-        adminCard.className = 'action-card glass-card';
-        adminCard.innerHTML = `
-            <h3><i class="fas fa-chart-bar"></i> Административная панель</h3>
-            <button id="view-stats-btn" class="btn-admin">
-                <i class="fas fa-chart-line"></i> Просмотр статистики
-            </button>
-        `;
-        profileActions.prepend(adminCard);
-    }
-}
-
-function viewStatistics() {
-    // Получаем данные из localStorage
-    const tickets = JSON.parse(localStorage.getItem('tickets') || '[]');
-    const applications = JSON.parse(localStorage.getItem('applications') || '[]');
-    const bets = JSON.parse(localStorage.getItem('bets') || '[]');
-    
-    // Считаем статистику
-    const totalRevenue = tickets.reduce((sum, ticket) => sum + (ticket.price || 0), 0);
-    const totalApplications = applications.length;
-    const totalBets = bets.length;
-    const activeUsers = new Set([
-        ...tickets.map(t => t.userId),
-        ...applications.map(a => a.userId),
-        ...bets.map(b => b.userId)
-    ]).size;
-    
-    // Создаем страницу статистики
-    const statsPage = document.createElement('div');
-    statsPage.id = 'stats-page';
-    statsPage.className = 'page active';
-    statsPage.innerHTML = `
-        <div class="stats-container">
-            <h2><i class="fas fa-chart-bar"></i> Статистика системы</h2>
-            
-            <div class="stats-grid">
-                <div class="stat-card glass-card">
-                    <div class="stat-value">${tickets.length}</div>
-                    <div class="stat-label">Продано билетов</div>
-                </div>
-                
-                <div class="stat-card glass-card">
-                    <div class="stat-value">${totalRevenue} руб.</div>
-                    <div class="stat-label">Общая выручка</div>
-                </div>
-                
-                <div class="stat-card glass-card">
-                    <div class="stat-value">${totalApplications}</div>
-                    <div class="stat-label">Заявок на участие</div>
-                </div>
-                
-                <div class="stat-card glass-card">
-                    <div class="stat-value">${totalBets}</div>
-                    <div class="stat-label">Совершено ставок</div>
-                </div>
-                
-                <div class="stat-card glass-card">
-                    <div class="stat-value">${activeUsers}</div>
-                    <div class="stat-label">Активных пользователей</div>
-                </div>
-                
-                <div class="stat-card glass-card">
-                    <div class="stat-value">${APP_CONFIG.adultAccounts.length}</div>
-                    <div class="stat-label">Аккаунтов со ставками</div>
-                </div>
-            </div>
-            
-            <div class="detailed-stats glass-card" style="padding: 25px; margin-top: 30px;">
-                <h3><i class="fas fa-list"></i> Подробная статистика</h3>
-                
-                <div style="margin-top: 20px;">
-                    <h4>Последние билеты:</h4>
-                    ${tickets.slice(-5).map(ticket => `
-                        <div style="margin: 10px 0; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px;">
-                            ${ticket.fighters.join(' vs ')} - ${ticket.price} руб. (${ticket.purchaseDate})
-                        </div>
-                    `).join('')}
-                </div>
-                
-                <div style="margin-top: 20px;">
-                    <h4>Последние заявки:</h4>
-                    ${applications.slice(-5).map(app => `
-                        <div style="margin: 10px 0; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px;">
-                            ${app.fullName} - ${app.trainingType} (${app.submissionDate})
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-            
-            <div style="margin-top: 30px;">
-                <button id="back-to-profile-btn" class="btn-primary">
-                    <i class="fas fa-arrow-left"></i> Назад к профилю
-                </button>
-            </div>
-        </div>
-    `;
-    
-    // Скрываем текущую страницу и показываем статистику
-    document.querySelectorAll('.page').forEach(p => {
-        p.classList.remove('active');
-        p.style.display = 'none';
-    });
-    
-    document.getElementById('main-content').appendChild(statsPage);
-}
-
-function loadTickets() {
-    const container = document.getElementById('tickets-list');
-    if (!container) return;
-    
-    const tickets = JSON.parse(localStorage.getItem('tickets') || '[]');
-    
-    if (tickets.length === 0) {
-        container.innerHTML = '<div class="empty-state"><i class="fas fa-ticket-alt"></i><p>Билетов пока нет</p></div>';
-        return;
-    }
-    
-    container.innerHTML = tickets.map(ticket => `
-        <div class="ticket-item glass-card">
-            <div class="ticket-header">
-                <h4>${ticket.fighters.join(' vs ')}</h4>
-                <span class="ticket-price">${ticket.price} руб.</span>
-            </div>
-            <div class="ticket-details">
-                <p><i class="far fa-calendar"></i> ${ticket.date} ${ticket.time}</p>
-                <p><i class="fas fa-map-marker-alt"></i> ${ticket.place}</p>
-                <p><i class="far fa-clock"></i> Куплен: ${ticket.purchaseDate} ${ticket.purchaseTime}</p>
-            </div>
-        </div>
-    `).join('');
-}
-
-function loadBets() {
-    const container = document.getElementById('bets-list');
-    if (!container) return;
-    
-    if (!currentUser || !currentUser.isAdultAccount) {
-        container.innerHTML = '<div class="empty-state"><i class="fas fa-ban"></i><p>Ставки доступны только для аккаунтов 18+</p></div>';
-        return;
-    }
-    
-    const bets = JSON.parse(localStorage.getItem('bets') || '[]');
-    const userBets = bets.filter(bet => bet.userId === currentUser.adultLogin);
-    
-    if (userBets.length === 0) {
-        container.innerHTML = '<div class="empty-state"><i class="fas fa-chart-line"></i><p>Ставок пока нет</p></div>';
-        return;
-    }
-    
-    container.innerHTML = userBets.map(bet => `
-        <div class="bet-item glass-card">
-            <div class="bet-header">
-                <h4>${bet.fight}</h4>
-                <span class="bet-amount">${bet.amount} руб.</span>
-            </div>
-            <div class="bet-details">
-                <p><i class="fas fa-user"></i> Ставка на: ${bet.fighter}</p>
-                <p><i class="fas fa-percentage"></i> Коэффициент: ${bet.odds}x</p>
-                <p class="bet-status ${bet.status}">
-                    <i class="fas fa-${bet.status === 'win' ? 'check-circle' : bet.status === 'lose' ? 'times-circle' : 'clock'}"></i>
-                    ${bet.status === 'win' ? 'Выигрыш' : bet.status === 'lose' ? 'Проигрыш' : 'Ожидание'}
-                </p>
-            </div>
-        </div>
-    `).join('');
-}
-
-function changeAvatar() {
-    // Генерируем случайный цвет для аватара
-    const colors = [
-        'linear-gradient(135deg, #FF6B6B, #FF8E53)',
-        'linear-gradient(135deg, #4ECDC4, #44A08D)',
-        'linear-gradient(135deg, #FFD166, #FFB347)',
-        'linear-gradient(135deg, #06D6A0, #05B384)',
-        'linear-gradient(135deg, #118AB2, #0A6A8A)'
-    ];
-    
-    const randomColor = colors[Math.floor(Math.random() * colors.length)];
-    
-    // Создаем canvas для аватара
-    const canvas = document.createElement('canvas');
-    canvas.width = 200;
-    canvas.height = 200;
-    const ctx = canvas.getContext('2d');
-    
-    // Градиентный фон
-    const gradient = ctx.createLinearGradient(0, 0, 200, 200);
-    gradient.addColorStop(0, randomColor.split(',')[0].split('(')[1].trim());
-    gradient.addColorStop(1, randomColor.split(',')[2].split(')')[0].trim());
-    
-    ctx.fillStyle = gradient;
-    ctx.beginPath();
-    ctx.arc(100, 100, 100, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Добавляем инициалы
-    if (currentUser) {
-        ctx.fillStyle = '#FFFFFF';
-        ctx.font = 'bold 80px Arial, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        const initials = (currentUser.firstName[0] + (currentUser.lastName[0] || '')).toUpperCase();
-        ctx.fillText(initials, 100, 100);
-    }
-    
-    // Преобразуем в data URL
-    const dataUrl = canvas.toDataURL('image/png');
-    
-    // Сохраняем
-    const userAvatar = document.getElementById('user-avatar');
-    if (userAvatar) {
-        userAvatar.src = dataUrl;
-    }
-    
-    if (currentUser) {
-        currentUser.avatar = dataUrl;
-        localStorage.setItem('currentUser', JSON.stringify(currentUser));
-    }
-    
-    showNotification('Аватар обновлен!', 'success');
-}
-
-function checkAuth() {
-    const savedUser = localStorage.getItem('currentUser');
-    if (savedUser) {
-        try {
-            currentUser = JSON.parse(savedUser);
-            updateProfileDisplay();
-        } catch (e) {
-            console.error('Ошибка загрузки пользователя:', e);
-            currentUser = null;
-        }
-    }
-}
-
-function showNotification(message, type = 'info') {
-    // Удаляем старые уведомления
-    const oldNotifications = document.querySelectorAll('.notification');
-    oldNotifications.forEach(n => n.remove());
-    
-    // Создаем новое уведомление
-    const notification = document.createElement('div');
-    notification.className = `notification notification-${type}`;
-    notification.innerHTML = `
-        <div class="notification-content">
-            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
-            <span>${message}</span>
-        </div>
-    `;
-    
-    document.body.appendChild(notification);
-    
-    // Показываем уведомление
-    setTimeout(() => {
-        notification.classList.add('show');
-    }, 10);
-    
-    // Удаляем через 3 секунды
-    setTimeout(() => {
-        notification.classList.remove('show');
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.remove();
-            }
-        }, 300);
-    }, 3000);
-}
-
-// Вспомогательные функции
-function downloadContract() {
-    if (!currentUser || !currentUser.adultLogin) return;
-    
-    const contractUrl = APP_CONFIG.contracts[currentUser.adultLogin];
-    if (!contractUrl) {
-        showNotification('Контракт не найден!', 'error');
-        return;
-    }
-    
-    const link = document.createElement('a');
-    link.href = contractUrl;
-    link.download = `Контракт_${currentUser.firstName}_${currentUser.lastName}.jpg`;
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
-// Инициализация при загрузке
-window.addEventListener('load', function() {
-    // Гарантированно скрываем loader
-    setTimeout(() => {
-        const loader = document.getElementById('loader');
-        if (loader) {
-            loader.style.display = 'none';
-        }
-    }, 500);
-    
-    // Адаптируем размеры для мобильных
-    adaptLayout();
-    
-    // Устанавливаем активную навигационную кнопку
-    document.querySelector('.nav-btn[data-page="home"]').classList.add('active');
-});
-
-// Адаптация layout под устройство
-function adaptLayout() {
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    const isTablet = /iPad|Tablet|PlayBook|Silk/i.test(navigator.userAgent) || 
-                     (window.innerWidth >= 600 && window.innerWidth <= 1024);
-    
-    document.body.classList.toggle('mobile', isMobile);
-    document.body.classList.toggle('tablet', isTablet);
-    document.body.classList.toggle('desktop', !isMobile && !isTablet);
-    
-    // Корректируем размеры для iOS
-    if (/(iPhone|iPod|iPad)/i.test(navigator.userAgent)) {
-        const viewport = document.querySelector('meta[name="viewport"]');
-        if (viewport) {
-            viewport.content = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no';
-        }
-    }
-}
-
-// Ресайз окна
-window.addEventListener('resize', adaptLayout);
+// Создаем глобальный экземпляр
+window.TelegramAuth = new TelegramAuth();

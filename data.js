@@ -1,38 +1,45 @@
-// Конфигурация приложения School UFC
+// Конфигурация приложения EDM™ UFC
 const APP_CONFIG = {
-    // Логотип и название
-    appName: "𝙀𝙁𝘾™",
-    logoUrl: "https://sun9-79.userapi.com/s/v1/ig2/Iwgs_SLJiCG0rCQiHerqheqgN93PxCMUoU8j3cto1xpKXjBaQDLpwSL9d4cmtAoAh5UTCClI-QTmUjzo3oQ-UTxv.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1024x1024&from=bu&u=vBvlWP12ZXV3-6fRHQiaQfpPXYJBFIu_vV-oThtYMy0&cs=640x0",
+    // Основные настройки
+    appName: "EDM™ UFC",
+    logoUrl: "https://via.placeholder.com/50/FF6B6B/FFFFFF?text=UFC",
     
-    // Аккаунты для ставок (18+) и администратора
-    adultAccounts: [
-        {
-            login: "EDM™",
-            password: "4892edica492",
-            firstName: "Администратор",
-            lastName: "Системы",
-            betsAllowed: true,
-            isAdmin: true
-        },
-        {
-            login: "ivanov",
-            password: "pass123",
-            firstName: "Иван",
-            lastName: "Иванов",
-            betsAllowed: true,
-            isAdmin: false
-        },
-        {
-            login: "petrov",
-            password: "pass456",
-            firstName: "Петр",
-            lastName: "Петров",
-            betsAllowed: true,
-            isAdmin: false
-        }
+    // Ссылка на пользовательское соглашение
+    agreementUrl: "https://telegra.ph/POLZOVATELSKOE-SOGLASHENIE-po-ispolzovaniyu-programm-11-06",
+    
+    // Пользователи с доступом к ставкам (18+)
+    // Здесь указываем Telegram ID пользователей
+    betsAllowedUsers: [
+        123456789, // Пример ID
+        987654321  // Пример ID
     ],
     
-    // Баннеры (реклама/бои)
+    // Контракты бойцов
+    // Ключ: Telegram ID, значение: URL контракта
+    contracts: {
+        // Пример:
+        // 123456789: "https://example.com/contract1.jpg",
+        // 987654321: "https://example.com/contract2.jpg"
+    },
+    
+    // Бои бойцов
+    // Ключ: Telegram ID, значение: массив боев
+    userFights: {
+        // Пример:
+        // 123456789: [
+        //     {
+        //         id: 1,
+        //         opponent: "Иван Иванов",
+        //         date: "15.12.2024",
+        //         time: "18:00",
+        //         place: "Школьный спортзал №1",
+        //         reward: 5000,
+        //         status: "upcoming" // upcoming, completed, cancelled
+        //     }
+        // ]
+    },
+    
+    // Баннеры
     banners: [
         {
             id: 1,
@@ -74,14 +81,7 @@ const APP_CONFIG = {
         }
     ],
     
-    // Контракты (ссылки на изображения)
-    contracts: {
-        "EDM™": "https://via.placeholder.com/800x1131/FFFFFF/000000?text=АДМИН+КОНТРАКТ",
-        "ivanov": "https://via.placeholder.com/800x1131/FFFFFF/000000?text=Контракт+Иванова",
-        "petrov": "https://via.placeholder.com/800x1131/FFFFFF/000000?text=Контракт+Петрова"
-    },
-    
-    // Предстоящие бои
+    // Предстоящие бои (для всех)
     upcomingFights: [
         {
             id: 1,
@@ -90,6 +90,14 @@ const APP_CONFIG = {
             time: "18:00",
             place: "Школьный спортзал №1",
             ticketPrice: 300
+        },
+        {
+            id: 2,
+            fighters: ["Михаил Петров", "Сергей Иванов"],
+            date: "20.12.2024",
+            time: "19:00",
+            place: "Школьный спортзал №2",
+            ticketPrice: 350
         }
     ]
 };
