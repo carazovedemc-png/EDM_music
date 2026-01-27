@@ -2,171 +2,503 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EDM™ UFC - Школьные бои</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="icon" href="https://via.placeholder.com/32/FF6B6B/FFFFFF?text=UFC">
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Программа "Минус Пузо": Интерактивный План</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Roboto', sans-serif; background-color: #f5f5f4; color: #1c1917; }
+        .chart-container { position: relative; width: 100%; max-width: 500px; margin-left: auto; margin-right: auto; height: 300px; max-height: 350px; }
+        .exercise-card.active { border-left: 4px solid #ea580c; background-color: #fff7ed; }
+        .smooth-transition { transition: all 0.3s ease-in-out; }
+    </style>
+    <!-- Chosen Palette: Warm Neutrals (Stone/Orange). Background: #f5f5f4 (Stone-100), Text: #1c1917 (Stone-900), Accent: #ea580c (Orange-600) for high energy/fat burn context. -->
+    <!-- Application Structure Plan:
+         1. Hero Section: Immediate context and motivation.
+         2. Rules Dashboard: Key constraints (Time, Weight, Frequency) presented as cards.
+         3. Interactive Workout Hub: The core feature. A master-detail view where the user can click through exercises. Includes a built-in timer for the plank/rest intervals.
+         4. Nutrition Strategy: A split view comparing "Pre-workout" and "Post-workout" meals visually.
+         5. Analytics: Visualizing the "70/30" rule (Diet vs Exercise) and expected progress to manage expectations.
+         This structure moves from "Setup" -> "Action" -> "Recovery" -> "Understanding".
+    -->
+    <!-- Visualization & Content Choices:
+         1. Rules: Icons + Grid Layout. Goal: Quick scanning of prerequisites.
+         2. Workout: Interactive List + Detail View. Goal: Step-by-step guidance during the session without scrolling wildly.
+         3. Timer: JS-based countdown. Goal: Utility tool for the "Plank" and rest periods mentioned in text.
+         4. Success Formula (Chart.js Pie): Visualizing the "Diet is Critical" text. Goal: Emphasize that exercise is only 30% of the battle.
+         5. Nutrition (Comparison Cards): Goal: Clear "Do's and Don'ts" for the late-night context.
+         6. NO SVG/Mermaid used. Unicode used for icons.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
 </head>
-<body>
-    <!-- Хедер -->
-    <header class="glass-header">
-        <div class="header-content">
-            <div class="logo-container">
-                <img id="app-logo" src="" alt="Логотип" class="logo">
-            </div>
-            <h1 id="app-title" class="app-title">EDM™ UFC</h1>
-        </div>
-    </header>
+<body class="bg-stone-100 text-stone-800 antialiased selection:bg-orange-200 selection:text-orange-900">
 
-    <!-- Анимация приветствия -->
-    <div id="telegram-welcome" class="telegram-welcome">
-        <div class="welcome-content">
-            <div class="welcome-avatar">
-                <img id="welcome-avatar" src="" alt="Аватар">
-            </div>
-            <div class="welcome-name" id="welcome-name"></div>
-            <div class="welcome-id" id="welcome-id"></div>
-        </div>
-    </div>
-
-    <!-- Основной контент -->
-    <main id="main-content">
-        <!-- Главная страница -->
-        <section id="home-page" class="page active">
-            <div class="banner-container"></div>
-            
-            <div class="news-section">
-                <h2><i class="fas fa-newspaper"></i> Последние новости</h2>
-                <div class="news-grid">
-                    <div class="news-card">
-                        <div class="news-date">12.11.2024</div>
-                        <h3>Новый турнир объявлен!</h3>
-                        <p>Стартует зимний чемпионат по школьному UFC. Регистрация до 30 ноября.</p>
-                    </div>
-                    <div class="news-card">
-                        <div class="news-date">10.11.2024</div>
-                        <h3>Иванов защитил титул</h3>
-                        <p>В прошедшие выходные состоялся главный бой сезона.</p>
-                    </div>
-                    <div class="news-card">
-                        <div class="news-date">05.11.2024</div>
-                        <h3>Набор в секцию бокса</h3>
-                        <p>Тренер Ислям Нариманович начинает новый набор группы.</p>
-                    </div>
+    <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-sm border-b border-stone-200 shadow-sm">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center">
+                    <span class="text-2xl mr-2">🔥</span>
+                    <span class="font-bold text-xl tracking-tight text-stone-900">Минус Пузо</span>
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <button onclick="scrollToSection('rules')" class="text-stone-600 hover:text-orange-600 transition font-medium">Правила</button>
+                    <button onclick="scrollToSection('workout')" class="text-stone-600 hover:text-orange-600 transition font-medium">Тренировка</button>
+                    <button onclick="scrollToSection('nutrition')" class="text-stone-600 hover:text-orange-600 transition font-medium">Питание</button>
                 </div>
             </div>
-            
-            <div class="upcoming-fights">
-                <h2><i class="fas fa-fist-raised"></i> Ближайшие бои</h2>
-                <div class="fights-list"></div>
-            </div>
-        </section>
-
-        <!-- Страница видео -->
-        <section id="videos-page" class="page">
-            <div class="videos-container">
-                <h2><i class="fas fa-video"></i> Видео боев</h2>
-                <div class="videos-grid"></div>
-            </div>
-        </section>
-
-        <!-- Страница профиля -->
-        <section id="profile-page" class="page">
-            <div class="profile-container">
-                <!-- Данные пользователя -->
-                <div class="profile-header">
-                    <div class="avatar-container">
-                        <img id="user-avatar" src="" alt="Аватар" class="avatar">
-                    </div>
-                    <h2 id="user-name">Загрузка...</h2>
-                    <p id="user-id" class="status">ID: ...</p>
-                </div>
-
-                <!-- Кнопки профиля -->
-                <div class="profile-actions">
-                    <button class="profile-btn" id="my-tickets-btn">
-                        <div class="btn-icon">
-                            <i class="fas fa-ticket-alt"></i>
-                        </div>
-                        <div class="btn-text">
-                            <span class="btn-title">Мои билеты</span>
-                            <span class="btn-subtitle">Купленные билеты на бои</span>
-                        </div>
-                    </button>
-
-                    <button class="profile-btn" id="bets-btn" style="display: none;">
-                        <div class="btn-icon">
-                            <i class="fas fa-chart-line"></i>
-                        </div>
-                        <div class="btn-text">
-                            <span class="btn-title">Ставки</span>
-                            <span class="btn-subtitle">Ставки на бои (18+)</span>
-                        </div>
-                    </button>
-
-                    <button class="profile-btn" id="my-fights-btn">
-                        <div class="btn-icon">
-                            <i class="fas fa-fist-raised"></i>
-                        </div>
-                        <div class="btn-text">
-                            <span class="btn-title">Мои бои</span>
-                            <span class="btn-subtitle">Расписание и гонорары</span>
-                        </div>
-                    </button>
-
-                    <button class="profile-btn" id="contract-btn">
-                        <div class="btn-icon">
-                            <i class="fas fa-file-contract"></i>
-                        </div>
-                        <div class="btn-text">
-                            <span class="btn-title" id="contract-btn-title">Моя анкета</span>
-                            <span class="btn-subtitle" id="contract-btn-subtitle">Заполнить анкету для участия</span>
-                        </div>
-                    </button>
-
-                    <button class="profile-btn" id="agreement-btn">
-                        <div class="btn-icon">
-                            <i class="fas fa-file-alt"></i>
-                        </div>
-                        <div class="btn-text">
-                            <span class="btn-title">Пользовательское соглашение</span>
-                            <span class="btn-subtitle">Правила использования</span>
-                        </div>
-                    </button>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <!-- Навигация -->
-    <nav class="glass-nav">
-        <div class="nav-container">
-            <button class="nav-btn active" data-page="home">
-                <i class="fas fa-home"></i>
-            </button>
-            <div class="nav-divider"></div>
-            
-            <button class="nav-btn" data-page="videos">
-                <i class="fas fa-video"></i>
-            </button>
-            <div class="nav-divider"></div>
-            
-            <button class="nav-btn" data-page="profile">
-                <i class="fas fa-user"></i>
-            </button>
         </div>
     </nav>
 
-    <!-- Загрузчик -->
-    <div id="loader" class="loader">
-        <div class="spinner"></div>
-        <div class="loader-text">Загрузка EDM™ UFC...</div>
-    </div>
+    <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-16">
 
-    <script src="telegram-auth.js"></script>
-    <script src="data.js"></script>
-    <script src="script.js"></script>
+        <!-- Hero Section -->
+        <section class="text-center py-10 bg-white rounded-3xl shadow-sm border border-stone-100">
+            <h1 class="text-4xl md:text-5xl font-bold text-stone-900 mb-4">Операция "Убрать Пузо"</h1>
+            <p class="text-lg text-stone-600 max-w-2xl mx-auto mb-8">
+                Эдем, это персональный дашборд для Пахана. Мы используем круговой метод и гантели по 15 кг, чтобы превратить организм в машину для сжигания жира.
+            </p>
+            <div class="flex justify-center gap-4">
+                <button onclick="scrollToSection('workout')" class="bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transform hover:-translate-y-1 transition duration-300">
+                    Начать тренировку
+                </button>
+            </div>
+        </section>
+
+        <!-- Rules & Setup -->
+        <section id="rules">
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-stone-900 mb-2">📋 Базовые Правила</h2>
+                <p class="text-stone-600">Прежде чем брать гантели, нужно усвоить эти четыре заповеди. Нарушение правил снижает эффективность сжигания жира до нуля.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-blue-500">
+                    <div class="text-3xl mb-3">📅</div>
+                    <h3 class="font-bold text-lg mb-2">График</h3>
+                    <p class="text-sm text-stone-600">3 раза в неделю.<br>Идеально: <strong>Пн, Ср, Пт</strong>.</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-indigo-500">
+                    <div class="text-3xl mb-3">🕘</div>
+                    <h3 class="font-bold text-lg mb-2">Время</h3>
+                    <p class="text-sm text-stone-600">Строго <strong>после 21:00</strong>.<br>Не есть 1.5-2 часа до старта.</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-orange-500">
+                    <div class="text-3xl mb-3">🏋️</div>
+                    <h3 class="font-bold text-lg mb-2">Инвентарь</h3>
+                    <p class="text-sm text-stone-600">Гантели по <strong>15 кг</strong>.<br>Тяжело? Меньше раз, но чище.</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-green-500">
+                    <div class="text-3xl mb-3">🤸</div>
+                    <h3 class="font-bold text-lg mb-2">Разминка</h3>
+                    <p class="text-sm text-stone-600"><strong>5 минут</strong> обязательно!<br>Суставы, махи, наклоны.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive Workout Hub -->
+        <section id="workout" class="bg-white rounded-3xl shadow-lg border border-stone-200 overflow-hidden">
+            <div class="p-8 border-b border-stone-100">
+                <h2 class="text-3xl font-bold text-stone-900 mb-2">🔄 Круговая Тренировка</h2>
+                <p class="text-stone-600">Выполняй упражнения одно за другим без отдыха. Это один круг. Сделай 4-5 кругов. Отдых между кругами — 2 минуты.</p>
+            </div>
+
+            <div class="flex flex-col lg:flex-row h-auto lg:h-[600px]">
+                <!-- Exercise List -->
+                <div class="w-full lg:w-1/3 bg-stone-50 overflow-y-auto border-r border-stone-200">
+                    <div id="exercise-list" class="flex flex-col">
+                        <!-- Items injected by JS -->
+                    </div>
+                </div>
+
+                <!-- Active Exercise Detail -->
+                <div class="w-full lg:w-2/3 p-6 flex flex-col justify-between relative bg-white">
+                    <div id="exercise-detail" class="space-y-6">
+                        <!-- Details injected by JS -->
+                    </div>
+
+                    <!-- Utility Timer -->
+                    <div class="mt-8 pt-6 border-t border-stone-100">
+                        <div class="flex items-center justify-between bg-stone-900 text-white p-4 rounded-xl">
+                            <div>
+                                <p class="text-xs text-stone-400 uppercase tracking-wider">Таймер отдыха / Планки</p>
+                                <div id="timer-display" class="text-3xl font-mono font-bold">00:00</div>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button onclick="setTimer(60)" class="px-3 py-1 bg-stone-700 rounded hover:bg-stone-600 text-sm">60с</button>
+                                <button onclick="setTimer(120)" class="px-3 py-1 bg-stone-700 rounded hover:bg-stone-600 text-sm">2м</button>
+                                <button onclick="toggleTimer()" id="timer-btn" class="px-4 py-2 bg-orange-600 rounded-lg font-bold hover:bg-orange-700 transition">Старт</button>
+                                <button onclick="resetTimer()" class="px-3 py-2 bg-stone-700 rounded-lg hover:bg-stone-600">↺</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Nutrition & Analytics Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <!-- Nutrition Section -->
+            <section id="nutrition" class="bg-white p-8 rounded-3xl shadow-sm border border-stone-100">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-stone-900">🥗 Питание: Секрет Успеха</h2>
+                    <p class="text-sm text-stone-500 mt-2">Живот уходит на кухне. Тренировка лишь запускает процесс.</p>
+                </div>
+
+                <div class="space-y-4">
+                    <!-- Pre-workout -->
+                    <div class="group relative overflow-hidden rounded-xl border border-stone-200 hover:shadow-md transition">
+                        <div class="bg-green-50 p-4 border-b border-green-100">
+                            <h4 class="font-bold text-green-800 flex items-center">
+                                <span class="mr-2">🕒</span> До 21:00 (Ужин в 19:30)
+                            </h4>
+                        </div>
+                        <div class="p-4 bg-white">
+                            <p class="text-stone-700">Легкий ужин. Главное правило: <strong>Белок + Овощи</strong>.</p>
+                            <p class="text-xs text-stone-400 mt-1">Пример: Куриное филе с салатом.</p>
+                        </div>
+                    </div>
+
+                    <!-- Post-workout -->
+                    <div class="group relative overflow-hidden rounded-xl border border-stone-200 hover:shadow-md transition">
+                        <div class="bg-red-50 p-4 border-b border-red-100">
+                            <h4 class="font-bold text-red-800 flex items-center">
+                                <span class="mr-2">🚫</span> После 21:00 (После тренировки)
+                            </h4>
+                        </div>
+                        <div class="p-4 bg-white">
+                            <p class="text-stone-700 font-medium">Только чистый белок!</p>
+                            <ul class="list-disc list-inside text-sm text-stone-600 mt-2 space-y-1">
+                                <li>Творог (обезжиренный)</li>
+                                <li>Яичные белки</li>
+                                <li><span class="text-red-600 font-bold">НЕТ</span> сахару</li>
+                                <li><span class="text-red-600 font-bold">НЕТ</span> мучному</li>
+                                <li><span class="text-red-600 font-bold">НЕТ</span> пиву</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Analytics Section -->
+            <section class="bg-white p-8 rounded-3xl shadow-sm border border-stone-100 flex flex-col">
+                <div class="mb-4">
+                    <h2 class="text-2xl font-bold text-stone-900">📊 Формула Результата</h2>
+                    <p class="text-sm text-stone-500 mt-2">Почему просто "качать пресс" не сработает.</p>
+                </div>
+                
+                <div class="flex-grow flex flex-col items-center justify-center">
+                    <div class="chart-container">
+                        <canvas id="successChart"></canvas>
+                    </div>
+                    <p class="text-center text-xs text-stone-400 mt-4 italic">Вклад в потерю "пуза"</p>
+                </div>
+            </section>
+        </div>
+
+        <!-- Progression Section -->
+        <section class="bg-stone-900 text-stone-200 p-8 rounded-3xl shadow-lg">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+                <div class="col-span-1">
+                    <h2 class="text-2xl font-bold text-white mb-4">📈 Как прогрессировать?</h2>
+                    <p class="mb-4 text-stone-400">Когда станет легко (а это случится), не останавливайся.</p>
+                    <ul class="space-y-3">
+                        <li class="flex items-start">
+                            <span class="text-orange-500 mr-2">➜</span>
+                            <span>Урежь отдых между кругами до <strong>1 минуты</strong>.</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-orange-500 mr-2">➜</span>
+                            <span>Добавь <strong>6-й круг</strong> ада.</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-orange-500 mr-2">➜</span>
+                            <span>Делай медленнее на опускании (негативная фаза).</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-span-1 md:col-span-2">
+                    <div class="bg-stone-800 p-4 rounded-xl border border-stone-700">
+                         <div class="chart-container" style="height: 250px;">
+                            <canvas id="progressChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="text-center py-8 text-stone-400 text-sm">
+            <p>Создано для Эдема и Пахана. Вперед к цели!</p>
+        </footer>
+
+    </main>
+
+    <script>
+        // Data Store
+        const exercises = [
+            {
+                id: 1,
+                title: "Кубковые приседания",
+                reps: "15–20 раз",
+                icon: "🏋️‍♂️",
+                desc: "Держи гантель обеими руками у груди вертикально. Приседай глубоко, спина ровная.",
+                why: "Самое энергозатратное упражнение. Работают ноги и спина — главные пожиратели калорий.",
+                color: "bg-blue-100 text-blue-800"
+            },
+            {
+                id: 2,
+                title: "Тяга гантелей в наклоне",
+                reps: "12–15 раз",
+                icon: "🛶",
+                desc: "Наклон корпуса вперед, спина прямая как доска. Тяни гантели к поясу, максимально сводя лопатки.",
+                why: "Укрепляет спину и тратит много энергии.",
+                color: "bg-indigo-100 text-indigo-800"
+            },
+            {
+                id: 3,
+                title: "Выпады",
+                reps: "10 на ногу (всего 20)",
+                icon: "🦶",
+                desc: "Гантели в руках по бокам. Шаг вперед до касания коленом задней ноги пола.",
+                why: "Убивают жир наповал за счет работы больших мышц ног.",
+                color: "bg-purple-100 text-purple-800"
+            },
+            {
+                id: 4,
+                title: "Жим гантелей с пола",
+                reps: "12–15 раз",
+                icon: "💪",
+                desc: "Лежа на спине, выжимай гантели вверх. Внизу локти лишь касаются пола.",
+                why: "Работает грудь и трицепс. Безопасно для плеч на полу.",
+                color: "bg-pink-100 text-pink-800"
+            },
+            {
+                id: 5,
+                title: "Махи гантелью (Свинг)",
+                reps: "20 раз",
+                icon: "🔔",
+                desc: "Раскачивай одну гантель между ног и мощным толчком таза выбрасывай её до уровня глаз.",
+                why: "Взрывное кардио. Замена бегу в домашних условиях.",
+                color: "bg-orange-100 text-orange-800"
+            },
+            {
+                id: 6,
+                title: "Планка",
+                reps: "45–60 секунд",
+                icon: "📏",
+                desc: "Стойка на локтях, тело — прямая линия, живот максимально втянут.",
+                why: "Укрепляет внутренние мышцы живота, чтобы пузо не 'вываливалось'.",
+                color: "bg-green-100 text-green-800"
+            }
+        ];
+
+        let currentExerciseIndex = 0;
+        let timerInterval;
+        let timeLeft = 0;
+        let isTimerRunning = false;
+
+        // Render Functions
+        function renderExerciseList() {
+            const listContainer = document.getElementById('exercise-list');
+            listContainer.innerHTML = exercises.map((ex, index) => `
+                <div onclick="selectExercise(${index})" 
+                     class="exercise-card p-4 border-b border-stone-100 cursor-pointer hover:bg-stone-50 transition flex items-center gap-4 ${index === currentExerciseIndex ? 'active' : ''}">
+                    <div class="text-2xl w-10 h-10 flex items-center justify-center bg-white rounded-full shadow-sm border border-stone-100">${ex.icon}</div>
+                    <div>
+                        <h4 class="font-bold text-stone-800 text-sm md:text-base">${ex.title}</h4>
+                        <span class="text-xs font-mono text-stone-500 bg-stone-100 px-2 py-0.5 rounded">${ex.reps}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderExerciseDetail() {
+            const ex = exercises[currentExerciseIndex];
+            const detailContainer = document.getElementById('exercise-detail');
+            
+            detailContainer.innerHTML = `
+                <div class="flex items-start justify-between">
+                    <div>
+                        <span class="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide mb-2 ${ex.color}">Упражнение #${ex.id}</span>
+                        <h3 class="text-3xl font-bold text-stone-900">${ex.title}</h3>
+                    </div>
+                    <div class="text-5xl opacity-20 filter grayscale">${ex.icon}</div>
+                </div>
+
+                <div class="bg-stone-50 p-6 rounded-xl border border-stone-100">
+                    <h4 class="font-bold text-stone-700 mb-2 flex items-center">
+                        <span class="mr-2">⚙️</span> Техника
+                    </h4>
+                    <p class="text-lg text-stone-800 leading-relaxed">${ex.desc}</p>
+                </div>
+
+                <div>
+                    <h4 class="font-bold text-stone-700 mb-2 flex items-center">
+                        <span class="mr-2">💡</span> Зачем это делать?
+                    </h4>
+                    <p class="text-stone-600 italic border-l-4 border-stone-300 pl-4">${ex.why}</p>
+                </div>
+                
+                <div class="flex items-center gap-4 mt-4">
+                    <div class="bg-orange-100 text-orange-900 px-4 py-2 rounded-lg font-bold">
+                        Цель: ${ex.reps}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Interaction Logic
+        function selectExercise(index) {
+            currentExerciseIndex = index;
+            renderExerciseList();
+            renderExerciseDetail();
+        }
+
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Timer Logic
+        function setTimer(seconds) {
+            resetTimer();
+            timeLeft = seconds;
+            updateTimerDisplay();
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            document.getElementById('timer-display').innerText = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function toggleTimer() {
+            const btn = document.getElementById('timer-btn');
+            if (isTimerRunning) {
+                clearInterval(timerInterval);
+                isTimerRunning = false;
+                btn.innerText = "Старт";
+                btn.classList.remove('bg-red-600', 'hover:bg-red-700');
+                btn.classList.add('bg-orange-600', 'hover:bg-orange-700');
+            } else {
+                if (timeLeft === 0) setTimer(60); // Default to 60s if 0
+                isTimerRunning = true;
+                btn.innerText = "Пауза";
+                btn.classList.remove('bg-orange-600', 'hover:bg-orange-700');
+                btn.classList.add('bg-red-600', 'hover:bg-red-700');
+                
+                timerInterval = setInterval(() => {
+                    if (timeLeft > 0) {
+                        timeLeft--;
+                        updateTimerDisplay();
+                    } else {
+                        // Timer finished
+                        clearInterval(timerInterval);
+                        isTimerRunning = false;
+                        btn.innerText = "Готово";
+                        const audio = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
+                        audio.play().catch(e => console.log("Audio play blocked"));
+                    }
+                }, 1000);
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            timeLeft = 0;
+            updateTimerDisplay();
+            const btn = document.getElementById('timer-btn');
+            btn.innerText = "Старт";
+            btn.classList.remove('bg-red-600', 'hover:bg-red-700');
+            btn.classList.add('bg-orange-600', 'hover:bg-orange-700');
+        }
+
+        // Charts initialization
+        window.onload = function() {
+            renderExerciseList();
+            renderExerciseDetail();
+
+            // Chart 1: Success Formula (Pie)
+            const ctx1 = document.getElementById('successChart').getContext('2d');
+            new Chart(ctx1, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Питание (Кухня)', 'Тренировки (Гантели)'],
+                    datasets: [{
+                        data: [70, 30],
+                        backgroundColor: ['#10b981', '#f97316'], // Emerald-500, Orange-500
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { padding: 20, usePointStyle: true } },
+                        tooltip: { 
+                            callbacks: {
+                                label: function(context) {
+                                    return ' ' + context.label + ': ' + context.raw + '% успеха';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Chart 2: Progression (Line)
+            const ctx2 = document.getElementById('progressChart').getContext('2d');
+            new Chart(ctx2, {
+                type: 'line',
+                data: {
+                    labels: ['Неделя 1', 'Неделя 2', 'Неделя 3', 'Неделя 4', 'Неделя 5', 'Неделя 6'],
+                    datasets: [
+                        {
+                            label: 'Интенсивность (Круги)',
+                            data: [3, 3, 4, 4, 5, 6],
+                            borderColor: '#f97316',
+                            backgroundColor: 'rgba(249, 115, 22, 0.2)',
+                            yAxisID: 'y',
+                            tension: 0.3
+                        },
+                        {
+                            label: 'Ожидаемый % жира (Индекс)',
+                            data: [100, 98, 95, 91, 88, 85],
+                            borderColor: '#a8a29e', // Stone-400
+                            borderDash: [5, 5],
+                            yAxisID: 'y1',
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: {
+                        x: { grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: '#d6d3d1' } },
+                        y: { 
+                            type: 'linear', display: true, position: 'left', 
+                            title: { display: true, text: 'Круги', color: '#f97316' },
+                            ticks: { color: '#d6d3d1' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        },
+                        y1: { 
+                            type: 'linear', display: true, position: 'right', 
+                            title: { display: true, text: '% от старта', color: '#a8a29e' },
+                            grid: { drawOnChartArea: false },
+                            ticks: { display: false }
+                        }
+                    },
+                    plugins: {
+                        legend: { labels: { color: '#e7e5e4' } }
+                    }
+                }
+            });
+        };
+    </script>
 </body>
 </html>
