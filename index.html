@@ -5,24 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>EDM™ FIT | Premium AI</title>
-    
-    <!-- React и Tailwind -->
+    <meta name="theme-color" content="#000000">
+    <title>EDM™ FIT | Ultimate</title>
+
+    <!-- Иконки (Lucide) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- React Ядро -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <!-- Babel для обработки кода -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Tailwind для стилей -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Lucide Icons для иконок -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    
-    <!-- Подключение внешних файлов -->
+
+    <!-- Твои стили -->
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-slate-950 overflow-hidden">
-    <div id="root"></div>
-    
-    <!-- Скрипт загружаем как Babel для обработки JSX -->
+<body>
+    <!-- Корневой элемент -->
+    <div id="root">
+        <!-- Экран загрузки (пока React не включится) -->
+        <div class="loading-screen">
+            <div class="spinner"></div>
+            <p>EDM™ SYSTEM LOADING...</p>
+        </div>
+    </div>
+
+    <!-- Твой скрипт -->
     <script type="text/babel" src="script.js"></script>
 </body>
 </html>
