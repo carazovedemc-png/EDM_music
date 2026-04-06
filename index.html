@@ -2,249 +2,469 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Эдем-Вики: Программа Набора Массы</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body {
-            background-color: #ffffff;
-            color: #202122;
-            line-height: 1.6;
-            font-family: sans-serif;
-        }
-        .wiki-container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .wiki-header {
-            border-bottom: 1px solid #a2a9b1;
-            margin-bottom: 0.25em;
-            padding-top: 0.5em;
-            padding-bottom: 0.17em;
-            font-family: 'Linux Libertine', 'Georgia', 'Times', serif;
-        }
-        .toc {
-            background-color: #f8f9fa;
-            border: 1px solid #a2a9b1;
-            padding: 15px;
-            display: inline-block;
-            margin: 20px 0;
-            font-size: 90%;
-        }
-        .wiki-section {
-            border-bottom: 1px solid #a2a9b1;
-            margin-top: 1.5em;
-            margin-bottom: 0.5em;
-            font-weight: normal;
-        }
-        .info-box {
-            float: right;
-            width: 300px;
-            border: 1px solid #a2a9b1;
-            background-color: #f8f9fa;
-            margin-left: 20px;
-            margin-bottom: 20px;
-            font-size: 88%;
-        }
-        .info-box th {
-            background-color: #eaecf0;
-            padding: 5px;
-            text-align: center;
-        }
-        .info-box td {
-            padding: 5px;
-            border-top: 1px solid #a2a9b1;
-        }
-        table.data-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 10px 0;
-        }
-        table.data-table th, table.data-table td {
-            border: 1px solid #a2a9b1;
-            padding: 8px;
-            text-align: left;
-        }
-        table.data-table th {
-            background-color: #f8f9fa;
-        }
-        .highlight {
-            background-color: #fef6e7;
-            border: 1px solid #fbd89a;
-            padding: 10px;
-            margin: 10px 0;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>EDM AI</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Markdown и подсветка кода -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/13.0.0/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.8/purify.min.js"></script>
 </head>
-<body>
+<body oncopy="return false" oncut="return false" onpaste="return false">
+    <div class="app-container">
 
-<div class="wiki-container">
-    <h1 class="wiki-header text-3xl">Программа трансформации: Эдем (16 лет)</h1>
-    
-    <div class="info-box">
-        <table>
-            <thead>
-                <tr><th colspan="2">Антропометрия и Инвентарь</th></tr>
-            </thead>
-            <tbody>
-                <tr><td><b>Имя:</b></td><td>Эдем</td></tr>
-                <tr><td><b>Возраст:</b></td><td>16 (17 в ноябре)</td></tr>
-                <tr><td><b>Рост:</b></td><td>175 см</td></tr>
-                <tr><td><b>Вес:</b></td><td>55 кг (ИМТ: ~18.0)</td></tr>
-                <tr><td><b>Тип телосложения:</b></td><td>Эктоморф</td></tr>
-                <tr><td><b>Снаряды:</b></td><td>Гантели (2х15кг), Турник, Груша</td></tr>
-            </tbody>
-        </table>
+        <!-- Боковое меню -->
+        <div class="side-menu" id="side-menu">
+            <div class="menu-header">
+                <div class="menu-logo">
+                    <i class="fas fa-bolt"></i>
+                    <span>EDM AI</span>
+                </div>
+                <button class="close-menu-btn" id="close-menu-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="chat-search" placeholder="Поиск чатов..." />
+            </div>
+
+            <div class="chats-section">
+                <div class="section-title">
+                    <span>Чаты</span>
+                    <span class="chat-count" id="chat-count">0</span>
+                </div>
+                <div class="chats-list" id="chats-list"></div>
+            </div>
+
+            <div class="menu-footer">
+                <div class="profile-placeholder" id="profile-placeholder">
+                    <div class="profile-avatar-small" id="menu-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="profile-info">
+                        <span id="menu-username">Гость</span>
+                        <span class="profile-status">Нажмите для настроек</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Основное окно чата -->
+        <div class="main-content">
+            <!-- Верхняя панель -->
+            <div class="top-bar">
+                <button class="menu-toggle" id="menu-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <div class="logo-text">
+                        <span class="logo-main">EDM AI</span>
+                        <span class="logo-subtitle">Powered by Qwen</span>
+                    </div>
+                </div>
+                <div class="top-bar-actions">
+                    <button class="top-action-btn" id="clear-chat-btn" title="Очистить чат">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                    <button class="new-chat-btn-top" id="new-chat-btn-top" title="Новый чат">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Область сообщений -->
+            <div class="messages-container" id="messages-container">
+                <div class="welcome-message" id="welcome-message">
+                    <div class="welcome-logo">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <h1>Добро пожаловать в <span class="gradient-text">EDM AI</span></h1>
+                    <p>Ваш интеллектуальный ассистент на базе Qwen AI</p>
+                    <div class="welcome-features">
+                        <div class="feature-card">
+                            <i class="fas fa-file-upload"></i>
+                            <span>Загрузка файлов</span>
+                        </div>
+                        <div class="feature-card">
+                            <i class="fas fa-image"></i>
+                            <span>Анализ изображений</span>
+                        </div>
+                        <div class="feature-card">
+                            <i class="fas fa-microphone"></i>
+                            <span>Голосовой ввод</span>
+                        </div>
+                        <div class="feature-card">
+                            <i class="fas fa-code"></i>
+                            <span>Подсветка кода</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Превью прикрепленных файлов -->
+            <div class="file-preview-area" id="file-preview-area" style="display: none;">
+                <div class="file-preview-container" id="file-preview-container"></div>
+                <button class="clear-files-btn" id="clear-files-btn" title="Очистить файлы">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Панель ввода -->
+            <div class="input-section">
+                <div class="input-wrapper">
+                    <!-- Кнопка прикрепления файла -->
+                    <button class="attach-btn" id="attach-btn" title="Прикрепить файл">
+                        <i class="fas fa-paperclip"></i>
+                    </button>
+
+                    <!-- Скрытый input для файлов -->
+                    <input type="file" id="file-input" multiple accept="image/*,.pdf,.doc,.docx,.txt,.md,.py,.js,.html,.css,.json,.xml,.csv" style="display: none;" />
+
+                    <div class="message-input-container">
+                        <textarea
+                            id="message-input"
+                            class="message-input"
+                            placeholder="Введите сообщение..."
+                            rows="1"
+                        ></textarea>
+                    </div>
+
+                    <!-- Кнопка голосового ввода -->
+                    <button class="voice-control-btn" id="voice-control-btn" title="Голосовой ввод">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+
+                    <!-- Кнопка отправки/остановки генерации -->
+                    <button class="send-btn" id="send-btn" title="Отправить">
+                        <i class="fas fa-arrow-up" id="send-icon"></i>
+                        <i class="fas fa-stop" id="stop-icon" style="display: none;"></i>
+                    </button>
+                </div>
+                <div class="input-hint">
+                    <span><kbd>Shift</kbd> + <kbd>Enter</kbd> новая строка</span>
+                    <span><kbd>Enter</kbd> отправить</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Модальное окно профиля и настроек -->
+        <div class="modal-overlay" id="profile-settings-modal">
+            <div class="modal-container profile-settings-modal">
+                <div class="modal-header">
+                    <h2><i class="fas fa-cog"></i> Настройки</h2>
+                    <button class="modal-close" id="close-profile-settings">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="settings-section">
+                        <div class="profile-info">
+                            <div class="profile-avatar-large" id="profile-settings-avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div class="profile-details">
+                                <div class="profile-username-large" id="profile-settings-username">Гость</div>
+                                <div class="profile-api-key" id="profile-api-key">API ключ: не установлен</div>
+                                <div class="profile-model" id="profile-model">Модель: qwen/qwen3.6-plus:free</div>
+                            </div>
+                        </div>
+
+                        <div class="settings-group">
+                            <div class="settings-group-title">Профиль</div>
+                            <button class="settings-btn edit-profile-btn" id="edit-profile-btn">
+                                <i class="fas fa-user-edit"></i>
+                                <div class="settings-btn-text">
+                                    <span>Редактировать профиль</span>
+                                    <span class="settings-btn-desc">Имя и API ключ OpenRouter</span>
+                                </div>
+                            </button>
+                        </div>
+
+                        <div class="settings-group">
+                            <div class="settings-group-title">Персонализация</div>
+                            <button class="settings-btn personalization-btn" id="personalization-btn">
+                                <i class="fas fa-magic"></i>
+                                <div class="settings-btn-text">
+                                    <span>Стиль общения</span>
+                                    <span class="settings-btn-desc">Настройте поведение ИИ</span>
+                                </div>
+                            </button>
+                        </div>
+
+                        <div class="settings-group">
+                            <div class="settings-group-title">Информация</div>
+                            <button class="settings-btn" id="terms-btn">
+                                <i class="fas fa-file-contract"></i>
+                                <div class="settings-btn-text">
+                                    <span>Пользовательское соглашение</span>
+                                    <span class="settings-btn-desc">Правила использования</span>
+                                </div>
+                            </button>
+
+                            <button class="settings-btn" id="support-btn">
+                                <i class="fas fa-headset"></i>
+                                <div class="settings-btn-text">
+                                    <span>Техподдержка</span>
+                                    <span class="settings-btn-desc">Связаться с нами</span>
+                                </div>
+                            </button>
+
+                            <button class="settings-btn" id="about-btn">
+                                <i class="fas fa-info-circle"></i>
+                                <div class="settings-btn-text">
+                                    <span>О приложении</span>
+                                    <span class="settings-btn-desc">Версия и информация</span>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Модальное окно редактирования профиля -->
+        <div class="modal-overlay" id="edit-profile-modal">
+            <div class="modal-container auth-modal">
+                <div class="modal-header">
+                    <h2><i class="fas fa-user-edit"></i> Редактировать профиль</h2>
+                    <button class="modal-close" id="close-edit-profile">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="auth-form">
+                        <div class="form-group">
+                            <label for="edit-username-input">
+                                <i class="fas fa-user"></i> Имя пользователя
+                            </label>
+                            <input
+                                type="text"
+                                id="edit-username-input"
+                                class="auth-input"
+                                placeholder="Введите новое имя"
+                                maxlength="20"
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="edit-api-key-input">
+                                <i class="fas fa-key"></i> API ключ OpenRouter
+                            </label>
+                            <div class="api-key-wrapper">
+                                <input
+                                    type="password"
+                                    id="edit-api-key-input"
+                                    class="auth-input"
+                                    placeholder="sk-or-v1-..."
+                                >
+                                <button class="toggle-api-key-btn" id="toggle-api-key-btn">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <div class="setting-hint">
+                                Получите ключ на <a href="https://openrouter.ai/keys" target="_blank">OpenRouter.ai</a>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="edit-model-select">
+                                <i class="fas fa-robot"></i> Модель ИИ
+                            </label>
+                            <select id="edit-model-select" class="auth-input">
+                                <option value="qwen/qwen3.6-plus:free">Qwen 3.6 Plus (Free)</option>
+                                <option value="qwen/qwen-2.5-72b-instruct:free">Qwen 2.5 72B (Free)</option>
+                                <option value="google/gemini-2.0-flash-exp:free">Gemini 2.0 Flash (Free)</option>
+                                <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B (Free)</option>
+                            </select>
+                        </div>
+
+                        <div class="auth-buttons">
+                            <button class="auth-btn primary" id="save-profile-btn">
+                                <i class="fas fa-save"></i> Сохранить
+                            </button>
+                            <button class="auth-btn logout-btn" id="logout-profile-btn">
+                                <i class="fas fa-sign-out-alt"></i> Выйти из аккаунта
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Модальное окно персонализации -->
+        <div class="modal-overlay" id="personalization-modal">
+            <div class="modal-container personalization-modal">
+                <div class="modal-header">
+                    <h2><i class="fas fa-magic"></i> Персонализация</h2>
+                    <button class="modal-close" id="close-personalization">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="personalization-section">
+                        <div class="form-group">
+                            <label for="custom-prompt-input">
+                                <i class="fas fa-comment-alt"></i> Системный промпт
+                            </label>
+                            <textarea
+                                id="custom-prompt-input"
+                                class="prompt-input"
+                                placeholder="Введите системный промпт. Он будет определять поведение ИИ во всех ответах."
+                                rows="6"
+                            ></textarea>
+                            <div class="setting-hint">
+                                Этот текст будет отправлен как системная инструкция перед каждым запросом
+                            </div>
+                        </div>
+
+                        <div class="prompt-styles-section">
+                            <div class="section-title-small">Стиль общения</div>
+                            <div class="prompt-styles-grid">
+                                <button class="prompt-style-btn active" data-style="normal" title="Обычный">
+                                    <i class="fas fa-comment"></i>
+                                    <span>Обычный</span>
+                                </button>
+                                <button class="prompt-style-btn" data-style="professional" title="Профессиональный">
+                                    <i class="fas fa-briefcase"></i>
+                                    <span>Профессиональный</span>
+                                </button>
+                                <button class="prompt-style-btn" data-style="funny" title="Весёлый">
+                                    <i class="fas fa-laugh-beam"></i>
+                                    <span>Весёлый</span>
+                                </button>
+                                <button class="prompt-style-btn" data-style="friendly" title="Дружелюбный">
+                                    <i class="fas fa-smile"></i>
+                                    <span>Дружелюбный</span>
+                                </button>
+                                <button class="prompt-style-btn" data-style="concise" title="Краткий">
+                                    <i class="fas fa-compress-alt"></i>
+                                    <span>Краткий</span>
+                                </button>
+                                <button class="prompt-style-btn" data-style="detailed" title="Детальный">
+                                    <i class="fas fa-expand-alt"></i>
+                                    <span>Детальный</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Модальное окно "О приложении" -->
+        <div class="modal-overlay" id="about-modal">
+            <div class="modal-container about-modal">
+                <div class="modal-header">
+                    <h2><i class="fas fa-info-circle"></i> О приложении</h2>
+                    <button class="modal-close" id="close-about">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="about-content">
+                        <div class="about-logo">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <h3>EDM AI</h3>
+                        <div class="about-version">Версия 2.0.0</div>
+                        <div class="about-description">
+                            Интеллектуальный чат-бот с поддержкой загрузки файлов, 
+                            голосового ввода и множества стилей общения.
+                        </div>
+                        <div class="about-features">
+                            <div class="about-feature">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Модель Qwen через OpenRouter API</span>
+                            </div>
+                            <div class="about-feature">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Загрузка изображений и документов</span>
+                            </div>
+                            <div class="about-feature">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Голосовой ввод</span>
+                            </div>
+                            <div class="about-feature">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Подсветка кода и Markdown</span>
+                            </div>
+                            <div class="about-feature">
+                                <i class="fas fa-check-circle"></i>
+                                <span>6 стилей общения</span>
+                            </div>
+                        </div>
+                        <div class="about-links">
+                            <a href="https://t.me/EDEM_CR" target="_blank" class="about-link">
+                                <i class="fab fa-telegram"></i> Техподдержка
+                            </a>
+                            <a href="https://openrouter.ai" target="_blank" class="about-link">
+                                <i class="fas fa-link"></i> OpenRouter
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Модальное окно просмотра изображений -->
+        <div class="modal-overlay" id="image-viewer-modal">
+            <div class="image-viewer-container">
+                <button class="image-viewer-close" id="image-viewer-close">
+                    <i class="fas fa-times"></i>
+                </button>
+                <div class="image-viewer-actions">
+                    <button class="image-viewer-btn" id="image-download-btn" title="Скачать">
+                        <i class="fas fa-download"></i>
+                    </button>
+                    <button class="image-viewer-btn" id="image-zoom-in-btn" title="Приблизить">
+                        <i class="fas fa-search-plus"></i>
+                    </button>
+                    <button class="image-viewer-btn" id="image-zoom-out-btn" title="Отдалить">
+                        <i class="fas fa-search-minus"></i>
+                    </button>
+                    <button class="image-viewer-btn" id="image-reset-zoom-btn" title="Сбросить масштаб">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                </div>
+                <img id="image-viewer-img" src="" alt="Просмотр изображения" />
+            </div>
+        </div>
+
+        <!-- Контекстное меню для чатов -->
+        <div class="context-menu" id="chat-context-menu">
+            <div class="context-menu-item" id="pin-chat-btn">
+                <i class="fas fa-thumbtack"></i>
+                <span>Закрепить</span>
+            </div>
+            <div class="context-menu-item" id="rename-chat-btn">
+                <i class="fas fa-edit"></i>
+                <span>Переименовать</span>
+            </div>
+            <div class="context-menu-item" id="export-chat-btn">
+                <i class="fas fa-download"></i>
+                <span>Экспорт чата</span>
+            </div>
+            <div class="context-menu-item delete" id="delete-chat-btn">
+                <i class="fas fa-trash"></i>
+                <span>Удалить</span>
+            </div>
+        </div>
+
+        <!-- Уведомления -->
+        <div class="notifications-container" id="notifications-container"></div>
     </div>
 
-    <p>
-        <b>Программа набора массы</b> — это комплексный план, направленный на гипертрофию скелетных мышц и увеличение общей массы тела. Учитывая исходные данные (дефицит массы тела после Рамадана), приоритет отдается профициту калорий и прогрессии силовых показателей.
-    </p>
-
-    <div class="toc">
-        <div class="font-bold mb-2">Содержание</div>
-        <ul class="list-decimal list-inside space-y-1">
-            <li><a href="#nutrition" class="text-blue-600 hover:underline">Стратегия питания</a></li>
-            <li><a href="#training" class="text-blue-600 hover:underline">Методология тренировок</a></li>
-            <li><a href="#exercises" class="text-blue-600 hover:underline">Подробный разбор упражнений</a></li>
-            <li><a href="#recovery" class="text-blue-600 hover:underline">Восстановление и сон</a></li>
-            <li><a href="#boxing" class="text-blue-600 hover:underline">Работа с грушей</a></li>
-        </ul>
-    </div>
-
-    <h2 id="nutrition" class="wiki-section text-2xl font-serif italic">1. Стратегия питания</h2>
-    <p>Для набора массы Эдему необходим <b>профицит калорий</b> в размере 15-20% от уровня поддержки. Общая калорийность: <b>2500–2700 ккал</b>.</p>
-    
-    <h3 class="font-bold mt-4">Распределение макронутриентов (БЖУ):</h3>
-    <ul class="list-disc list-inside ml-4">
-        <li><b>Белки:</b> 2.0–2.2 г на кг веса (110–120 г). Основные источники: курица, говядина, яйца, творог, рыба.</li>
-        <li><b>Жиры:</b> 1.0–1.2 г на кг веса (60–70 г). Основные источники: орехи, оливковое масло, желтки яиц.</li>
-        <li><b>Углеводы:</b> Остаток калорийности (350–400 г). Основные источники: рис, гречка, овсянка, макароны из тв. сортов.</li>
-    </ul>
-
-    <table class="data-table">
-        <tr>
-            <th>Прием пищи</th>
-            <th>Состав</th>
-            <th>Примечание</th>
-        </tr>
-        <tr>
-            <td>Завтрак</td>
-            <td>Овсянка (120г), 3 яйца, 1 банан, горсть орехов</td>
-            <td>Сложные углеводы для энергии на день</td>
-        </tr>
-        <tr>
-            <td>Обед</td>
-            <td>Рис/Гречка (250г), Мясо/Птица (150г), Салат</td>
-            <td>Максимальный объем углеводов</td>
-        </tr>
-        <tr>
-            <td>Полдник</td>
-            <td>Творог 5-9% (200г) + Сметана/Мед</td>
-            <td>Медленный белок (казеин)</td>
-        </tr>
-        <tr>
-            <td>Ужин</td>
-            <td>Картофель/Макароны (200г), Рыба/Котлеты, Овощи</td>
-            <td>Восстановление после нагрузок</td>
-        </tr>
-    </table>
-
-    <h2 id="training" class="wiki-section text-2xl font-serif italic">2. Методология тренировок</h2>
-    <p>Тренировки проводятся по системе <b>Full Body</b> (все тело за сессию) 3 раза в неделю (например: Пн, Ср, Пт). Отдых между подходами: 90–120 секунд.</p>
-
-    <div class="highlight">
-        <b>Принцип прогрессии нагрузок:</b> Гантели 15 кг — это хороший стартовый вес. Когда вы выполняете 15 повторений с идеальной техникой, необходимо увеличивать вес гантелей (добавлять блины) или замедлять фазу опускания веса (негативную фазу) до 3-4 секунд.
-    </div>
-
-    <table class="data-table">
-        <tr>
-            <th>Упражнение</th>
-            <th>Целевая группа</th>
-            <th>Объем (П х П)</th>
-        </tr>
-        <tr>
-            <td>Подтягивания (широкий хват)</td>
-            <td>Спина, Бицепс</td>
-            <td>4 х Максимум</td>
-        </tr>
-        <tr>
-            <td>Приседания с 2 гантелями</td>
-            <td>Ноги (Квадрицепс, Ягодицы)</td>
-            <td>4 х 12-15</td>
-        </tr>
-        <tr>
-            <td>Жим гантелей лежа (на полу)</td>
-            <td>Грудные, Трицепс, Дельты</td>
-            <td>4 х 10-12</td>
-        </tr>
-        <tr>
-            <td>Тяга гантели к поясу в наклоне</td>
-            <td>Широчайшие, Ромбовидные</td>
-            <td>3 х 12 (на руку)</td>
-        </tr>
-        <tr>
-            <td>Жим гантелей стоя/сидя</td>
-            <td>Плечи (Дельты)</td>
-            <td>3 х 10-12</td>
-        </tr>
-        <tr>
-            <td>Румынская тяга (на прямых ногах)</td>
-            <td>Бицепс бедра, Низ спины</td>
-            <td>3 х 12-15</td>
-        </tr>
-        <tr>
-            <td>Молотковые сгибания на бицепс</td>
-            <td>Бицепс, Брахиалис</td>
-            <td>3 х 12</td>
-        </tr>
-    </table>
-
-    <h2 id="exercises" class="wiki-section text-2xl font-serif italic">3. Подробный разбор упражнений</h2>
-    
-    <h3 class="font-bold mt-4">3.1. Подтягивания</h3>
-    <p>Главное упражнение для ширины спины. Если можешь сделать больше 12 раз, начни подвешивать одну гантель к поясу. <i>Техника:</i> тянись грудью к перекладине, сводя лопатки.</p>
-
-    <h3 class="font-bold mt-4">3.2. Приседания</h3>
-    <p>База для роста общей массы тела. Гантели держишь либо у плеч (фронтальные приседания), либо в опущенных руках по бокам. Глубина — бедро параллельно полу.</p>
-
-    <h3 class="font-bold mt-4">3.3. Жим на полу (Floor Press)</h3>
-    <p>Альтернатива жиму на скамье. Преимущество: ограничение амплитуды пола бережет плечевой сустав. Акцент на взрывной подъем вверх.</p>
-
-    <h3 class="font-bold mt-4">3.4. Румынская тяга с гантелями</h3>
-    <p>Для задней поверхности бедра. Опускай гантели вдоль ног до середины голени, чувствуя растяжение. Спина строго прямая.</p>
-
-    <h2 id="recovery" class="wiki-section text-2xl font-serif italic">4. Восстановление и сон</h2>
-    <p>
-        Мышечный рост происходит в фазе глубокого сна. Гормон роста пикирует с 23:00 до 02:00. 
-        <b>Рекомендация:</b> Сон не менее 8.5 часов. Исключить гаджеты за 30 минут до сна.
-    </p>
-
-    <h2 id="boxing" class="wiki-section text-2xl font-serif italic">5. Работа с грушей</h2>
-    <p>Используется как специализированное кардио и для сохранения скоростно-силовых качеств.</p>
-    <ul class="list-disc list-inside ml-4">
-        <li><b>Частота:</b> 2 раза в неделю в дни отдыха или после основной тренировки.</li>
-        <li><b>Формат:</b> Интервалы. 3 минуты работы (раунд), 1 минута отдыха. Всего 4-5 раундов.</li>
-        <li><b>Задачи:</b> Отработка джеба и двоек. Не «забивать» мышцы силой, работать на скорость и легкость.</li>
-    </ul>
-
-    <div class="mt-10 p-4 border-t border-gray-300 text-xs text-gray-500">
-        Материал подготовлен специально для Эдема. Последнее изменение: Март 2024. Данные основаны на принципах спортивной нутрициологии и физиологии силового тренинга.
-    </div>
-</div>
-
-<script>
-    // Простой скрипт для плавного скролла
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            e.preventDefault();
-            document.querySelector(this.getAttribute('href')).scrollIntoView({
-                behavior: 'smooth'
-            });
-        });
-    });
-</script>
-
+    <script src="script.js"></script>
 </body>
 </html>
